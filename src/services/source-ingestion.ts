@@ -11,6 +11,7 @@ import {
 import { INITIAL_SOURCE_REGISTRY } from '@/data/sources-registry';
 import { SEED_QUESTIONS } from '@/data/seed-questions';
 import { SYLLABUS_TOPICS } from '@/data/syllabus';
+import { QuestionBankService } from './question-bank';
 
 // In-memory runtime stores (retained in memory and synchronized with database)
 const SOURCES_STORE: SourceRegistryItem[] = [...INITIAL_SOURCE_REGISTRY];
@@ -652,10 +653,25 @@ export class SourceIngestionService {
   }
 
   static getApprovedQuestions(): Question[] {
-    return RUNTIME_QUESTIONS.filter((q) => q.reviewStatus === 'approved');
+    const runtimeApproved = RUNTIME_QUESTIONS.filter((q) => q.reviewStatus === 'approved');
+    try {
+      const qbQuestions = QuestionBankService.getPlatformQuestions();
+      return [...runtimeApproved, ...qbQuestions];
+    } catch (e) {
+      console.warn('[SourceIngestionService] Could not load QB platform questions:', e);
+      return runtimeApproved;
+    }
   }
 
   static getQuestionById(id: string): Question | undefined {
-    return RUNTIME_QUESTIONS.find((q) => q.id === id) || SEED_QUESTIONS.find((q) => q.id === id);
+    const found = RUNTIME_QUESTIONS.find((q) => q.id === id) || SEED_QUESTIONS.find((q) => q.id === id);
+    if (found) return found;
+    try {
+      const raw = QuestionBankService.getQuestionById(id);
+      if (raw) return QuestionBankService.toPlatformQuestion(raw);
+    } catch (e) {
+      // Fallback
+    }
+    return undefined;
   }
 }

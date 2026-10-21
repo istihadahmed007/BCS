@@ -1,0 +1,4067 @@
+{
+  "totalQuestions": 20000,
+  "totalBatches": 81,
+  "subjectStats": {
+    "Bangla": 3598,
+    "English": 3598,
+    "Bangladesh Affairs": 3197,
+    "International Affairs": 2398,
+    "Science": 1998,
+    "Computer and Information Technology": 1998,
+    "Mathematics": 1600,
+    "Mental Ability": 808,
+    "Geography and Environment": 563,
+    "Ethics, Values and Good Governance": 242
+  },
+  "difficultyStats": {
+    "easy": 2324,
+    "medium": 17656,
+    "hard": 20
+  },
+  "batches": [
+    {
+      "file": "batch_001.jsonl",
+      "count": 100,
+      "firstId": "BCS-QB-B01-001",
+      "lastId": "BCS-QB-B01-100",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_002.jsonl",
+      "count": 150,
+      "firstId": "BCS-QB-B02-001",
+      "lastId": "BCS-QB-B02-150",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_003.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B03-001",
+      "lastId": "BCS-QB-B03-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_004.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B04-001",
+      "lastId": "BCS-QB-B04-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_005.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B005-001",
+      "lastId": "BCS-QB-B005-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_006.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B006-001",
+      "lastId": "BCS-QB-B006-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_007.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B007-001",
+      "lastId": "BCS-QB-B007-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_008.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B008-001",
+      "lastId": "BCS-QB-B008-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_009.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B009-001",
+      "lastId": "BCS-QB-B009-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_010.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B010-001",
+      "lastId": "BCS-QB-B010-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_011.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B011-001",
+      "lastId": "BCS-QB-B011-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_012.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B012-001",
+      "lastId": "BCS-QB-B012-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_013.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B013-001",
+      "lastId": "BCS-QB-B013-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_014.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B014-001",
+      "lastId": "BCS-QB-B014-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_015.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B015-001",
+      "lastId": "BCS-QB-B015-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_016.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B016-001",
+      "lastId": "BCS-QB-B016-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_017.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B017-001",
+      "lastId": "BCS-QB-B017-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_018.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B018-001",
+      "lastId": "BCS-QB-B018-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_019.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B019-001",
+      "lastId": "BCS-QB-B019-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_020.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B020-001",
+      "lastId": "BCS-QB-B020-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_021.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B021-001",
+      "lastId": "BCS-QB-B021-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_022.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B022-001",
+      "lastId": "BCS-QB-B022-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_023.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B023-001",
+      "lastId": "BCS-QB-B023-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_024.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B024-001",
+      "lastId": "BCS-QB-B024-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_025.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B025-001",
+      "lastId": "BCS-QB-B025-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_026.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B026-001",
+      "lastId": "BCS-QB-B026-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_027.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B027-001",
+      "lastId": "BCS-QB-B027-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_028.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B028-001",
+      "lastId": "BCS-QB-B028-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_029.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B029-001",
+      "lastId": "BCS-QB-B029-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_030.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B030-001",
+      "lastId": "BCS-QB-B030-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_031.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B031-001",
+      "lastId": "BCS-QB-B031-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_032.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B032-001",
+      "lastId": "BCS-QB-B032-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_033.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B033-001",
+      "lastId": "BCS-QB-B033-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_034.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B034-001",
+      "lastId": "BCS-QB-B034-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_035.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B035-001",
+      "lastId": "BCS-QB-B035-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_036.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B036-001",
+      "lastId": "BCS-QB-B036-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_037.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B037-001",
+      "lastId": "BCS-QB-B037-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_038.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B038-001",
+      "lastId": "BCS-QB-B038-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_039.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B039-001",
+      "lastId": "BCS-QB-B039-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_040.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B040-001",
+      "lastId": "BCS-QB-B040-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_041.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B041-001",
+      "lastId": "BCS-QB-B041-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_042.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B042-001",
+      "lastId": "BCS-QB-B042-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_043.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B043-001",
+      "lastId": "BCS-QB-B043-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_044.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B044-001",
+      "lastId": "BCS-QB-B044-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_045.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B045-001",
+      "lastId": "BCS-QB-B045-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_046.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B046-001",
+      "lastId": "BCS-QB-B046-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_047.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B047-001",
+      "lastId": "BCS-QB-B047-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_048.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B048-001",
+      "lastId": "BCS-QB-B048-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_049.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B049-001",
+      "lastId": "BCS-QB-B049-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_050.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B050-001",
+      "lastId": "BCS-QB-B050-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_051.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B051-001",
+      "lastId": "BCS-QB-B051-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_052.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B052-001",
+      "lastId": "BCS-QB-B052-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_053.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B053-001",
+      "lastId": "BCS-QB-B053-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_054.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B054-001",
+      "lastId": "BCS-QB-B054-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_055.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B055-001",
+      "lastId": "BCS-QB-B055-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_056.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B056-001",
+      "lastId": "BCS-QB-B056-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_057.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B057-001",
+      "lastId": "BCS-QB-B057-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_058.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B058-001",
+      "lastId": "BCS-QB-B058-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_059.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B059-001",
+      "lastId": "BCS-QB-B059-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_060.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B060-001",
+      "lastId": "BCS-QB-B060-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_061.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B061-001",
+      "lastId": "BCS-QB-B061-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_062.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B062-001",
+      "lastId": "BCS-QB-B062-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_063.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B063-001",
+      "lastId": "BCS-QB-B063-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_064.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B064-001",
+      "lastId": "BCS-QB-B064-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_065.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B065-001",
+      "lastId": "BCS-QB-B065-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_066.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B066-001",
+      "lastId": "BCS-QB-B066-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_067.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B067-001",
+      "lastId": "BCS-QB-B067-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_068.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B068-001",
+      "lastId": "BCS-QB-B068-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_069.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B069-001",
+      "lastId": "BCS-QB-B069-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_070.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B070-001",
+      "lastId": "BCS-QB-B070-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_071.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B071-001",
+      "lastId": "BCS-QB-B071-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_072.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B072-001",
+      "lastId": "BCS-QB-B072-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_073.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B073-001",
+      "lastId": "BCS-QB-B073-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_074.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B074-001",
+      "lastId": "BCS-QB-B074-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_075.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B075-001",
+      "lastId": "BCS-QB-B075-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_076.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B076-001",
+      "lastId": "BCS-QB-B076-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_077.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B077-001",
+      "lastId": "BCS-QB-B077-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_078.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B078-001",
+      "lastId": "BCS-QB-B078-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_079.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B079-001",
+      "lastId": "BCS-QB-B079-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_080.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B080-001",
+      "lastId": "BCS-QB-B080-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    },
+    {
+      "file": "batch_081.jsonl",
+      "count": 250,
+      "firstId": "BCS-QB-B081-001",
+      "lastId": "BCS-QB-B081-250",
+      "subjects": [
+        "Bangla",
+        "English",
+        "Bangladesh Affairs",
+        "International Affairs",
+        "Science",
+        "Computer and Information Technology",
+        "Mathematics",
+        "Mental Ability",
+        "Geography and Environment",
+        "Ethics, Values and Good Governance"
+      ]
+    }
+  ],
+  "subjectTopics": {
+    "Bangla": [
+      {
+        "topic": "প্রাচীন যুগ — চর্যাপদ",
+        "count": 232
+      },
+      {
+        "topic": "মধ্যযুগ — শ্রীকৃষ্ণকীর্তন কাব্য",
+        "count": 156
+      },
+      {
+        "topic": "মধ্যযুগ — বৈষ্ণব পদাবলী",
+        "count": 156
+      },
+      {
+        "topic": "বাংলা ব্যাকরণ — সমাস",
+        "count": 154
+      },
+      {
+        "topic": "কারক ও বিভক্তি নির্ণয়",
+        "count": 154
+      },
+      {
+        "topic": "বাগধারা ও প্রবাদ-প্রবচন",
+        "count": 154
+      },
+      {
+        "topic": "ণ-ত্ব ও ষ-ত্ব বিধান",
+        "count": 79
+      },
+      {
+        "topic": "আধুনিক যুগ — মীর মশাররফ হোসেন",
+        "count": 78
+      },
+      {
+        "topic": "বাংলা ব্যাকরণ — ধ্বনিতত্ত্ব",
+        "count": 77
+      },
+      {
+        "topic": "ধ্বনিতত্ত্ব — ঘোষ ও মহাপ্রাণ বৈশিষ্ট্য",
+        "count": 77
+      },
+      {
+        "topic": "বাংলা ব্যাকরণ — সন্ধি",
+        "count": 77
+      },
+      {
+        "topic": "বাংলা ব্যাকরণ — সন্ধি প্রকরণ",
+        "count": 77
+      },
+      {
+        "topic": "বাংলা ব্যাকরণ — বিসর্গ সন্ধি",
+        "count": 77
+      },
+      {
+        "topic": "ণ-ত্ব বিধান — স্বাভাবিক মূর্ধন্য-ণ",
+        "count": 77
+      },
+      {
+        "topic": "বাংলা ব্যাকরণ — সমাস প্রকরণ",
+        "count": 77
+      },
+      {
+        "topic": "শব্দ গঠন — উপসর্গ",
+        "count": 77
+      },
+      {
+        "topic": "শব্দ গঠন — প্রত্যয়",
+        "count": 77
+      },
+      {
+        "topic": "শব্দার্থ ও সমার্থক শব্দ",
+        "count": 77
+      },
+      {
+        "topic": "শব্দার্থ — বিপরীতার্থক শব্দ",
+        "count": 77
+      },
+      {
+        "topic": "এককথায় প্রকাশ (বাক্য সংকোচন)",
+        "count": 77
+      },
+      {
+        "topic": "বানান শুদ্ধি ও প্রমিত বাংলা বানান",
+        "count": 77
+      },
+      {
+        "topic": "মধ্যযুগ — মঙ্গলকাব্য ধারা",
+        "count": 77
+      },
+      {
+        "topic": "মধ্যযুগ — অন্নদামঙ্গল কাব্য",
+        "count": 77
+      },
+      {
+        "topic": "মধ্যযুগ — মুসলিম সাহিত্য ও অনুবাদ",
+        "count": 77
+      },
+      {
+        "topic": "মধ্যযুগ — প্রণয়োপাখ্যান",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক বাংলা গদ্যের উন্মেষ",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক বাংলা সাহিত্য — ঈশ্বরচন্দ্র বিদ্যাসাগর",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক বাংলা কবিতা — মাইকেল মধুসূদন দত্ত",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক বাংলা নাটক ও সনেট",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক বাংলা উপন্যাস — বঙ্কিমচন্দ্র চট্টোপাধ্যায়",
+        "count": 77
+      },
+      {
+        "topic": "রবীন্দ্র সাহিত্য — নোবেল বিজয়",
+        "count": 77
+      },
+      {
+        "topic": "রবীন্দ্র সাহিত্য — উপন্যাস ও চরিত্র",
+        "count": 77
+      },
+      {
+        "topic": "রবীন্দ্র সাহিত্য — নাটক ও ছোটগল্প",
+        "count": 77
+      },
+      {
+        "topic": "নজরুল সাহিত্য — বিদ্রোহী কবি",
+        "count": 77
+      },
+      {
+        "topic": "নজরুল সাহিত্য — সাংবাদিকতা ও সাময়িকী",
+        "count": 77
+      },
+      {
+        "topic": "নজরুল সাহিত্য — উপন্যাস ও কথাসাহিত্য",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক বাংলা কবিতা — জীবনানন্দ দাশ",
+        "count": 77
+      },
+      {
+        "topic": "পল্লীকবি জসীমউদ্দীন ও আখ্যানকাব্য",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক যুগ",
+        "count": 28
+      },
+      {
+        "topic": "আধুনিক সাহিত্য",
+        "count": 12
+      },
+      {
+        "topic": "মধ্যযুগ",
+        "count": 10
+      },
+      {
+        "topic": "প্রাচীন যুগ",
+        "count": 5
+      },
+      {
+        "topic": "সমাস",
+        "count": 4
+      },
+      {
+        "topic": "কারক ও বিভক্তি",
+        "count": 3
+      },
+      {
+        "topic": "ধ্বনি পরিবর্তন",
+        "count": 3
+      },
+      {
+        "topic": "ব্যাকরণ — সমাস",
+        "count": 3
+      },
+      {
+        "topic": "শব্দ ও প্রত্যয়",
+        "count": 2
+      },
+      {
+        "topic": "বাগধারা",
+        "count": 2
+      },
+      {
+        "topic": "মুক্তিযুদ্ধভিত্তিক সাহিত্য",
+        "count": 2
+      },
+      {
+        "topic": "প্রত্যয়",
+        "count": 2
+      },
+      {
+        "topic": "বানান শুদ্ধি",
+        "count": 2
+      },
+      {
+        "topic": "ব্যাকরণ — ধ্বনিতত্ত্ব",
+        "count": 2
+      },
+      {
+        "topic": "ব্যাকরণ — সন্ধি",
+        "count": 2
+      },
+      {
+        "topic": "ব্যাকরণ — বাগ্ধারা",
+        "count": 2
+      },
+      {
+        "topic": "ব্যাকরণ — বিপরীত শব্দ",
+        "count": 2
+      },
+      {
+        "topic": "আধুনিক যুগ — বেগম রোকেয়া",
+        "count": 2
+      },
+      {
+        "topic": "আধুনিক যুগ — রবীন্দ্রনাথ ঠাকুর",
+        "count": 2
+      },
+      {
+        "topic": "আধুনিক যুগ — কাজী নজরুল ইসলাম",
+        "count": 2
+      },
+      {
+        "topic": "ধ্বনি ও বর্ণ",
+        "count": 1
+      },
+      {
+        "topic": "সন্ধি",
+        "count": 1
+      },
+      {
+        "topic": "বাক্য শুদ্ধি",
+        "count": 1
+      },
+      {
+        "topic": "নাটক",
+        "count": 1
+      },
+      {
+        "topic": "প্রবন্ধ ও সাময়িকপত্র",
+        "count": 1
+      },
+      {
+        "topic": "বিপরীতার্থক শব্দ",
+        "count": 1
+      },
+      {
+        "topic": "সমার্থক শব্দ",
+        "count": 1
+      },
+      {
+        "topic": "শব্দ ও পদ",
+        "count": 1
+      },
+      {
+        "topic": "বাক্যতত্ত্ব",
+        "count": 1
+      },
+      {
+        "topic": "শব্দ ভাণ্ডার",
+        "count": 1
+      },
+      {
+        "topic": "ব্যাকরণ — পারিভাষিক শব্দ",
+        "count": 1
+      },
+      {
+        "topic": "ব্যাকরণ — শব্দার্থ ও পারিভাষিক শব্দ",
+        "count": 1
+      },
+      {
+        "topic": "ব্যাকরণ — পরিভাষা",
+        "count": 1
+      },
+      {
+        "topic": "ব্যাকরণ — বাক্য রূপান্তর",
+        "count": 1
+      },
+      {
+        "topic": "ব্যাকরণ — সমার্থক শব্দ",
+        "count": 1
+      },
+      {
+        "topic": "মধ্যযুগ — রোসাঙ্গ রাজসভা",
+        "count": 1
+      },
+      {
+        "topic": "মধ্যযুগ — লোকসাহিত্য",
+        "count": 1
+      },
+      {
+        "topic": "মধ্যযুগ — মহিলা কবি",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — গদ্যের সূচনা",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — ঈশ্বরচন্দ্র বিদ্যাসাগর",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — সাময়িকপত্র",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — কায়কোবাদ",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — জসীমউদ্দীন",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — জীবনানন্দ দাশ",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — তারাশঙ্কর বন্দ্যোপাধ্যায়",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — বিভূতিভূষণ বন্দ্যোপাধ্যায়",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — মানিক বন্দ্যোপাধ্যায়",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — আখতারুজ্জামান ইলিয়াস",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — শামসুর রাহমান",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — সৈয়দ ওয়ালীউল্লাহ্",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — শওকত ওসমান",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — জহির রায়হান",
+        "count": 1
+      },
+      {
+        "topic": "আধুনিক যুগ — মুনীর চৌধুরী",
+        "count": 1
+      }
+    ],
+    "English": [
+      {
+        "topic": "Subject-Verb Agreement",
+        "count": 232
+      },
+      {
+        "topic": "Appropriate Prepositions",
+        "count": 232
+      },
+      {
+        "topic": "English Idioms & Phrases",
+        "count": 154
+      },
+      {
+        "topic": "Confusing Words & Diction",
+        "count": 154
+      },
+      {
+        "topic": "English Grammar — Parts of Speech",
+        "count": 77
+      },
+      {
+        "topic": "English Grammar — Non-Finite Verbs",
+        "count": 77
+      },
+      {
+        "topic": "English Grammar — Pronouns",
+        "count": 77
+      },
+      {
+        "topic": "English Grammar — Modifiers",
+        "count": 77
+      },
+      {
+        "topic": "English Grammar — Conjunctions",
+        "count": 77
+      },
+      {
+        "topic": "Phrasal Verbs & Idiomatic Expressions",
+        "count": 77
+      },
+      {
+        "topic": "Conditional Sentences",
+        "count": 77
+      },
+      {
+        "topic": "Clauses and Phrases",
+        "count": 77
+      },
+      {
+        "topic": "Voice Transformation",
+        "count": 77
+      },
+      {
+        "topic": "Direct and Indirect Speech",
+        "count": 77
+      },
+      {
+        "topic": "English Vocabulary — Synonyms",
+        "count": 77
+      },
+      {
+        "topic": "English Vocabulary — Antonyms",
+        "count": 77
+      },
+      {
+        "topic": "One-Word Substitution",
+        "count": 77
+      },
+      {
+        "topic": "English Spelling & Orthography",
+        "count": 77
+      },
+      {
+        "topic": "Sentence Transformation",
+        "count": 77
+      },
+      {
+        "topic": "English Literature — Old & Middle English",
+        "count": 77
+      },
+      {
+        "topic": "Middle English Literature — Geoffrey Chaucer",
+        "count": 77
+      },
+      {
+        "topic": "Elizabethan Drama — Christopher Marlowe",
+        "count": 77
+      },
+      {
+        "topic": "Elizabethan Prose — Francis Bacon",
+        "count": 77
+      },
+      {
+        "topic": "Shakespearean Tragedies — Hamlet",
+        "count": 77
+      },
+      {
+        "topic": "Shakespearean Tragedies — Othello",
+        "count": 77
+      },
+      {
+        "topic": "Shakespearean Tragedies — Macbeth",
+        "count": 77
+      },
+      {
+        "topic": "Shakespearean Comedies — The Merchant of Venice",
+        "count": 77
+      },
+      {
+        "topic": "Metaphysical Poetry — John Donne",
+        "count": 77
+      },
+      {
+        "topic": "Puritan Period — John Milton",
+        "count": 77
+      },
+      {
+        "topic": "Augustan Age — Alexander Pope",
+        "count": 77
+      },
+      {
+        "topic": "18th Century Prose — Jonathan Swift",
+        "count": 77
+      },
+      {
+        "topic": "Romantic Poetry — William Wordsworth",
+        "count": 77
+      },
+      {
+        "topic": "Romantic Poetry — John Keats",
+        "count": 77
+      },
+      {
+        "topic": "Romantic Poetry — P. B. Shelley",
+        "count": 77
+      },
+      {
+        "topic": "Victorian Fiction — Charles Dickens",
+        "count": 77
+      },
+      {
+        "topic": "Victorian Poetry — Dramatic Monologue",
+        "count": 77
+      },
+      {
+        "topic": "Modernist Poetry — T. S. Eliot",
+        "count": 77
+      },
+      {
+        "topic": "20th Century Dystopian Fiction — George Orwell",
+        "count": 77
+      },
+      {
+        "topic": "American Literature — Ernest Hemingway",
+        "count": 77
+      },
+      {
+        "topic": "English Literature",
+        "count": 18
+      },
+      {
+        "topic": "Literature — Romantic Period",
+        "count": 7
+      },
+      {
+        "topic": "Literature — Modern Period",
+        "count": 7
+      },
+      {
+        "topic": "Vocabulary & Lexicon",
+        "count": 6
+      },
+      {
+        "topic": "Grammar & Syntax",
+        "count": 6
+      },
+      {
+        "topic": "Grammar — Prepositions",
+        "count": 5
+      },
+      {
+        "topic": "Vocabulary — Synonyms",
+        "count": 5
+      },
+      {
+        "topic": "Vocabulary — Antonyms",
+        "count": 5
+      },
+      {
+        "topic": "Vocabulary — Idioms & Phrases",
+        "count": 5
+      },
+      {
+        "topic": "Literature — Victorian Period",
+        "count": 5
+      },
+      {
+        "topic": "Grammar — Subject-Verb Agreement",
+        "count": 3
+      },
+      {
+        "topic": "Vocabulary — One-Word Substitution",
+        "count": 3
+      },
+      {
+        "topic": "Literature — Figures of Speech",
+        "count": 3
+      },
+      {
+        "topic": "Idioms & Phrases",
+        "count": 2
+      },
+      {
+        "topic": "One Word Substitution",
+        "count": 2
+      },
+      {
+        "topic": "Literary Terms",
+        "count": 2
+      },
+      {
+        "topic": "Grammar — Parts of Speech",
+        "count": 2
+      },
+      {
+        "topic": "Grammar — Pronoun",
+        "count": 2
+      },
+      {
+        "topic": "Grammar — Voice Change",
+        "count": 2
+      },
+      {
+        "topic": "Vocabulary — Spelling",
+        "count": 2
+      },
+      {
+        "topic": "Literature — Elizabethan Period",
+        "count": 2
+      },
+      {
+        "topic": "Literature — Augustan Age",
+        "count": 2
+      },
+      {
+        "topic": "Grammar — Determiners",
+        "count": 2
+      },
+      {
+        "topic": "Grammar — Clauses",
+        "count": 2
+      },
+      {
+        "topic": "Grammar — Phrasal Verbs",
+        "count": 2
+      },
+      {
+        "topic": "Grammar — Tense & Sequence",
+        "count": 2
+      },
+      {
+        "topic": "Parts of Speech",
+        "count": 1
+      },
+      {
+        "topic": "Subjunctive Mood",
+        "count": 1
+      },
+      {
+        "topic": "Sentence Correction",
+        "count": 1
+      },
+      {
+        "topic": "Conditionals",
+        "count": 1
+      },
+      {
+        "topic": "Phrasal Verbs",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Conditional Sentences",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Subjunctive Mood",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Inversion",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Narration / Reported Speech",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Gerund and Participle",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Degree of Comparison",
+        "count": 1
+      },
+      {
+        "topic": "Vocabulary — Foreign Phrases in English",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Elizabethan & Renaissance Period",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Elizabethan & Jacobean Period",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Metaphysical Poetry",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Commonwealth & Puritan Period",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Restoration Period",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Augustan / Neo-Classical Age",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Literary Terms",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Modifiers",
+        "count": 1
+      },
+      {
+        "topic": "Grammar — Parallelism",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Old & Middle English",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Renaissance & Elizabethan Age",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Jacobean Period",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Commonwealth Period",
+        "count": 1
+      },
+      {
+        "topic": "Literature — 18th Century",
+        "count": 1
+      },
+      {
+        "topic": "Literature — Theatre of the Absurd",
+        "count": 1
+      }
+    ],
+    "Bangladesh Affairs": [
+      {
+        "topic": "মৌলিক অধিকারসমূহ",
+        "count": 154
+      },
+      {
+        "topic": "প্রাচীন বাংলার ইতিহাস ও রাজবংশ",
+        "count": 77
+      },
+      {
+        "topic": "পাল সাম্রাজ্য ও বৌদ্ধ সংস্কৃতি",
+        "count": 77
+      },
+      {
+        "topic": "মধ্যযুগীয় বাংলার সূচনা",
+        "count": 77
+      },
+      {
+        "topic": "সুলতানি আমল — স্বাধীন বাংলা",
+        "count": 77
+      },
+      {
+        "topic": "মুঘল সুবাহ বাংলা",
+        "count": 77
+      },
+      {
+        "topic": "ব্রিটিশ ঔপনিবেশিক শাসন প্রতিষ্ঠা",
+        "count": 77
+      },
+      {
+        "topic": "ব্রিটিশ ভূমি রাজস্ব ব্যবস্থা",
+        "count": 77
+      },
+      {
+        "topic": "ব্রিটিশ বিরোধী গণআন্দোলন",
+        "count": 77
+      },
+      {
+        "topic": "জাতীয়তাবাদী আন্দোলন ও বঙ্গভঙ্গ",
+        "count": 77
+      },
+      {
+        "topic": "পাকিস্তান প্রস্তাব ও লাহোর প্রস্তাব",
+        "count": 77
+      },
+      {
+        "topic": "ভাষা আন্দোলন ও বাঙালি জাতীয়তাবাদ",
+        "count": 77
+      },
+      {
+        "topic": "ভাষা আন্দোলনের আন্তর্জাতিক স্বীকৃতি",
+        "count": 77
+      },
+      {
+        "topic": "যুক্তফ্রন্ট নির্বাচন ও ২১ দফা",
+        "count": 77
+      },
+      {
+        "topic": "বাঙালির মুক্তির সনদ — ৬ দফা কর্মসূচি",
+        "count": 77
+      },
+      {
+        "topic": "আগরতলা ষড়যন্ত্র মামলা",
+        "count": 77
+      },
+      {
+        "topic": "উনসত্তরের গণঅভ্যুত্থান",
+        "count": 77
+      },
+      {
+        "topic": "ঐতিহাসিক ৭ই মার্চের ভাষণ",
+        "count": 77
+      },
+      {
+        "topic": "কালরাত ও অপারেশন সার্চলাইট",
+        "count": 77
+      },
+      {
+        "topic": "স্বাধীনতার আনুষ্ঠানিক ঘোষণা",
+        "count": 77
+      },
+      {
+        "topic": "মুজিবনগর সরকার গঠন ও শপথ গ্রহণ",
+        "count": 77
+      },
+      {
+        "topic": "মুক্তিযুদ্ধের সেক্টর বিন্যাস ও কমান্ডার",
+        "count": 77
+      },
+      {
+        "topic": "মুক্তিযুদ্ধের সেক্টর বিন্যাস",
+        "count": 77
+      },
+      {
+        "topic": "মুক্তিযুদ্ধের বীরশ্রেষ্ঠ খেতাবপ্রাপ্ত শহীদ",
+        "count": 77
+      },
+      {
+        "topic": "চূড়ান্ত বিজয় ও ঐতিহাসিক আত্মসমর্পণ",
+        "count": 77
+      },
+      {
+        "topic": "গণপ্রজাতন্ত্রী বাংলাদেশের সংবিধান প্রণয়ন",
+        "count": 77
+      },
+      {
+        "topic": "সংবিধানের মূলনীতিসমূহ — দ্বিতীয় ভাগ",
+        "count": 77
+      },
+      {
+        "topic": "মৌলিক অধিকার — তৃতীয় ভাগ",
+        "count": 77
+      },
+      {
+        "topic": "বিচার বিভাগ ও মৌলিক অধিকার বলবৎকরণ",
+        "count": 77
+      },
+      {
+        "topic": "সাংবিধানিক প্রতিষ্ঠান ও সংবিধিবদ্ধ পদ",
+        "count": 77
+      },
+      {
+        "topic": "সংবিধানের তফসিলসমূহ",
+        "count": 77
+      },
+      {
+        "topic": "জাতীয় মেগা প্রকল্প ও অবকাঠামো",
+        "count": 77
+      },
+      {
+        "topic": "জাতীয় মেগা প্রকল্প — কর্ণফুলী টানেল",
+        "count": 77
+      },
+      {
+        "topic": "নগর পরিবহন — ঢাকা মেট্রোরেল",
+        "count": 77
+      },
+      {
+        "topic": "বিদ্যুৎ ও জ্বালানি খাত — রূপপুর পারমাণবিক প্রকল্প",
+        "count": 77
+      },
+      {
+        "topic": "বন্দর ও সামুদ্রিক বাণিজ্য",
+        "count": 77
+      },
+      {
+        "topic": "বাংলাদেশের কৃষি ও শস্য বিজ্ঞান",
+        "count": 77
+      },
+      {
+        "topic": "ভৌগোলিক নির্দেশক পণ্য (GI Products)",
+        "count": 77
+      },
+      {
+        "topic": "জনমিতি ও আদমশুমারি — জনশুমারি ২০২২",
+        "count": 77
+      },
+      {
+        "topic": "সংবিধান",
+        "count": 15
+      },
+      {
+        "topic": "মুক্তিযুদ্ধ ১৯৭১",
+        "count": 14
+      },
+      {
+        "topic": "স্বাধিকার আন্দোলন",
+        "count": 4
+      },
+      {
+        "topic": "মেগা প্রকল্প ও অবকাঠামো",
+        "count": 4
+      },
+      {
+        "topic": "জনমিতি ও ক্ষুদ্র নৃগোষ্ঠী",
+        "count": 3
+      },
+      {
+        "topic": "ব্রিটিশ বিরোধী আন্দোলন",
+        "count": 3
+      },
+      {
+        "topic": "ব্রিটিশ ঔপনিবেশিক আমল",
+        "count": 3
+      },
+      {
+        "topic": "প্রাচীন ও মধ্যযুগীয় বাংলা",
+        "count": 2
+      },
+      {
+        "topic": "ভাষা আন্দোলন",
+        "count": 2
+      },
+      {
+        "topic": "প্রাকৃতিক সম্পদ",
+        "count": 2
+      },
+      {
+        "topic": "গণঅভ্যুত্থান ১৯৬৯",
+        "count": 2
+      },
+      {
+        "topic": "প্রাচীন বাংলা ও রাজবংশ",
+        "count": 2
+      },
+      {
+        "topic": "মধ্যযুগীয় বাংলা",
+        "count": 2
+      },
+      {
+        "topic": "অর্থনীতি ও কৃষি",
+        "count": 2
+      },
+      {
+        "topic": "প্রাচীন প্রত্নতত্ত্ব",
+        "count": 2
+      },
+      {
+        "topic": "সুলতানি আমল ও স্থাপত্য",
+        "count": 2
+      },
+      {
+        "topic": "অর্থনীতি ও ব্যাংকিং",
+        "count": 2
+      },
+      {
+        "topic": "অর্থনীতি ও উন্নয়ন",
+        "count": 1
+      },
+      {
+        "topic": "কৃষি ও প্রাকৃতিক সম্পদ",
+        "count": 1
+      },
+      {
+        "topic": "জাতীয় প্রতীক ও স্থাপনা",
+        "count": 1
+      },
+      {
+        "topic": "সুলতানি ও মুঘল আমল",
+        "count": 1
+      },
+      {
+        "topic": "মুঘল শাসন",
+        "count": 1
+      },
+      {
+        "topic": "ঔপনিবেশিক আমল",
+        "count": 1
+      },
+      {
+        "topic": "ঔপনিবেশিক অধ্যায়",
+        "count": 1
+      },
+      {
+        "topic": "ঐতিহাসিক পটভূমি",
+        "count": 1
+      },
+      {
+        "topic": "গণতান্ত্রিক আন্দোলন",
+        "count": 1
+      },
+      {
+        "topic": "অর্থনীতি ও বৈদেশিক খাত",
+        "count": 1
+      },
+      {
+        "topic": "অবকাঠামো ও মেগা প্রকল্প",
+        "count": 1
+      },
+      {
+        "topic": "অবকাঠামো ও বন্দর",
+        "count": 1
+      },
+      {
+        "topic": "কৃষি ও মৎস্যসম্পদ",
+        "count": 1
+      },
+      {
+        "topic": "নদী ও সমুদ্রসীমা বিজয়",
+        "count": 1
+      },
+      {
+        "topic": "জাতীয় প্রতীক ও দিবস",
+        "count": 1
+      },
+      {
+        "topic": "প্রাচীন বাংলা ও জনপদ",
+        "count": 1
+      },
+      {
+        "topic": "প্রাচীন বাংলা ও প্রত্নতত্ত্ব",
+        "count": 1
+      },
+      {
+        "topic": "মুঘল আমল",
+        "count": 1
+      },
+      {
+        "topic": "মুঘল ও ঔপনিবেশিক রূপান্তর",
+        "count": 1
+      },
+      {
+        "topic": "ব্রিটিশ আমলের শেষ পর্যায়",
+        "count": 1
+      },
+      {
+        "topic": "ভাষা আন্দোলন ১৯৫২",
+        "count": 1
+      },
+      {
+        "topic": "পাকিস্তান আমল — নির্বাচন",
+        "count": 1
+      },
+      {
+        "topic": "সরকার ও প্রশাসন",
+        "count": 1
+      },
+      {
+        "topic": "অর্থনীতি ও বাণিজ্য",
+        "count": 1
+      },
+      {
+        "topic": "ভূগোল ও পরিবেশ — সীমান্ত ও ছিটমহল",
+        "count": 1
+      },
+      {
+        "topic": "ভূগোল ও পরিবেশ — সীমানা",
+        "count": 1
+      },
+      {
+        "topic": "প্রাচীন প্রত্নতত্ত্ব ও ইতিহাস",
+        "count": 1
+      },
+      {
+        "topic": "মুঘল স্থাপত্য",
+        "count": 1
+      },
+      {
+        "topic": "ঐতিহাসিক প্রাসাদ",
+        "count": 1
+      },
+      {
+        "topic": "ব্রিটিশ সমাজ সংস্কার",
+        "count": 1
+      },
+      {
+        "topic": "মুসলিম নবজাগরণ",
+        "count": 1
+      },
+      {
+        "topic": "মুসলিম রাজনীতি ও সংগঠন",
+        "count": 1
+      },
+      {
+        "topic": "ভাষা আন্দোলন ১৯৪৮-১৯৫২",
+        "count": 1
+      },
+      {
+        "topic": "সংবিধান ও রাষ্ট্রকাঠামো",
+        "count": 1
+      },
+      {
+        "topic": "প্রশাসন ও স্থানীয় সরকার",
+        "count": 1
+      },
+      {
+        "topic": "অর্থনীতি ও পরিকল্পনা",
+        "count": 1
+      },
+      {
+        "topic": "প্রাকৃতিক সম্পদ ও জ্বালানি",
+        "count": 1
+      },
+      {
+        "topic": "যোগাযোগ ও অবকাঠামো",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক স্বীকৃতি ও ঐতিহ্য",
+        "count": 1
+      },
+      {
+        "topic": "জনমিতি ও আদমশুমারি",
+        "count": 1
+      },
+      {
+        "topic": "জাতীয় প্রতীক ও ঐতিহ্য",
+        "count": 1
+      },
+      {
+        "topic": "জাতীয় প্রতীক",
+        "count": 1
+      },
+      {
+        "topic": "জাতীয় পতাকা ও প্রতীক",
+        "count": 1
+      },
+      {
+        "topic": "জাতীয় সংগীত",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমানা ও ছিটমহল",
+        "count": 1
+      },
+      {
+        "topic": "সামাজিক সূচক ও নিরাপত্তা",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক কূটনীতি ও স্বীকৃতি",
+        "count": 1
+      },
+      {
+        "topic": "জাতীয় সংসদ ও ইতিহাস",
+        "count": 1
+      },
+      {
+        "topic": "সংবিধান — সংশোধনী",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমান্ত ও ছিটমহল",
+        "count": 1
+      },
+      {
+        "topic": "প্রাকৃতিক ঐতিহ্য",
+        "count": 1
+      }
+    ],
+    "International Affairs": [
+      {
+        "topic": "আন্তর্জাতিক বাণিজ্য সংস্থা",
+        "count": 78
+      },
+      {
+        "topic": "প্রাচীন সভ্যতা ও বিশ্ব ইতিহাস",
+        "count": 77
+      },
+      {
+        "topic": "আধুনিক ইউরোপ ও বিপ্লব",
+        "count": 77
+      },
+      {
+        "topic": "বিশ্বযুদ্ধ ও আন্তর্জাতিক সংঘাত",
+        "count": 77
+      },
+      {
+        "topic": "দ্বিতীয় বিশ্বযুদ্ধ ও পারমাণবিক যুগ",
+        "count": 77
+      },
+      {
+        "topic": "স্নায়ুযুদ্ধ ও ভূরাজনীতি",
+        "count": 77
+      },
+      {
+        "topic": "স্নায়ুযুদ্ধ পরবর্তী বিশ্ব",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমারেখা ও সীমানা বিরোধ",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক সম্পর্ক ও কূটনীতি",
+        "count": 77
+      },
+      {
+        "topic": "জাতিসংঘ ও আন্তর্জাতিক সংস্থা",
+        "count": 77
+      },
+      {
+        "topic": "জাতিসংঘের অঙ্গসংস্থা",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক আদালত ও আইন",
+        "count": 77
+      },
+      {
+        "topic": "জাতিসংঘের বিশেষায়িত সংস্থাসমূহ",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক অর্থনৈতিক প্রতিষ্ঠান",
+        "count": 77
+      },
+      {
+        "topic": "আঞ্চলিক সহযোগিতা সংস্থা — সার্ক",
+        "count": 77
+      },
+      {
+        "topic": "আঞ্চলিক সহযোগিতা সংস্থা — বিমসটেক",
+        "count": 77
+      },
+      {
+        "topic": "আঞ্চলিক সংস্থা — আসিয়ান",
+        "count": 77
+      },
+      {
+        "topic": "ইউরোপীয় ইউনিয়ন ও ইউরোপীয় রাজনীতি",
+        "count": 77
+      },
+      {
+        "topic": "সামরিক ও নিরাপত্তা জোট — ন্যাটো",
+        "count": 77
+      },
+      {
+        "topic": "উদীয়মান অর্থনৈতিক জোট — ব্রিকস",
+        "count": 77
+      },
+      {
+        "topic": "বিশ্বের প্রধান সমুদ্র প্রণালী",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক নৌপথ ও খাল",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক নৌপথ — পানামা খাল",
+        "count": 77
+      },
+      {
+        "topic": "বিশ্বের প্রাকৃতিক ভূগোল — মরুভূমি",
+        "count": 77
+      },
+      {
+        "topic": "বিশ্বের প্রধান পর্বতমালা ও শৃঙ্গ",
+        "count": 77
+      },
+      {
+        "topic": "বিশ্বের প্রধান নদী ব্যবস্থা",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক পরিবেশ কূটনীতি ও জলবায়ু চুক্তি",
+        "count": 77
+      },
+      {
+        "topic": "পারমাণবিক অস্ত্র নিয়ন্ত্রণ ও নিরস্ত্রীকরণ",
+        "count": 77
+      },
+      {
+        "topic": "বিশ্বের দেশ, রাজধানী ও মুদ্রা",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক পুরস্কার ও সম্মাননা",
+        "count": 77
+      },
+      {
+        "topic": "আন্তর্জাতিক সংস্থা",
+        "count": 4
+      },
+      {
+        "topic": "বিশ্ব ইতিহাস ও বিপ্লব",
+        "count": 3
+      },
+      {
+        "topic": "জাতিসংঘের বিশেষায়িত সংস্থা",
+        "count": 3
+      },
+      {
+        "topic": "জাতিসংঘ সংস্থা",
+        "count": 3
+      },
+      {
+        "topic": "জাতিসংঘ ব্যবস্থা",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক অর্থনৈতিক সংস্থা",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক পরিবেশ সম্মেলন",
+        "count": 2
+      },
+      {
+        "topic": "বিশ্বের রাজধানী ও মুদ্রা",
+        "count": 2
+      },
+      {
+        "topic": "জাতিসংঘ (UN)",
+        "count": 2
+      },
+      {
+        "topic": "ব্রেটন উডস প্রতিষ্ঠান",
+        "count": 2
+      },
+      {
+        "topic": "ভূরাজনীতি ও গুরুত্বপূর্ণ প্রণালী",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক খাল",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমারেখা",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক শান্তি চুক্তি",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক অর্থনৈতিক জোট",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক উন্নয়ন ব্যাংক",
+        "count": 2
+      },
+      {
+        "topic": "আন্তর্জাতিক নিরাপত্তা ও পরাশক্তি",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক চুক্তি ও সনদ",
+        "count": 1
+      },
+      {
+        "topic": "বিশ্ব অর্থনীতি ও অর্থনৈতিক জোট",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক প্রণালী ও ভূগোল",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক আর্থিক প্রতিষ্ঠান",
+        "count": 1
+      },
+      {
+        "topic": "বিশ্বের সীমানা ও বিরোধ",
+        "count": 1
+      },
+      {
+        "topic": "নোবেল পুরস্কার",
+        "count": 1
+      },
+      {
+        "topic": "প্রাচীন সভ্যতা",
+        "count": 1
+      },
+      {
+        "topic": "জাতিসংঘ ও বাংলাদেশ",
+        "count": 1
+      },
+      {
+        "topic": "আঞ্চলিক ও আন্তর্জাতিক সংস্থা",
+        "count": 1
+      },
+      {
+        "topic": "কৌশলগত সামুদ্রিক জলপথ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক চুক্তি ও অস্ত্র নিয়ন্ত্রণ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক আদালত ও মানবাধিকার",
+        "count": 1
+      },
+      {
+        "topic": "ভূ-রাজনীতি ও আন্তর্জাতিক বিরোধ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক প্রণালী",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমান্ত ও বিবাদ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সংস্থা ও সম্মেলন",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক মানবাধিকার",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক প্রণালী ও খাল",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক ইতিহাস ও কূটনীতি",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক ইতিহাস",
+        "count": 1
+      },
+      {
+        "topic": "জাতিসংঘ বিচার সংস্থা",
+        "count": 1
+      },
+      {
+        "topic": "সামরিক জোট",
+        "count": 1
+      },
+      {
+        "topic": "আঞ্চলিক সহযোগিতা",
+        "count": 1
+      },
+      {
+        "topic": "উদীয়মান অর্থনৈতিক জোট",
+        "count": 1
+      },
+      {
+        "topic": "মধ্যপ্রাচ্য সংকট ও প্যালেস্টাইন",
+        "count": 1
+      },
+      {
+        "topic": "মধ্যপ্রাচ্য সংকট",
+        "count": 1
+      },
+      {
+        "topic": "পারমাণবিক কূটনীতি",
+        "count": 1
+      },
+      {
+        "topic": "পরিবেশ কূটনীতি ও জলবায়ু",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমানা ও সীমারেখা",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমান্তরেখা",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক বিচার সংস্থা",
+        "count": 1
+      },
+      {
+        "topic": "দক্ষিণ এশীয় রাজনীতি",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক পুরস্কার",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক চুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "বিশ্ব ইতিহাস ও স্বাধীনতা",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক অস্ত্র নিয়ন্ত্রণ",
+        "count": 1
+      },
+      {
+        "topic": "রাসায়নিক অস্ত্র নিরস্ত্রীকরণ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক বিরোধ ও দ্বীপপুঞ্জ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক বিরোধ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক বিরোধ ও সামরিক ঘাঁটি",
+        "count": 1
+      },
+      {
+        "topic": "দক্ষিণ-পূর্ব এশীয় রাজনীতি",
+        "count": 1
+      },
+      {
+        "topic": "বঙ্গোপসাগরীয় আঞ্চলিক সহযোগিতা",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সমুদ্র ভূগোল",
+        "count": 1
+      },
+      {
+        "topic": "ইউরেশীয় প্রণালী",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক সীমারেখা ও প্রণালী",
+        "count": 1
+      },
+      {
+        "topic": "দক্ষিণ এশীয় সীমানা",
+        "count": 1
+      },
+      {
+        "topic": "ভূরাজনীতি ও বিরোধ",
+        "count": 1
+      },
+      {
+        "topic": "আন্তর্জাতিক মানবাধিকার ও সনদ",
+        "count": 1
+      },
+      {
+        "topic": "ইউরোপীয় নিরাপত্তা ও কূটনীতি",
+        "count": 1
+      }
+    ],
+    "Science": [
+      {
+        "topic": "পদার্থবিজ্ঞান — তাপ ও তাপগতিবিদ্যা",
+        "count": 78
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — কাজ, শক্তি ও ক্ষমতা",
+        "count": 78
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — বলবিদ্যা ও গতি",
+        "count": 77
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — মহাকর্ষ ও অভিকর্ষ",
+        "count": 77
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — আলোকবিজ্ঞান",
+        "count": 77
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — তরঙ্গ ও শব্দবিজ্ঞান",
+        "count": 77
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — স্থির ও চলতড়িৎ",
+        "count": 77
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — আধুনিক পদার্থবিজ্ঞান",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — পরমাণুর গঠন ও পর্যায় সারণি",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — পর্যায় সারণি",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — অ্যাসিড, ক্ষারক ও লবণ",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — ধাতু ও সংকর ধাতু",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — জৈব রসায়ন ও জীবাশ্ম জ্বালানি",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — রাসায়নিক বন্ধন",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — পলিমার ও প্লাস্টিক",
+        "count": 77
+      },
+      {
+        "topic": "রসায়ন — পরিবেশ রসায়ন",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — কোষ ও কোষীয় অঙ্গাণু",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — কোষ বিভাজন",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — রক্ত ও রক্ত সংবহন",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — রেচনতন্ত্র ও মানব শারীরস্থান",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — অন্তঃক্ষরা গ্রন্থি ও হরমোন",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — পুষ্টিবিজ্ঞান ও খাদ্য উপাদান",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — জিনতত্ত্ব ও বংশগতি",
+        "count": 77
+      },
+      {
+        "topic": "উদ্ভিদবিজ্ঞান — সালোকসংশ্লেষণ",
+        "count": 77
+      },
+      {
+        "topic": "জীববিজ্ঞান — অণুজীব ও সংক্রামক রোগ",
+        "count": 77
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান",
+        "count": 15
+      },
+      {
+        "topic": "রসায়ন",
+        "count": 12
+      },
+      {
+        "topic": "রসায়নবিজ্ঞান",
+        "count": 6
+      },
+      {
+        "topic": "জীববিজ্ঞান",
+        "count": 2
+      },
+      {
+        "topic": "চিকিৎসা ও পুষ্টিবিজ্ঞান",
+        "count": 2
+      },
+      {
+        "topic": "উদ্ভিদবিজ্ঞান",
+        "count": 2
+      },
+      {
+        "topic": "কোষ ও বংশগতি",
+        "count": 2
+      },
+      {
+        "topic": "প্রাণিবিজ্ঞান ও মানব শারীরতত্ত্ব",
+        "count": 2
+      },
+      {
+        "topic": "পুষ্টিবিজ্ঞান ও ভিটামিন",
+        "count": 2
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — আলো",
+        "count": 2
+      },
+      {
+        "topic": "মানব শারীরতত্ত্ব",
+        "count": 2
+      },
+      {
+        "topic": "পরিবেশ ও বায়ুমণ্ডলীয় বিজ্ঞান",
+        "count": 1
+      },
+      {
+        "topic": "চিকিৎসা ও আধুনিক বিজ্ঞান",
+        "count": 1
+      },
+      {
+        "topic": "জীববিজ্ঞান ও মানব শারীরতত্ত্ব",
+        "count": 1
+      },
+      {
+        "topic": "জীববিজ্ঞান ও এন্ডোক্রাইনোলজি",
+        "count": 1
+      },
+      {
+        "topic": "অণুজীববিজ্ঞান ও রোগতত্ত্ব",
+        "count": 1
+      },
+      {
+        "topic": "জ্যোতির্বিজ্ঞান ও মহাকাশ",
+        "count": 1
+      },
+      {
+        "topic": "চিকিৎসা ও আধুনিক প্রযুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "রোগব্যাধি ও অণুজীব",
+        "count": 1
+      },
+      {
+        "topic": "চিকিৎসা প্রযুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "পরিবেশ ও বাস্তুসংস্থান",
+        "count": 1
+      },
+      {
+        "topic": "পরিবেশ বিজ্ঞান",
+        "count": 1
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — তাপগতিবিদ্যা",
+        "count": 1
+      },
+      {
+        "topic": "কোষ বিভাজন",
+        "count": 1
+      },
+      {
+        "topic": "বংশগতিবিজ্ঞান ও মেন্ডেলবাদ",
+        "count": 1
+      },
+      {
+        "topic": "বংশগতি রোগ",
+        "count": 1
+      },
+      {
+        "topic": "মানব শারীরতত্ত্ব — রেচনতন্ত্র",
+        "count": 1
+      },
+      {
+        "topic": "রোগব্যাধি ও ভ্যাকসিন",
+        "count": 1
+      },
+      {
+        "topic": "চিকিৎসাবিজ্ঞান আবিষ্কার",
+        "count": 1
+      },
+      {
+        "topic": "পদার্থবিজ্ঞান — শব্দ",
+        "count": 1
+      },
+      {
+        "topic": "রসায়ন — এসিড",
+        "count": 1
+      },
+      {
+        "topic": "খাদ্য ও পুষ্টি",
+        "count": 1
+      },
+      {
+        "topic": "মহাকাশবিজ্ঞান",
+        "count": 1
+      }
+    ],
+    "Computer and Information Technology": [
+      {
+        "topic": "কম্পিউটার হার্ডওয়্যার ও স্থাপত্য",
+        "count": 78
+      },
+      {
+        "topic": "সংখ্যা পদ্ধতি ও ডিজিটাল লজিক",
+        "count": 78
+      },
+      {
+        "topic": "ডাটাবেজ ম্যানেজমেন্ট সিস্টেম (DBMS)",
+        "count": 78
+      },
+      {
+        "topic": "কম্পিউটার মেমোরি ও স্টোরেজ",
+        "count": 77
+      },
+      {
+        "topic": "মেমোরি অনুক্রম ও পারফরম্যান্স",
+        "count": 77
+      },
+      {
+        "topic": "কম্পিউটার হার্ডওয়্যার বাস",
+        "count": 77
+      },
+      {
+        "topic": "ডিজিটাল লজিক ও গেটস",
+        "count": 77
+      },
+      {
+        "topic": "তথ্য উপস্থাপন ও এনকোডিং",
+        "count": 77
+      },
+      {
+        "topic": "ডিজিটাল সংখ্যা পদ্ধতি",
+        "count": 77
+      },
+      {
+        "topic": "অপারেটিং সিস্টেম ও সিস্টেম সফটওয়্যার",
+        "count": 77
+      },
+      {
+        "topic": "প্রোগ্রামিং ভাষা ও অনুবাদক প্রোগ্রাম",
+        "count": 77
+      },
+      {
+        "topic": "এসকিউএল (SQL) ভাষা",
+        "count": 77
+      },
+      {
+        "topic": "কম্পিউটার নেটওয়ার্কিং — ওএসআই মডেল",
+        "count": 77
+      },
+      {
+        "topic": "নেটওয়ার্ক টপোলজি ও কনফিগারেশন",
+        "count": 77
+      },
+      {
+        "topic": "ডাটা কমিউনিকেশন মিডিয়া",
+        "count": 77
+      },
+      {
+        "topic": "পরিবহন স্তরের প্রোটোকল",
+        "count": 77
+      },
+      {
+        "topic": "ইন্টারনেট প্রোটোকল অ্যাড্রেসিং",
+        "count": 77
+      },
+      {
+        "topic": "নেটওয়ার্ক প্রোটোকল ও পোর্ট নম্বর",
+        "count": 77
+      },
+      {
+        "topic": "নেটওয়ার্ক ইন্টারফেস ও হার্ডওয়্যার অ্যাড্রেস",
+        "count": 77
+      },
+      {
+        "topic": "ইন্টারনেট সেবা ও আর্কিটেকচার",
+        "count": 77
+      },
+      {
+        "topic": "সাইবার নিরাপত্তা ও ম্যালওয়্যার",
+        "count": 77
+      },
+      {
+        "topic": "তথ্য নিরাপত্তা ও ক্রিপ্টোগ্রাফি",
+        "count": 77
+      },
+      {
+        "topic": "ক্লাউড কম্পিউটিং ও আধুনিক প্রযুক্তি",
+        "count": 77
+      },
+      {
+        "topic": "কৃত্রিম বুদ্ধিমত্তা ও মেশিন লার্নিং",
+        "count": 77
+      },
+      {
+        "topic": "ব্লকচেইন ও আধুনিক ফিনটেক",
+        "count": 77
+      },
+      {
+        "topic": "কম্পিউটার নেটওয়ার্ক",
+        "count": 7
+      },
+      {
+        "topic": "অপারেটিং সিস্টেম",
+        "count": 5
+      },
+      {
+        "topic": "ইন্টারনেট ও প্রোটোকল",
+        "count": 4
+      },
+      {
+        "topic": "সাইবার নিরাপত্তা",
+        "count": 4
+      },
+      {
+        "topic": "কম্পিউটার হার্ডওয়্যার",
+        "count": 3
+      },
+      {
+        "topic": "সাইবার নিরাপত্তা ও ক্রিপ্টোগ্রাফি",
+        "count": 3
+      },
+      {
+        "topic": "কম্পিউটার সংগঠন",
+        "count": 3
+      },
+      {
+        "topic": "ক্লাউড কম্পিউটিং",
+        "count": 2
+      },
+      {
+        "topic": "সংখ্যা পদ্ধতি",
+        "count": 2
+      },
+      {
+        "topic": "ইন্টারনেট অফ থিংস (IoT)",
+        "count": 2
+      },
+      {
+        "topic": "কম্পিউটার সিকিউরিটি",
+        "count": 2
+      },
+      {
+        "topic": "ডাটাবেজ সিস্টেম",
+        "count": 2
+      },
+      {
+        "topic": "সংখ্যা পদ্ধতি ও লজিক",
+        "count": 1
+      },
+      {
+        "topic": "তথ্যপ্রযুক্তি ও আধুনিক উদ্ভাবন",
+        "count": 1
+      },
+      {
+        "topic": "ডিজিটাল লজিক ও গেট",
+        "count": 1
+      },
+      {
+        "topic": "কম্পিউটার সংগঠন ও হার্ডওয়্যার",
+        "count": 1
+      },
+      {
+        "topic": "ইন্টারনেট ও যোগাযোগ",
+        "count": 1
+      },
+      {
+        "topic": "ডেটাবেস ম্যানেজমেন্ট সিস্টেম",
+        "count": 1
+      },
+      {
+        "topic": "প্রোগ্রামিং ও ল্যাঙ্গুয়েজ অনুবাদক",
+        "count": 1
+      },
+      {
+        "topic": "অফিস অ্যাপ্লিকেশন ও শর্টকাট",
+        "count": 1
+      },
+      {
+        "topic": "ওয়্যারলেস নেটওয়ার্ক",
+        "count": 1
+      },
+      {
+        "topic": "তথ্যপ্রযুক্তি বিপ্লব ও ব্লকচেইন",
+        "count": 1
+      },
+      {
+        "topic": "ইন্টারনেট ও ইমেইল",
+        "count": 1
+      },
+      {
+        "topic": "সফটওয়্যার ও অপারেটিং সিস্টেম",
+        "count": 1
+      },
+      {
+        "topic": "ডাটাবেজ ও কোয়েরি ল্যাঙ্গুয়েজ",
+        "count": 1
+      },
+      {
+        "topic": "প্রোগ্রামিং ভাষা ও অনুবাদক",
+        "count": 1
+      },
+      {
+        "topic": "ওয়্যারলেস যোগাযোগ",
+        "count": 1
+      },
+      {
+        "topic": "কৃত্রিম বুদ্ধিমত্তা ও আধুনিক প্রযুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "কম্পিউটার ডেটা পরিমাপ",
+        "count": 1
+      },
+      {
+        "topic": "বুলিয়ান অ্যালজেব্রা",
+        "count": 1
+      },
+      {
+        "topic": "কম্পিউটার ইতিহাস ও প্রজন্ম",
+        "count": 1
+      },
+      {
+        "topic": "কম্পিউটার হার্ডওয়্যার ও মেমোরি",
+        "count": 1
+      },
+      {
+        "topic": "সংখ্যা পদ্ধতি ও কোডিং",
+        "count": 1
+      },
+      {
+        "topic": "সংখ্যা পদ্ধতি ও এনকোডিং",
+        "count": 1
+      },
+      {
+        "topic": "ইন্টারনেট ও ডোমেইন নেম সিস্টেম",
+        "count": 1
+      },
+      {
+        "topic": "ইন্টারনেট নেটওয়ার্কিং",
+        "count": 1
+      },
+      {
+        "topic": "ওয়েব প্রযুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "সংরক্ষণ মাধ্যম ও রেইড (RAID)",
+        "count": 1
+      },
+      {
+        "topic": "ডিজিটাল লজিক ও বাইনারি যোগ",
+        "count": 1
+      },
+      {
+        "topic": "কম্পিউটার সার্কিট",
+        "count": 1
+      },
+      {
+        "topic": "তথ্য সংরক্ষণ প্রযুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "ক্রিপ্টোকারেন্সি ও ব্লকচেইন",
+        "count": 1
+      },
+      {
+        "topic": "কম্পিউটার প্রজন্ম",
+        "count": 1
+      }
+    ],
+    "Mathematics": [
+      {
+        "topic": "বাস্তব সংখ্যা ও পাটিগণিত",
+        "count": 231
+      },
+      {
+        "topic": "বীজগাণিতিক রাশি ও সূত্রাবলী",
+        "count": 154
+      },
+      {
+        "topic": "জ্যামিতি — বহুভুজ",
+        "count": 154
+      },
+      {
+        "topic": "সূচক ও লগারিদম",
+        "count": 79
+      },
+      {
+        "topic": "শতকরা ও লাভ-ক্ষতি",
+        "count": 78
+      },
+      {
+        "topic": "মুনাফা — সরল ও চক্রবৃদ্ধি",
+        "count": 78
+      },
+      {
+        "topic": "অনুপাত ও সমানুপাত",
+        "count": 78
+      },
+      {
+        "topic": "সেট তত্ত্ব ও ভেনচিত্র",
+        "count": 78
+      },
+      {
+        "topic": "সমান্তর ধারা",
+        "count": 78
+      },
+      {
+        "topic": "ঐকিক নিয়ম ও সময়-কাজ",
+        "count": 77
+      },
+      {
+        "topic": "জ্যামিতি — পিথাগোরাসের উপপাদ্য",
+        "count": 77
+      },
+      {
+        "topic": "পরিমিতি — চতুর্ভুজ",
+        "count": 77
+      },
+      {
+        "topic": "পরিমিতি — ট্রাপিজিয়াম",
+        "count": 77
+      },
+      {
+        "topic": "সমাবেশ ও বিন্যাস (Permutation & Combination)",
+        "count": 77
+      },
+      {
+        "topic": "গড় — পরিসংখ্যান",
+        "count": 77
+      },
+      {
+        "topic": "পরিমিতি — বৃত্ত",
+        "count": 77
+      },
+      {
+        "topic": "পাটিগণিত",
+        "count": 6
+      },
+      {
+        "topic": "বীজগণিত",
+        "count": 4
+      },
+      {
+        "topic": "জ্যামিতি",
+        "count": 3
+      },
+      {
+        "topic": "সম্ভাবনা (Probability)",
+        "count": 3
+      },
+      {
+        "topic": "লগারিদম",
+        "count": 2
+      },
+      {
+        "topic": "সমাবেশ ও বিন্যাস",
+        "count": 2
+      },
+      {
+        "topic": "বিন্যাস (Permutation)",
+        "count": 2
+      },
+      {
+        "topic": "সমান্তর ও গুণোত্তর ধারা",
+        "count": 2
+      },
+      {
+        "topic": "জ্যামিতি — বৃত্ত",
+        "count": 2
+      },
+      {
+        "topic": "ত্রিকোণমিতি",
+        "count": 2
+      },
+      {
+        "topic": "পরিসংখ্যান",
+        "count": 2
+      },
+      {
+        "topic": "পাটিগণিত ও সংখ্যাতত্ত্ব",
+        "count": 1
+      },
+      {
+        "topic": "ধারা ও অনুক্রম",
+        "count": 1
+      },
+      {
+        "topic": "সেট তত্ত্ব",
+        "count": 1
+      },
+      {
+        "topic": "বাস্তব সংখ্যা ও মৌলিক সংখ্যা",
+        "count": 1
+      },
+      {
+        "topic": "পাটিগণিত — লসাগু ও গসাগু",
+        "count": 1
+      },
+      {
+        "topic": "শতকরা ও ছাড়",
+        "count": 1
+      },
+      {
+        "topic": "বীজগণিত — সূত্রাবলী",
+        "count": 1
+      },
+      {
+        "topic": "বীজগণিত — ঘন সংবলিত সূত্র",
+        "count": 1
+      },
+      {
+        "topic": "জ্যামিতি — ত্রিভুজ",
+        "count": 1
+      },
+      {
+        "topic": "পরিমিতি — আয়তক্ষেত্র",
+        "count": 1
+      },
+      {
+        "topic": "পরিসংখ্যান ও গড়",
+        "count": 1
+      },
+      {
+        "topic": "পাটিগণিত — সময় ও কাজ",
+        "count": 1
+      },
+      {
+        "topic": "পাটিগণিত — নল ও চৌবাচ্চা",
+        "count": 1
+      },
+      {
+        "topic": "পাটিগণিত — গতিবেগ ও দূরত্ব",
+        "count": 1
+      },
+      {
+        "topic": "পাটিগণিত — নৌকা ও স্রোত",
+        "count": 1
+      },
+      {
+        "topic": "বীজগণিত — দ্বিঘাত সমীকরণ",
+        "count": 1
+      },
+      {
+        "topic": "বীজগণিত — অসমতা",
+        "count": 1
+      },
+      {
+        "topic": "বীজগণিত — উৎপাদকে বিশ্লেষণ",
+        "count": 1
+      },
+      {
+        "topic": "সূচক ও সমীকরণ",
+        "count": 1
+      },
+      {
+        "topic": "জ্যামিতি — চতুর্ভুজ ও রম্বস",
+        "count": 1
+      },
+      {
+        "topic": "জ্যামিতি — ট্রাপিজিয়াম",
+        "count": 1
+      },
+      {
+        "topic": "পরিমিতি — ঘনবস্তু ও বেলন",
+        "count": 1
+      },
+      {
+        "topic": "সমাবেশ (Combination)",
+        "count": 1
+      }
+    ],
+    "Mental Ability": [
+      {
+        "topic": "যান্ত্রিক ও সময় বিষয়ক যুক্তি",
+        "count": 77
+      },
+      {
+        "topic": "দিন ও ক্যালেন্ডার সংক্রান্ত যুক্তি",
+        "count": 77
+      },
+      {
+        "topic": "স্থান ও ক্রমবিন্যাস (Ranking)",
+        "count": 77
+      },
+      {
+        "topic": "দিক ও দূরত্ব সংক্রান্ত যুক্তি (Direction Sense)",
+        "count": 77
+      },
+      {
+        "topic": "বর্ণমালা ও সাংকেতিক বিন্যাস",
+        "count": 77
+      },
+      {
+        "topic": "সংখ্যাভিত্তিক যুক্তি (Number Series)",
+        "count": 77
+      },
+      {
+        "topic": "ভাষাগত সাদৃশ্য (Verbal Analogy)",
+        "count": 77
+      },
+      {
+        "topic": "রক্তের সম্পর্ক ও পারিবারিক ধাঁধা",
+        "count": 77
+      },
+      {
+        "topic": "কোডিং ও ডিকোডিং (Coding-Decoding)",
+        "count": 77
+      },
+      {
+        "topic": "যৌক্তিক সিদ্ধান্ত ও অনুমিতি (Syllogism)",
+        "count": 77
+      },
+      {
+        "topic": "সংখ্যা ও অক্ষর শ্রেণি",
+        "count": 2
+      },
+      {
+        "topic": "কোডিং ও ডিকোডিং",
+        "count": 2
+      },
+      {
+        "topic": "সম্পর্ক ও পারিবারিক যুক্তি",
+        "count": 2
+      },
+      {
+        "topic": "যুক্তি ও সিদ্ধান্ত",
+        "count": 2
+      },
+      {
+        "topic": "শব্দ সাদৃশ্য (Analogy)",
+        "count": 2
+      },
+      {
+        "topic": "শ্রেণিবিভাগ (Odd One Out)",
+        "count": 2
+      },
+      {
+        "topic": "শব্দ ও শাব্দিক সম্পর্ক",
+        "count": 1
+      },
+      {
+        "topic": "স্থানিক ও জ্যামিতিক যুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "দিক-নির্ণয় যুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "দিন ও ক্যালেন্ডার যুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "যুক্তি ও সিদ্ধান্ত গ্রহণ",
+        "count": 1
+      },
+      {
+        "topic": "ঘড়ি ও কোণ নির্ণয়",
+        "count": 1
+      },
+      {
+        "topic": "অ্যালফাবেটিক সিরিজ",
+        "count": 1
+      },
+      {
+        "topic": "সংখ্যা ম্যাট্রিক্স",
+        "count": 1
+      },
+      {
+        "topic": "স্থানিক যুক্তি ও প্রতিবিম্ব",
+        "count": 1
+      },
+      {
+        "topic": "দিক-নির্ণয় ও অবস্থান",
+        "count": 1
+      },
+      {
+        "topic": "গাণিতিক যুক্তি ও ভারসাম্য",
+        "count": 1
+      },
+      {
+        "topic": "অড-ম্যান আউট (Odd One Out)",
+        "count": 1
+      },
+      {
+        "topic": "শাব্দিক অ্যানালজি",
+        "count": 1
+      },
+      {
+        "topic": "রক্তের সম্পর্ক",
+        "count": 1
+      },
+      {
+        "topic": "দিক ও দূরত্ব",
+        "count": 1
+      },
+      {
+        "topic": "ঘড়ি ও সময়",
+        "count": 1
+      },
+      {
+        "topic": "ক্যালেন্ডার ও দিন গণনা",
+        "count": 1
+      },
+      {
+        "topic": "আয়না ও প্রতিবিম্ব",
+        "count": 1
+      },
+      {
+        "topic": "যুক্তি ও অনুমান (Syllogism)",
+        "count": 1
+      },
+      {
+        "topic": "অক্ষর ও সংখ্যা স্থানিক মান",
+        "count": 1
+      },
+      {
+        "topic": "ক্রম ও অবস্থান (Ranking)",
+        "count": 1
+      },
+      {
+        "topic": "স্থানিক যুক্তি — ছক্কার বিপরীত তল",
+        "count": 1
+      },
+      {
+        "topic": "গাণিতিক ধাঁধা ও প্যাটার্ন",
+        "count": 1
+      },
+      {
+        "topic": "সম্পর্ক ও যুক্তি",
+        "count": 1
+      },
+      {
+        "topic": "দিক নির্ণয়",
+        "count": 1
+      },
+      {
+        "topic": "জ্যামিতিক চিত্র গণনা",
+        "count": 1
+      }
+    ],
+    "Geography and Environment": [
+      {
+        "topic": "বাংলাদেশের ভূপ্রকৃতি ও প্রাকৃতিক ভূগোল",
+        "count": 77
+      },
+      {
+        "topic": "বাংলাদেশের নদ-নদী ও জলবায়ু",
+        "count": 77
+      },
+      {
+        "topic": "সামুদ্রিক ভূগোল ও আঞ্চলিক সীমানা",
+        "count": 77
+      },
+      {
+        "topic": "আবহাওয়া ও জলবায়ুবিজ্ঞান",
+        "count": 77
+      },
+      {
+        "topic": "প্রাকৃতিক দুর্যোগ ও ব্যবস্থাপনা",
+        "count": 77
+      },
+      {
+        "topic": "বায়ুমণ্ডল ও বৈশ্বিক পরিবেশ",
+        "count": 77
+      },
+      {
+        "topic": "পরিবেশ ও জীববৈচিত্র্য সংরক্ষণ",
+        "count": 77
+      },
+      {
+        "topic": "বাংলাদেশের নদ-নদী",
+        "count": 4
+      },
+      {
+        "topic": "দুর্যোগ ব্যবস্থাপনা",
+        "count": 3
+      },
+      {
+        "topic": "বাংলাদেশের ভূপ্রকৃতি",
+        "count": 2
+      },
+      {
+        "topic": "বাংলাদেশের ভৌগোলিক অবস্থান",
+        "count": 1
+      },
+      {
+        "topic": "ভূ-প্রকৃতি ও নদী ব্যবস্থা",
+        "count": 1
+      },
+      {
+        "topic": "বনভূমি ও ইকোসিস্টেম",
+        "count": 1
+      },
+      {
+        "topic": "বৈশ্বিক জলবায়ু ও ওজোন স্তর",
+        "count": 1
+      },
+      {
+        "topic": "বাংলাদেশের ভূ-প্রকৃতি",
+        "count": 1
+      },
+      {
+        "topic": "ভূমিকম্প ও টেকটনিক প্লেট",
+        "count": 1
+      },
+      {
+        "topic": "জলাভূমি ও রামসার সাইট",
+        "count": 1
+      },
+      {
+        "topic": "দুর্যোগ ব্যবস্থাপনা ও আগাম সতর্কতা",
+        "count": 1
+      },
+      {
+        "topic": "বিশ্ব জলবায়ু ও কার্বন বাণিজ্য",
+        "count": 1
+      },
+      {
+        "topic": "বাংলাদেশের জলবায়ু",
+        "count": 1
+      },
+      {
+        "topic": "প্রাকৃতিক ভূগোল — ভূতত্ত্ব",
+        "count": 1
+      },
+      {
+        "topic": "পরিবেশ ও বাস্তুসংস্থান",
+        "count": 1
+      },
+      {
+        "topic": "আবহাওয়া ও জলবায়ু",
+        "count": 1
+      },
+      {
+        "topic": "জলবায়ু ও বৃষ্টিপাত",
+        "count": 1
+      },
+      {
+        "topic": "পরিবেশ সংরক্ষণ ও রামসার সাইট",
+        "count": 1
+      }
+    ],
+    "Ethics, Values and Good Governance": [
+      {
+        "topic": "নৈতিক দর্শন ও মূল্যবোধের তত্ত্ব",
+        "count": 77
+      },
+      {
+        "topic": "সুশাসন ও নাগরিক প্রশাসন",
+        "count": 77
+      },
+      {
+        "topic": "জাতীয় শুদ্ধাচার ও প্রাতিষ্ঠানিক জবাবদিহিতা",
+        "count": 77
+      },
+      {
+        "topic": "সুশাসন (Good Governance)",
+        "count": 2
+      },
+      {
+        "topic": "মূল্যবোধ ও নৈতিকতা",
+        "count": 2
+      },
+      {
+        "topic": "নৈতিক দর্শন ও নীতিবিদ্যা",
+        "count": 1
+      },
+      {
+        "topic": "তথ্য অধিকার ও স্বচ্ছতা",
+        "count": 1
+      },
+      {
+        "topic": "প্রশাসনিক সততা ও নৈতিকতা",
+        "count": 1
+      },
+      {
+        "topic": "নীতিশাস্ত্র ও মূল্যবোধ",
+        "count": 1
+      },
+      {
+        "topic": "নীতিদর্শন ও নৈতিকতা",
+        "count": 1
+      },
+      {
+        "topic": "নীতিদর্শন — উপযোগবাদ",
+        "count": 1
+      },
+      {
+        "topic": "সুশাসন ও তথ্যের অধিকার",
+        "count": 1
+      }
+    ]
+  }
+}

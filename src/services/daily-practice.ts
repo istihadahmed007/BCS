@@ -52,15 +52,17 @@ export class DailyPracticeService {
       if (q.reviewStatus !== 'approved') return false;
 
       // Special BCS Health vs General BCS
-      if (q.examTrackId !== examTrackId) return false;
+      if (examTrackId === 'general_bcs') {
+        if (q.examTrackId !== 'general_bcs' && q.professionalStream !== 'all') return false;
+      } else if (examTrackId === 'special_bcs_health_51_2026') {
+        const sharedSubjects = ['BANGLA', 'ENGLISH', 'BD_AFFAIRS', 'INT_AFFAIRS', 'MATH', 'MENTAL_ABILITY'];
+        const isSharedGeneral = sharedSubjects.includes(q.subjectCode);
+        if (!isSharedGeneral && q.examTrackId !== 'special_bcs_health_51_2026') return false;
 
-      // Stream isolation
-      if (examTrackId === 'special_bcs_health_51_2026') {
+        // Stream isolation for professional subjects
         if (professionalStream === 'assistant_surgeon') {
-          // Can have 'all' or 'assistant_surgeon'
           if (q.professionalStream !== 'all' && q.professionalStream !== 'assistant_surgeon') return false;
         } else if (professionalStream === 'assistant_dental_surgeon') {
-          // Can have 'all' or 'assistant_dental_surgeon'
           if (q.professionalStream !== 'all' && q.professionalStream !== 'assistant_dental_surgeon') return false;
         }
       }

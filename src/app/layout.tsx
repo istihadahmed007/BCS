@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Link from 'next/link';
 import {
+  BookCheck,
   BookOpen,
   CalendarDays,
   CheckCircle2,
@@ -79,8 +80,18 @@ export default function RootLayout({
                 <span>Dashboard</span>
               </Link>
               <Link
+                href="/question-bank"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/80 transition-colors font-bold border border-emerald-200 dark:border-emerald-800/80 shadow-sm"
+              >
+                <BookCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Question Bank</span>
+                <span className="text-[10px] font-extrabold bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">
+                  ২০k
+                </span>
+              </Link>
+              <Link
                 href="/study/today"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-semibold"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Daily Practice</span>
@@ -104,14 +115,14 @@ export default function RootLayout({
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <Library className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <span>Catalog & Sources</span>
+                <span>Catalog</span>
               </Link>
               <Link
                 href="/mistake-notebook"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <FileText className="h-4 w-4 text-rose-600 dark:text-rose-400" />
-                <span>Mistake Notebook</span>
+                <span>Mistakes</span>
               </Link>
               <Link
                 href="/admin"
@@ -187,6 +198,11 @@ export default function RootLayout({
                   <a href="https://bpsc.gov.bd/pages/psc-exams" target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition-colors">
                     BPSC Examination Circulars
                   </a>
+                </li>
+                <li>
+                  <Link href="/question-bank" className="hover:text-emerald-400 font-semibold text-emerald-400 transition-colors">
+                    Question Bank (২০,০০০ ভেরিফায়েড প্রশ্ন)
+                  </Link>
                 </li>
                 <li>
                   <Link href="/resources" className="hover:text-emerald-400 transition-colors">

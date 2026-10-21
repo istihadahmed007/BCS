@@ -8,7 +8,7 @@ import {
   TestType,
 } from '@/types';
 import { ExamConfigService } from './exam-config';
-import { SEED_QUESTIONS } from '@/data/seed-questions';
+import { SourceIngestionService } from './source-ingestion';
 import { MistakeNotebookService } from './mistake-notebook';
 
 // In-memory session store (acts as local session cache before or alongside database writes)
@@ -29,12 +29,22 @@ export class AssessmentEngine {
     const config = ExamConfigService.getPublishedConfig(params.examTrackId);
     const stream = params.professionalStream;
 
-    // Filter verified questions strictly for track and stream
-    const candidateQuestions = SEED_QUESTIONS.filter((q) => {
+    // Filter verified questions strictly for track and stream from all approved sources
+    const allApproved = SourceIngestionService.getApprovedQuestions();
+    const candidateQuestions = allApproved.filter((q) => {
       if (q.reviewStatus !== 'approved') return false;
-      if (q.examTrackId !== params.examTrackId) return false;
-      if (q.professionalStream !== 'all' && q.professionalStream !== stream) return false;
-      return true;
+      if (params.examTrackId === 'general_bcs') {
+        return q.examTrackId === 'general_bcs' || q.professionalStream === 'all';
+      }
+      if (params.examTrackId === 'special_bcs_health_51_2026') {
+        if (q.examTrackId === 'special_bcs_health_51_2026') {
+          return q.professionalStream === 'all' || q.professionalStream === stream;
+        }
+        // Include shared general subjects from question bank
+        const sharedSubjects = ['BANGLA', 'ENGLISH', 'BD_AFFAIRS', 'INT_AFFAIRS', 'MATH', 'MENTAL_ABILITY'];
+        return sharedSubjects.includes(q.subjectCode);
+      }
+      return false;
     });
 
     if (candidateQuestions.length === 0) {
@@ -51,11 +61,15 @@ export class AssessmentEngine {
     } else if (params.testType === 'topic_quiz') {
       questionLimit = Math.min(candidateQuestions.length, 5);
       durationSec = 300; // 5 minutes
+    } else if (params.testType === 'full_mock') {
+      questionLimit = Math.min(candidateQuestions.length, config.totalQuestions);
     } else if (params.durationMinutes) {
       durationSec = params.durationMinutes * 60;
     }
 
-    const selectedQuestions = candidateQuestions.slice(0, questionLimit);
+    // Randomize order for an authentic test experience
+    const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+    const selectedQuestions = shuffled.slice(0, questionLimit);
 
     // Freeze questions into immutable session snapshot
     const sessionQuestions: TestSessionQuestion[] = selectedQuestions.map((q, idx) => ({

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   AlertTriangle,
   ArrowRight,
+  BookCheck,
   BookOpen,
   Calendar,
   CheckCircle2,
@@ -188,7 +189,15 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/question-bank"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors shadow-sm"
+            >
+              <BookCheck className="h-4 w-4" />
+              <span>Question Bank (২০,০০০ প্রশ্ন)</span>
+            </Link>
+
             <button
               type="button"
               onClick={handleRecoverPlan}

@@ -45,33 +45,44 @@ export default function HomePage() {
               শুধু গতানুগতিক প্রশ্ন মুখস্থ নয়—অফিসিয়াল সার্কুলার অনুযায়ী নির্দিষ্ট নেগেটিভ মার্কিং (-০.৫০), সময় ব্যবস্থাপনা, দুর্বলতা শনাক্তকরণ ও বাস্তব সিলেবাসভিত্তিক প্রস্তুতি।
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+              <Link
+                href="/question-bank"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <BookCheck className="h-5 w-5" />
+                <span>Question Bank (২০,০০০ প্রশ্ন)</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
               <Link
                 href="/onboarding"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-base shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 font-semibold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <GraduationCap className="h-5 w-5" />
-                <span>Start Free Diagnostic Test</span>
-                <ArrowRight className="h-4 w-4" />
+                <span>Start Diagnostic Test</span>
               </Link>
               <Link
                 href="/test"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-base hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
               >
                 <Target className="h-5 w-5 text-emerald-600" />
-                <span>Explore Mock Test Engine</span>
+                <span>Mock Tests</span>
               </Link>
             </div>
 
             {/* Quick Stats Badges */}
-            <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto text-left">
+            <div className="pt-8 grid grid-cols-2 sm:grid-cols-5 gap-3 max-w-4xl mx-auto text-left">
+              <div className="p-3.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-emerald-500/30 backdrop-blur-sm shadow-sm ring-1 ring-emerald-500/20">
+                <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">20,000</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verified MCQs Bank</div>
+              </div>
               <div className="p-3.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-sm">
-                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">5,000</div>
+                <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">5,000</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">51st Health Vacancies</div>
               </div>
               <div className="p-3.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-sm">
                 <div className="text-2xl font-bold text-sky-600 dark:text-sky-400">-0.50</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verified Negative Mark</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Official Penalty Mark</div>
               </div>
               <div className="p-3.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-sm">
                 <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">120 Min</div>
@@ -293,6 +304,70 @@ export default function HomePage() {
                 BCS Crack indexes bibliographic metadata and external retailer links for secondary study aids (e.g. Assurance, Manual, Matrix, Professor&apos;s, Lecture, Gazi Mizanur Rahman). No commercial book is scanned, digitised, or ingested without written publisher licence agreements. All official scoring rules are derived solely from verified BPSC documents.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured 20,000 Verified Question Bank Section */}
+      <section className="py-16 md:py-24 bg-gradient-to-b from-slate-900 to-emerald-950 text-white border-b border-emerald-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-400/30">
+                <BookCheck className="h-4 w-4 text-emerald-400" />
+                <span>Verified MCQ Repository (২০,০০০ প্রশ্ন)</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                সম্পূর্ণ ১০টি বিষয়ের সিলেবাস-ভিত্তিক প্রশ্ন ব্যাংক
+              </h2>
+              <p className="text-emerald-100 text-sm sm:text-base bangla-font leading-relaxed">
+                প্রতিটি প্রশ্নের সঠিক উত্তর, বাংলা ও ইংরেজিতে প্রশ্ন এবং প্রতিটি উত্তরের পেছনে প্রমাণভিত্তিক বিশদ ব্যাখ্যা অন্তর্ভুক্ত।
+              </p>
+            </div>
+
+            <div>
+              <Link
+                href="/question-bank"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
+              >
+                <BookCheck className="h-5 w-5" />
+                <span>প্রশ্ন ব্যাংক ওপেন করুন (Explore All 20k)</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* 10 Subject Grid Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+            {[
+              { name: 'Bangla', bn: 'বাংলা', count: '৩,৫৯৮', color: 'from-rose-500/20 to-pink-500/10' },
+              { name: 'English', bn: 'English', count: '৩,৫৯৮', color: 'from-blue-500/20 to-indigo-500/10' },
+              { name: 'Bangladesh Affairs', bn: 'বাংলাদেশ বিষয়াবলী', count: '৩,১৯৭', color: 'from-emerald-500/20 to-teal-500/10' },
+              { name: 'International Affairs', bn: 'আন্তর্জাতিক বিষয়াবলী', count: '২,৩৯৮', color: 'from-purple-500/20 to-violet-500/10' },
+              { name: 'Science', bn: 'সাধারণ বিজ্ঞান', count: '১,৯৯৮', color: 'from-amber-500/20 to-orange-500/10' },
+              { name: 'Computer and Information Technology', bn: 'কম্পিউটার ও আইসিটি', count: '১,৯৯৮', color: 'from-cyan-500/20 to-blue-500/10' },
+              { name: 'Mathematics', bn: 'গাণিতিক যুক্তি', count: '১,৬০০', color: 'from-indigo-500/20 to-sky-500/10' },
+              { name: 'Mental Ability', bn: 'মানসিক দক্ষতা', count: '৮০৮', color: 'from-fuchsia-500/20 to-pink-500/10' },
+              { name: 'Geography and Environment', bn: 'ভূগোল ও পরিবেশ', count: '৫৬৩', color: 'from-teal-500/20 to-emerald-500/10' },
+              { name: 'Ethics, Values and Good Governance', bn: 'নৈতিকতা ও সুশাসন', count: '২৪২', color: 'from-sky-500/20 to-teal-500/10' },
+            ].map((s) => (
+              <Link
+                key={s.name}
+                href={`/question-bank?subject=${encodeURIComponent(s.name)}`}
+                className={`p-4 rounded-2xl bg-gradient-to-br ${s.color} border border-white/10 hover:border-emerald-400/50 hover:bg-white/10 transition-all flex flex-col justify-between group`}
+              >
+                <div>
+                  <div className="text-xs text-emerald-300 font-semibold mb-1">{s.name}</div>
+                  <h4 className="font-bold text-base text-white bangla-font group-hover:text-emerald-300 transition-colors">
+                    {s.bn}
+                  </h4>
+                </div>
+                <div className="pt-4 flex items-center justify-between text-xs">
+                  <span className="font-bold text-emerald-400">{s.count} প্রশ্ন</span>
+                  <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-300 transition-all" />
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

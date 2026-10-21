@@ -30,7 +30,7 @@ import {
   ExamTrackId,
   ProfessionalStreamId,
 } from '@/types';
-import { SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
+import { GENERAL_BCS_SUBJECTS, SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
 
 export default function DailyStudyPage() {
   // Session Configuration State
@@ -786,7 +786,7 @@ export default function DailyStudyPage() {
                   className="w-full text-xs font-medium p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 >
                   <option value="all">সকল বিষয় (All Subjects)</option>
-                  {SPECIAL_BCS_HEALTH_SUBJECTS.map((s) => (
+                  {(examTrack === 'general_bcs' ? GENERAL_BCS_SUBJECTS : SPECIAL_BCS_HEALTH_SUBJECTS).map((s) => (
                     <option key={s.code} value={s.code}>
                       {s.nameBn} ({s.marks} Marks)
                     </option>
