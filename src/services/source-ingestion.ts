@@ -1,9 +1,12 @@
 import {
+  EvidenceType,
   IngestionItem,
   IngestionJob,
   IngestionStatus,
   Question,
+  QuestionSourceLink,
   SourceRegistryItem,
+  SourceVerificationStatus,
 } from '@/types';
 import { INITIAL_SOURCE_REGISTRY } from '@/data/sources-registry';
 import { SEED_QUESTIONS } from '@/data/seed-questions';
@@ -28,40 +31,223 @@ const INGESTION_JOBS_STORE: IngestionJob[] = [
 
 const INGESTION_ITEMS_STORE: IngestionItem[] = [];
 
-// Seed runtime questions store
-let RUNTIME_QUESTIONS: Question[] = [...SEED_QUESTIONS];
+// Seed Question Source Evidence Links (Many-to-many relationship)
+const QUESTION_SOURCE_LINKS_STORE: QuestionSourceLink[] = [
+  {
+    id: 'link-001',
+    questionId: 'q-bng-001',
+    sourceRegistryId: 'src-bpsc-exams',
+    sourceType: 'previous_exam_paper',
+    evidenceType: 'exact_question_match',
+    citationText: '39th Special BCS (Health) Examination, Bengali Section, Q34',
+    pageNumber: '14',
+    questionNumber: '34',
+    examinationYear: '2018',
+    verificationStatus: 'verified',
+    verificationDate: '2026-10-21T12:00:00Z',
+    verifiedBy: 'Senior BCS Examiner',
+    reviewerNotes: 'Verified against 39th Special BCS original question paper and answer key.',
+  },
+  {
+    id: 'link-002',
+    questionId: 'q-bng-002',
+    sourceRegistryId: 'src-genmcq',
+    sourceType: 'previous_exam_paper',
+    evidenceType: 'exact_question_match',
+    citationText: '42nd Special BCS (Health) Examination, Bengali Literature, Q12',
+    pageNumber: '2',
+    questionNumber: '12',
+    examinationYear: '2021',
+    verificationStatus: 'verified',
+    verificationDate: '2026-10-21T12:00:00Z',
+    verifiedBy: 'Senior BCS Examiner',
+    reviewerNotes: 'Cross-checked with BPSC gazetted answer key and Munier Choudhury literature corpus.',
+  },
+  {
+    id: 'link-003',
+    questionId: 'q-med1-001',
+    sourceRegistryId: 'src-cat-matrix-med',
+    sourceType: 'approved_reference_book',
+    evidenceType: 'factual_reference',
+    citationText: 'Matrix Special BCS Medical Science, Chapter 3: Upper Limb Anatomy',
+    pageNumber: '142',
+    section: 'Radial Nerve & Spiral Groove Fractures',
+    verificationStatus: 'verified',
+    verificationDate: '2026-10-21T12:00:00Z',
+    verifiedBy: 'Dr. Tanvir Ahmed (39th BCS Health)',
+    reviewerNotes: 'Clinical scenario accurately reflects Gray Anatomy and BPSC Medical Science standard.',
+  },
+  {
+    id: 'link-004',
+    questionId: 'q-med1-002',
+    sourceRegistryId: 'src-bpsc-51st-syllabus',
+    sourceType: 'official_bpsc_document',
+    evidenceType: 'syllabus_objective',
+    citationText: '51st Special BCS Health Official Syllabus, Medical Science Part 1',
+    pageNumber: '8',
+    section: 'Physiology & Pharmacology - Autonomic Nervous System',
+    verificationStatus: 'verified',
+    verificationDate: '2026-10-21T12:00:00Z',
+    verifiedBy: 'Curriculum Inspection Officer',
+    reviewerNotes: 'Directly maps to 51st Special BCS syllabus item MED1-P03.',
+  },
+  {
+    id: 'link-005',
+    questionId: 'q-den1-001',
+    sourceRegistryId: 'src-cat-composite-dental',
+    sourceType: 'approved_reference_book',
+    evidenceType: 'factual_reference',
+    citationText: '51st Special BCS For Dental Science, Chapter 4: Dental Anatomy',
+    pageNumber: '75',
+    section: 'Tooth Morphology - Permanent Maxillary First Molar',
+    verificationStatus: 'verified',
+    verificationDate: '2026-10-21T12:00:00Z',
+    verifiedBy: 'Dr. Sabrina Khan (BDS, Dhaka Dental College)',
+    reviewerNotes: 'Verified against Wheeler Dental Anatomy and Composite Dental digest.',
+  },
+];
+
+// Initialize questions with their verification states and linked evidence
+let RUNTIME_QUESTIONS: Question[] = SEED_QUESTIONS.map((q) => {
+  const links = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
+  const isVerified = links.some((l) => l.verificationStatus === 'verified');
+  const isAttached = links.length > 0;
+
+  return {
+    ...q,
+    sourceEvidence: links,
+    verificationState: isVerified ? 'verified' : isAttached ? 'source_attached' : 'unverified',
+  };
+});
 
 export class SourceIngestionService {
   // =========================================================================
-  // 1. SOURCE REGISTRY MANAGEMENT
+  // 1. SOURCE REGISTRY MANAGEMENT (CRUD + VERIFICATION + LINKING)
   // =========================================================================
 
   static getSources(filter?: {
     priority?: number;
     category?: string;
+    sourceType?: string;
+    verificationStatus?: string;
+    search?: string;
     isActive?: boolean;
+    isArchived?: boolean;
   }): SourceRegistryItem[] {
     return SOURCES_STORE.filter((s) => {
+      if (filter?.isArchived !== undefined) {
+        if (Boolean(s.isArchived) !== filter.isArchived) return false;
+      } else if (s.isArchived) {
+        // By default, exclude archived unless explicitly requested
+        return false;
+      }
+
       if (filter?.priority && s.priority !== filter.priority) return false;
-      if (filter?.category && s.category !== filter.category) return false;
+      if (filter?.category && filter.category !== 'all' && s.category !== filter.category) return false;
+      if (filter?.sourceType && filter.sourceType !== 'all' && s.sourceType !== filter.sourceType) return false;
+      if (filter?.verificationStatus && filter.verificationStatus !== 'all' && s.verificationStatus !== filter.verificationStatus) return false;
       if (filter?.isActive !== undefined && s.isActive !== filter.isActive) return false;
+
+      if (filter?.search && filter.search.trim()) {
+        const q = filter.search.toLowerCase();
+        const code = (s.sourceCode || '').toLowerCase();
+        const name = (s.name || '').toLowerCase();
+        const url = (s.baseUrl || '').toLowerCase();
+        const exam = (s.examinationName || '').toLowerCase();
+        const author = (s.author || '').toLowerCase();
+        return code.includes(q) || name.includes(q) || url.includes(q) || exam.includes(q) || author.includes(q);
+      }
+
       return true;
-    });
+    }).map((s) => ({
+      ...s,
+      linkedQuestionsCount: QUESTION_SOURCE_LINKS_STORE.filter((l) => l.sourceRegistryId === s.id).length,
+    }));
   }
 
-  static getSourceById(id: string): SourceRegistryItem | undefined {
-    return SOURCES_STORE.find((s) => s.id === id);
+  static getSourceById(id: string): (SourceRegistryItem & { linkedQuestions?: Array<{ question: Question; evidence: QuestionSourceLink }> }) | undefined {
+    const src = SOURCES_STORE.find((s) => s.id === id);
+    if (!src) return undefined;
+
+    const links = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.sourceRegistryId === id);
+    const linkedQuestions = links.map((link) => {
+      const q = RUNTIME_QUESTIONS.find((item) => item.id === link.questionId) || SEED_QUESTIONS.find((item) => item.id === link.questionId);
+      return {
+        question: q as Question,
+        evidence: link,
+      };
+    }).filter((item) => Boolean(item.question));
+
+    return {
+      ...src,
+      linkedQuestionsCount: links.length,
+      linkedQuestions,
+    };
   }
 
   static addSource(source: Omit<SourceRegistryItem, 'id'>): SourceRegistryItem {
     const newSource: SourceRegistryItem = {
       ...source,
       id: `src-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      sourceType: source.sourceType || 'official_bpsc_document',
+      verificationStatus: source.verificationStatus || 'unverified',
       lastCheckedAt: new Date().toISOString(),
-      lastSyncStatus: 'pending',
+      lastSyncStatus: 'synced',
+      isActive: true,
+      isArchived: false,
     };
     SOURCES_STORE.push(newSource);
     return newSource;
+  }
+
+  static updateSource(id: string, updates: Partial<SourceRegistryItem>): SourceRegistryItem {
+    const src = SOURCES_STORE.find((s) => s.id === id);
+    if (!src) throw new Error(`Source with ID ${id} not found in registry`);
+
+    Object.assign(src, updates);
+    src.lastCheckedAt = new Date().toISOString();
+    return src;
+  }
+
+  static verifySource(id: string, status: SourceVerificationStatus, verifiedBy: string): SourceRegistryItem {
+    const src = SOURCES_STORE.find((s) => s.id === id);
+    if (!src) throw new Error(`Source with ID ${id} not found`);
+
+    src.verificationStatus = status;
+    src.verifiedAt = new Date().toISOString();
+    src.verifiedBy = verifiedBy;
+    return src;
+  }
+
+  static archiveSource(id: string): { success: boolean; message: string; source: SourceRegistryItem } {
+    const src = SOURCES_STORE.find((s) => s.id === id);
+    if (!src) throw new Error(`Source with ID ${id} not found`);
+
+    src.isArchived = true;
+    src.isActive = false;
+    return {
+      success: true,
+      message: `Source ${src.sourceCode} has been archived successfully.`,
+      source: src,
+    };
+  }
+
+  static deleteSource(id: string): { success: boolean; message: string } {
+    const srcIndex = SOURCES_STORE.findIndex((s) => s.id === id);
+    if (srcIndex === -1) throw new Error(`Source with ID ${id} not found`);
+
+    const activeLinks = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.sourceRegistryId === id);
+    if (activeLinks.length > 0) {
+      throw new Error(
+        `Safeguard restriction: Cannot hard delete source. ${activeLinks.length} questions are actively linked to this source. Please archive the source instead to preserve question traceability.`
+      );
+    }
+
+    const removed = SOURCES_STORE.splice(srcIndex, 1)[0];
+    return {
+      success: true,
+      message: `Source ${removed.sourceCode} deleted permanently.`,
+    };
   }
 
   static updateSourceStatus(
@@ -80,24 +266,167 @@ export class SourceIngestionService {
   }
 
   // =========================================================================
-  // 2. INGESTION PIPELINE (Extraction, Normalization, Duplicate Detection)
+  // 2. QUESTION-TO-SOURCE EVIDENCE LINKING & VERIFICATION
   // =========================================================================
 
-  /**
-   * Generates a normalized fingerprint for duplicate detection.
-   */
+  static linkQuestionToSource(params: {
+    questionId: string;
+    sourceRegistryId: string;
+    evidenceType: EvidenceType;
+    citationText: string;
+    pageNumber?: string;
+    section?: string;
+    questionNumber?: string;
+    paragraph?: string;
+    examinationYear?: string;
+    verificationStatus?: SourceVerificationStatus;
+    reviewerNotes?: string;
+    verifiedBy?: string;
+  }): QuestionSourceLink {
+    const source = SOURCES_STORE.find((s) => s.id === params.sourceRegistryId);
+    if (!source) throw new Error(`Source ${params.sourceRegistryId} not found`);
+
+    const q = RUNTIME_QUESTIONS.find((item) => item.id === params.questionId);
+    if (!q) throw new Error(`Question ${params.questionId} not found`);
+
+    const linkId = `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const newLink: QuestionSourceLink = {
+      id: linkId,
+      questionId: params.questionId,
+      sourceRegistryId: params.sourceRegistryId,
+      sourceType: source.sourceType,
+      evidenceType: params.evidenceType,
+      citationText: params.citationText,
+      pageNumber: params.pageNumber,
+      section: params.section,
+      questionNumber: params.questionNumber,
+      paragraph: params.paragraph,
+      examinationYear: params.examinationYear,
+      verificationStatus: params.verificationStatus || 'source_attached',
+      verificationDate: params.verificationStatus === 'verified' ? new Date().toISOString() : undefined,
+      verifiedBy: params.verifiedBy,
+      reviewerNotes: params.reviewerNotes,
+    };
+
+    QUESTION_SOURCE_LINKS_STORE.push(newLink);
+
+    // Update question's evidence array and verificationState
+    q.sourceEvidence = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
+    const hasVerified = q.sourceEvidence.some((l) => l.verificationStatus === 'verified');
+    q.verificationState = hasVerified ? 'verified' : 'source_attached';
+
+    return newLink;
+  }
+
+  static verifyQuestionEvidence(params: {
+    questionId: string;
+    linkId?: string;
+    status: SourceVerificationStatus;
+    verifiedBy: string;
+    reviewerNotes?: string;
+  }): Question {
+    const q = RUNTIME_QUESTIONS.find((item) => item.id === params.questionId);
+    if (!q) throw new Error(`Question ${params.questionId} not found`);
+
+    if (params.linkId) {
+      const link = QUESTION_SOURCE_LINKS_STORE.find((l) => l.id === params.linkId);
+      if (link) {
+        link.verificationStatus = params.status;
+        link.verificationDate = new Date().toISOString();
+        link.verifiedBy = params.verifiedBy;
+        if (params.reviewerNotes) link.reviewerNotes = params.reviewerNotes;
+      }
+    } else {
+      // Update all links for this question
+      const links = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === params.questionId);
+      for (const link of links) {
+        link.verificationStatus = params.status;
+        link.verificationDate = new Date().toISOString();
+        link.verifiedBy = params.verifiedBy;
+      }
+    }
+
+    q.sourceEvidence = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
+    const hasVerified = q.sourceEvidence.some((l) => l.verificationStatus === 'verified');
+    q.verificationState = hasVerified ? 'verified' : q.sourceEvidence.length > 0 ? params.status : 'unverified';
+
+    return q;
+  }
+
+  static getQuestionSourceLinks(questionId?: string): QuestionSourceLink[] {
+    if (questionId) {
+      return QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === questionId);
+    }
+    return [...QUESTION_SOURCE_LINKS_STORE];
+  }
+
+  // =========================================================================
+  // 3. SOURCE REGISTRY DASHBOARD STATS
+  // =========================================================================
+
+  static getSourceRegistryDashboardStats(): {
+    totalSources: number;
+    verifiedSources: number;
+    awaitingReviewSources: number;
+    unverifiedSources: number;
+    questionsLinkedToSources: number;
+    questionsWithVerifiedEvidence: number;
+    questionsMissingSourceEvidence: number;
+    brokenReferencesCount: number;
+  } {
+    const activeSources = SOURCES_STORE.filter((s) => !s.isArchived);
+    const verifiedSources = activeSources.filter((s) => s.verificationStatus === 'verified').length;
+    const awaitingReviewSources = activeSources.filter(
+      (s) => s.verificationStatus === 'needs_review' || s.verificationStatus === 'source_attached' || (s.verificationStatus as string) === 'pending_review'
+    ).length;
+    const unverifiedSources = Math.max(0, activeSources.length - (verifiedSources + awaitingReviewSources));
+
+    const allApprovedQuestions = RUNTIME_QUESTIONS.filter((q) => q.reviewStatus === 'approved');
+    const questionsWithLinks = allApprovedQuestions.filter((q) => {
+      const links = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
+      return links.length > 0 || Boolean(q.sourceReference);
+    });
+
+    const questionsWithVerifiedEvidence = allApprovedQuestions.filter((q) => {
+      const links = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
+      return links.some((l) => l.verificationStatus === 'verified');
+    });
+
+    const brokenReferencesCount = activeSources.filter((s) => s.lastSyncStatus === 'failed' || s.lastSyncStatus === 'blocked_terms').length;
+
+    return {
+      totalSources: activeSources.length,
+      verifiedSources,
+      awaitingReviewSources,
+      unverifiedSources,
+      questionsLinkedToSources: questionsWithLinks.length,
+      questionsWithVerifiedEvidence: questionsWithVerifiedEvidence.length,
+      questionsMissingSourceEvidence: Math.max(0, allApprovedQuestions.length - questionsWithLinks.length),
+      brokenReferencesCount,
+    };
+  }
+
+  // =========================================================================
+  // 4. INGESTION PIPELINE (Extraction, Normalization, Duplicate Detection)
+  // =========================================================================
+
   static computeNormalizedFingerprint(stem: string, optionsText: string): string {
     const clean = (str: string) =>
       str
         .toLowerCase()
-        .replace(/[\s\p{P}]+/gu, '')
+        .replace(/[\s\p{P}\p{S}]+/gu, '')
         .trim();
-    return `${clean(stem)}_${clean(optionsText)}`;
+
+    const normalized = clean(stem) + ':' + clean(optionsText);
+    let hash = 0;
+    for (let i = 0; i < normalized.length; i++) {
+      const char = normalized.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0;
+    }
+    return `fp-${Math.abs(hash).toString(16)}`;
   }
 
-  /**
-   * Ingests a raw batch of questions (from JSON/CSV/DOCX payload) and routes to review queue.
-   */
   static ingestQuestionBatch(params: {
     sourceRegistryId?: string;
     jobType: IngestionJob['jobType'];
@@ -140,10 +469,8 @@ export class SourceIngestionService {
       const optionsStr = raw.options.map((o) => o.textBn || o.textEn || '').join('');
       const dupHash = this.computeNormalizedFingerprint(stem, optionsStr);
 
-      // Check if exact duplicate exists in approved questions
       const existingApproved = RUNTIME_QUESTIONS.find((q) => q.duplicateHash === dupHash);
 
-      // Initial review status
       let initialStatus: IngestionStatus = 'imported';
       if (!raw.correctAnswerId) {
         initialStatus = 'needs_answer_verification';
@@ -195,10 +522,6 @@ export class SourceIngestionService {
     return { job, stagedItemsCount: params.items.length };
   }
 
-  // =========================================================================
-  // 3. EDITORIAL REVIEW QUEUE (/admin/question-bank/review)
-  // =========================================================================
-
   static getReviewQueue(filter?: {
     status?: IngestionStatus | 'all';
     trackId?: string;
@@ -210,10 +533,6 @@ export class SourceIngestionService {
     });
   }
 
-  /**
-   * Approves or rejects a staged question.
-   * If approved, pushes it directly into the active verified question bank!
-   */
   static reviewStagedItem(params: {
     itemId: string;
     action: 'approve' | 'reject' | 'update';
@@ -238,7 +557,6 @@ export class SourceIngestionService {
     if (params.action === 'approve') {
       item.status = 'approved';
 
-      // Assemble verified Question record
       const p = item.parsedPayload;
       const verifiedQuestion: Question = {
         id: p.id || `q-app-${Date.now()}`,
@@ -258,13 +576,12 @@ export class SourceIngestionService {
         difficulty: p.difficulty || 'medium',
         contentOrigin: p.contentOrigin || 'official_bpsc',
         rightsStatus: 'public_official',
-        reviewStatus: 'approved', // Now approved for student practice
+        reviewStatus: 'approved',
         sourceReference: p.sourceReference,
         duplicateHash: item.duplicateHash,
         revisionNumber: 1,
       };
 
-      // Add to verified runtime questions if not already there
       const idx = RUNTIME_QUESTIONS.findIndex((q) => q.id === verifiedQuestion.id);
       if (idx >= 0) {
         RUNTIME_QUESTIONS[idx] = verifiedQuestion;
@@ -279,7 +596,7 @@ export class SourceIngestionService {
   }
 
   // =========================================================================
-  // 4. DATABASE COVERAGE & AUDIT METRICS (/admin/question-bank/coverage)
+  // 5. COVERAGE & AUDIT METRICS
   // =========================================================================
 
   static getCoverageMetrics(): {
@@ -334,10 +651,11 @@ export class SourceIngestionService {
     };
   }
 
-  /**
-   * Retrieves all verified approved questions (used for Daily Practice and Mock Exams).
-   */
   static getApprovedQuestions(): Question[] {
     return RUNTIME_QUESTIONS.filter((q) => q.reviewStatus === 'approved');
+  }
+
+  static getQuestionById(id: string): Question | undefined {
+    return RUNTIME_QUESTIONS.find((q) => q.id === id) || SEED_QUESTIONS.find((q) => q.id === id);
   }
 }

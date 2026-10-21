@@ -884,7 +884,7 @@ export default function DailyStudyPage() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 text-xs text-slate-600 dark:text-slate-400">
             <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white mb-2">
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <span>১০০% সোর্স-ব্যাকড নিশ্চিতকরণ</span>
+              <span>প্রমাণভিত্তিক সোর্স ভেরিফিকেশন</span>
             </div>
             <p className="leading-relaxed bangla-font mb-3">
               প্রতিটি প্রশ্ন বিপিএসসি-র অফিশিয়াল গেজেট, বিগত পরীক্ষার প্রশ্নপত্র বা অনুমোদিত রেফারেন্স বইয়ের সূচিপত্রের সাথে ট্যাগ করা।

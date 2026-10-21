@@ -9,6 +9,7 @@ import {
 } from '@/types';
 import { ExamConfigService } from './exam-config';
 import { SEED_QUESTIONS } from '@/data/seed-questions';
+import { MistakeNotebookService } from './mistake-notebook';
 
 // In-memory session store (acts as local session cache before or alongside database writes)
 const SESSIONS_STORE = new Map<string, TestSession>();
@@ -220,6 +221,16 @@ export class AssessmentEngine {
         if (resp) {
           resp.isCorrect = false;
           resp.marksAwarded = -penalty;
+        }
+        try {
+          MistakeNotebookService.recordMistake({
+            userId: session.userId,
+            questionId: q.questionId,
+            userSelectedOption: selected,
+            testSessionId: session.id,
+          });
+        } catch (err) {
+          console.error('Failed to auto-save test mistake to notebook', err);
         }
       }
     }

@@ -161,6 +161,8 @@ export interface Question {
   examinationYear?: string;
   duplicateHash?: string;
   revisionNumber: number;
+  sourceEvidence?: QuestionSourceLink[];
+  verificationState?: 'unverified' | 'source_attached' | 'verified' | 'needs_review';
 }
 
 export interface TestSessionQuestion {
@@ -310,21 +312,44 @@ export type DailyPracticeMode =
   | 'revision_due'
   | 'current_affairs';
 
+export type SourceType =
+  | 'official_bpsc_document'
+  | 'previous_exam_paper'
+  | 'official_gazette'
+  | 'approved_reference_book'
+  | 'other';
+
+export type SourceVerificationStatus = 'unverified' | 'source_attached' | 'verified' | 'needs_review';
+
 export interface SourceRegistryItem {
   id: string;
   sourceCode: string;
   name: string;
+  sourceType: SourceType;
   priority: 1 | 2 | 3 | 4;
   category: 'official_bpsc' | 'previous_year_archive' | 'authorized_book' | 'expert_authored';
+  examinationName?: string;
+  publicationYear?: string;
+  author?: string;
+  publisher?: string;
+  edition?: string;
+  volume?: string;
+  pageNumber?: string;
   baseUrl: string;
+  documentReference?: string;
   termsSummary?: string;
   rightsStatus: 'public_domain' | 'metadata_only' | 'licensed' | 'restricted';
   syncSchedule: 'manual' | 'daily' | 'weekly';
   lastCheckedAt?: string;
   lastSyncStatus: 'pending' | 'synced' | 'failed' | 'blocked_terms';
+  verificationStatus: SourceVerificationStatus;
+  verifiedAt?: string;
+  verifiedBy?: string;
   errorLog?: string;
   isActive: boolean;
+  isArchived?: boolean;
   notes?: string;
+  linkedQuestionsCount?: number;
 }
 
 export interface IngestionJob {
@@ -354,16 +379,60 @@ export interface IngestionItem {
   createdAt: string;
 }
 
+export type EvidenceType =
+  | 'exact_question_match'
+  | 'syllabus_objective'
+  | 'factual_reference'
+  | 'circular_rule';
+
 export interface QuestionSourceLink {
   id: string;
   questionId: string;
-  sourceRegistryId?: string;
-  sourceType: 'official_circular' | 'past_paper' | 'reference_book' | 'online_archive';
-  pageNumber?: string;
-  year?: string;
-  examinationName?: string;
+  sourceRegistryId: string;
+  sourceType: SourceType | 'official_circular' | 'past_paper' | 'reference_book' | 'online_archive';
+  evidenceType: EvidenceType;
   citationText: string;
-  verificationStatus: 'unverified' | 'verified' | 'disputed';
+  pageNumber?: string;
+  section?: string;
+  questionNumber?: string;
+  paragraph?: string;
+  examinationYear?: string;
+  verificationStatus: SourceVerificationStatus | 'disputed';
+  verificationDate?: string;
+  verifiedBy?: string;
+  reviewerNotes?: string;
+}
+
+export type MistakeClassificationType =
+  | 'conceptual_misunderstanding'
+  | 'forgotten_fact'
+  | 'confused_options'
+  | 'misread_question'
+  | 'calculation_error'
+  | 'guessing_or_low_confidence'
+  | 'knowledge_gap'
+  | 'retention_problem'
+  | 'careless_error'
+  | 'time_pressure'
+  | 'guessing_risk';
+
+export interface MistakeNotebookEntry {
+  id: string;
+  userId: string;
+  questionId: string;
+  question: Question;
+  testSessionId?: string;
+  userSelectedOption: 'A' | 'B' | 'C' | 'D' | null;
+  correctOption: 'A' | 'B' | 'C' | 'D';
+  errorType: MistakeClassificationType;
+  candidateNotes: string;
+  retryCount: number;
+  resolved: boolean;
+  resolvedAt?: string;
+  scheduledReviewAt: string;
+  reviewStatus: 'due_today' | 'upcoming' | 'recently_added' | 'frequently_repeated' | 'resolved';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface DailyPracticeSet {

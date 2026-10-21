@@ -8,6 +8,7 @@ import {
   TopicMastery,
 } from '@/types';
 import { SourceIngestionService } from './source-ingestion';
+import { MistakeNotebookService } from './mistake-notebook';
 
 // Runtime store for active and completed daily practice sessions
 const DAILY_PRACTICE_SETS = new Map<string, DailyPracticeSet>();
@@ -222,9 +223,19 @@ export class DailyPracticeService {
     pq.isCorrect = isCorrect;
     if (params.timeSpentSeconds) pq.timeSpentSeconds = params.timeSpentSeconds;
 
-    // If incorrect, automatically flag for mistake notebook
+    // If incorrect, automatically flag and persist to student's mistake notebook
     if (!isCorrect) {
       pq.addedToMistakeNotebook = true;
+      try {
+        MistakeNotebookService.recordMistake({
+          userId: set.userId,
+          questionId: pq.question.id,
+          userSelectedOption: params.selectedOptionId,
+          testSessionId: set.id,
+        });
+      } catch (err) {
+        console.error('Error auto-saving mistake to notebook:', err);
+      }
     }
 
     // Recompute set statistics

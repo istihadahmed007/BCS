@@ -194,6 +194,16 @@ export default function RootLayout({
                   </Link>
                 </li>
                 <li>
+                  <Link href="/admin/sources" className="hover:text-emerald-400 transition-colors">
+                    Source Registry (সোর্স রেজিস্ট্রি)
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/mistake-notebook" className="hover:text-emerald-400 transition-colors">
+                    Mistake Notebook (মিস্টেক নোটবুক)
+                  </Link>
+                </li>
+                <li>
                   <span className="text-slate-500 block">Strict Provenance & Zero Piracy Policy</span>
                 </li>
               </ul>
