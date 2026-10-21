@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   AlertTriangle,
   ArrowRight,
+  BarChart3,
   BookOpen,
   CheckCircle2,
   FileCheck,
   FileText,
+  FileUp,
   Filter,
+  Globe2,
   Plus,
   RefreshCw,
   Search,
@@ -137,6 +141,57 @@ export default function AdminPage() {
               <option value="content_editor">Content Editor</option>
             </select>
           </div>
+        </div>
+
+        {/* Source Pipeline Modules Quick Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Link
+            href="/admin/sources"
+            className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all group shadow-xs"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Priority 1–4 Registry</span>
+              <Globe2 className="h-4 w-4 text-indigo-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Source Manager</h3>
+            <p className="text-[11px] text-slate-500 mt-1">Official BPSC, archives, and catalog books</p>
+          </Link>
+
+          <Link
+            href="/admin/question-bank/imports"
+            className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all group shadow-xs"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Stage C: Extraction</span>
+              <FileUp className="h-4 w-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Document Ingestion</h3>
+            <p className="text-[11px] text-slate-500 mt-1">Upload JSON, CSV, PDF, DOCX with SHA-256</p>
+          </Link>
+
+          <Link
+            href="/admin/question-bank/review"
+            className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all group shadow-xs"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Stage G: Review</span>
+              <CheckCircle2 className="h-4 w-4 text-amber-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Verification Queue</h3>
+            <p className="text-[11px] text-slate-500 mt-1">Approve, reject, or flag staged questions</p>
+          </Link>
+
+          <Link
+            href="/admin/question-bank/coverage"
+            className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all group shadow-xs"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600">Real Database Audit</span>
+              <BarChart3 className="h-4 w-4 text-sky-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Coverage & Traceability</h3>
+            <p className="text-[11px] text-slate-500 mt-1">Exact counts, stream isolation & audit export</p>
+          </Link>
         </div>
 
         {/* Tab Navigation */}

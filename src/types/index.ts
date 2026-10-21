@@ -156,8 +156,9 @@ export interface Question {
   rightsStatus: 'public_official' | 'licensed' | 'original' | 'restricted';
   reviewStatus: ReviewStatus;
   sourceBookCode?: string;
-  sourceDocCode?: string;
   sourceReference?: string;
+  sourceCitation?: string;
+  examinationYear?: string;
   duplicateHash?: string;
   revisionNumber: number;
 }
@@ -285,4 +286,123 @@ export interface AIExplanationResponse {
   isEvidenceCertain: boolean;
   uncertaintyDisclaimer?: string;
   modelUsed: string;
+}
+
+export type IngestionStatus =
+  | 'imported'
+  | 'needs_extraction_review'
+  | 'needs_answer_verification'
+  | 'needs_syllabus_mapping'
+  | 'pending_content_review'
+  | 'approved'
+  | 'rejected'
+  | 'retired';
+
+export type DailyPracticeMode =
+  | 'mixed'
+  | 'subject_wise'
+  | 'topic_wise'
+  | 'past_papers'
+  | 'special_health_common'
+  | 'assistant_surgeon_prof'
+  | 'assistant_dental_surgeon_prof'
+  | 'mistake_notebook'
+  | 'revision_due'
+  | 'current_affairs';
+
+export interface SourceRegistryItem {
+  id: string;
+  sourceCode: string;
+  name: string;
+  priority: 1 | 2 | 3 | 4;
+  category: 'official_bpsc' | 'previous_year_archive' | 'authorized_book' | 'expert_authored';
+  baseUrl: string;
+  termsSummary?: string;
+  rightsStatus: 'public_domain' | 'metadata_only' | 'licensed' | 'restricted';
+  syncSchedule: 'manual' | 'daily' | 'weekly';
+  lastCheckedAt?: string;
+  lastSyncStatus: 'pending' | 'synced' | 'failed' | 'blocked_terms';
+  errorLog?: string;
+  isActive: boolean;
+  notes?: string;
+}
+
+export interface IngestionJob {
+  id: string;
+  sourceRegistryId?: string;
+  jobType: 'scheduled_sync' | 'manual_upload' | 'file_import';
+  fileName?: string;
+  fileFormat?: 'pdf' | 'docx' | 'csv' | 'json' | 'web_html';
+  fileChecksum?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  itemsExtracted: number;
+  itemsApproved: number;
+  errorMessage?: string;
+  createdAt: string;
+}
+
+export interface IngestionItem {
+  id: string;
+  jobId: string;
+  rawText: string;
+  parsedPayload: Partial<Question>;
+  extractionConfidence: number;
+  duplicateHash?: string;
+  mappingStatus: 'unmapped' | 'auto_mapped' | 'verified';
+  status: IngestionStatus;
+  reviewerFeedback?: string;
+  createdAt: string;
+}
+
+export interface QuestionSourceLink {
+  id: string;
+  questionId: string;
+  sourceRegistryId?: string;
+  sourceType: 'official_circular' | 'past_paper' | 'reference_book' | 'online_archive';
+  pageNumber?: string;
+  year?: string;
+  examinationName?: string;
+  citationText: string;
+  verificationStatus: 'unverified' | 'verified' | 'disputed';
+}
+
+export interface DailyPracticeSet {
+  id: string;
+  userId: string;
+  examTrackId: ExamTrackId;
+  professionalStream: ProfessionalStreamId;
+  practiceMode: DailyPracticeMode;
+  questionCount: number;
+  completedCount: number;
+  correctCount: number;
+  wrongCount: number;
+  accuracyPct: number;
+  timeSpentSeconds: number;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  questions: DailyPracticeQuestion[];
+  createdAt: string;
+}
+
+export interface DailyPracticeQuestion {
+  id: string;
+  practiceSetId: string;
+  question: Question;
+  sequenceOrder: number;
+  userSelectedOption?: 'A' | 'B' | 'C' | 'D' | null;
+  isCorrect?: boolean;
+  timeSpentSeconds: number;
+  isBookmarked: boolean;
+  flaggedForReview: boolean;
+  addedToMistakeNotebook: boolean;
+}
+
+export interface CurrentAffairsItem {
+  id: string;
+  headline: string;
+  summary: string;
+  sourceName: string;
+  sourceUrl: string;
+  publicationDate: string;
+  verifiedAt: string;
+  isPublished: boolean;
 }

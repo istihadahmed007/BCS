@@ -3,6 +3,7 @@ import './globals.css';
 import Link from 'next/link';
 import {
   BookOpen,
+  CalendarDays,
   CheckCircle2,
   FileText,
   GraduationCap,
@@ -76,6 +77,13 @@ export default function RootLayout({
               >
                 <LayoutDashboard className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Dashboard</span>
+              </Link>
+              <Link
+                href="/study/today"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-semibold"
+              >
+                <CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Daily Practice</span>
               </Link>
               <Link
                 href="/test"
