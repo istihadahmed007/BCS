@@ -89,6 +89,9 @@ http://localhost:3000
 npm run build
 ```
 
+### Hostinger Deployment (bcs.vartualtutor.com):
+For detailed, step-by-step instructions to deploy to Hostinger (VPS, hPanel Node.js Application, or DNS to Vercel), see [HOSTINGER_DEPLOYMENT.md](file:///c:/Users/Tonmoy/Downloads/bcs/HOSTINGER_DEPLOYMENT.md).
+
 ### Pre-Launch Production Acceptance Checklist:
 - [ ] All database RLS policies verified: Students cannot query other candidates' records or private admin logs.
 - [ ] Server scoring verified against 51st Special BCS Health specification (+1.0 correct, -0.50 wrong, 0 unanswered, 120 minutes for 200 questions).

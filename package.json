@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "package:standalone": "next build && node scripts/prepare-standalone.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "qb:validate": "node scripts/validate-question-bank.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

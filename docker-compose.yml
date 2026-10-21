@@ -1,0 +1,18 @@
+services:
+  bcs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bcs_crack_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - NEXT_PUBLIC_APP_URL=https://bcs.vartualtutor.com
+      - NEXT_PUBLIC_APP_NAME=BCS Crack
+      - NEXT_PUBLIC_APP_ENV=production
+    env_file:
+      - .env.production
