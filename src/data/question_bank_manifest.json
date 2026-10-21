@@ -22,8 +22,8 @@
     {
       "file": "batch_001.jsonl",
       "count": 100,
-      "firstId": "BCS-QB-B01-001",
-      "lastId": "BCS-QB-B01-100",
+      "firstId": "BCS-QB-B001-001",
+      "lastId": "BCS-QB-B001-100",
       "subjects": [
         "Bangla",
         "English",
@@ -40,8 +40,8 @@
     {
       "file": "batch_002.jsonl",
       "count": 150,
-      "firstId": "BCS-QB-B02-001",
-      "lastId": "BCS-QB-B02-150",
+      "firstId": "BCS-QB-B002-001",
+      "lastId": "BCS-QB-B002-150",
       "subjects": [
         "Bangla",
         "English",
@@ -58,8 +58,8 @@
     {
       "file": "batch_003.jsonl",
       "count": 250,
-      "firstId": "BCS-QB-B03-001",
-      "lastId": "BCS-QB-B03-250",
+      "firstId": "BCS-QB-B003-001",
+      "lastId": "BCS-QB-B003-250",
       "subjects": [
         "Bangla",
         "English",
@@ -76,8 +76,8 @@
     {
       "file": "batch_004.jsonl",
       "count": 250,
-      "firstId": "BCS-QB-B04-001",
-      "lastId": "BCS-QB-B04-250",
+      "firstId": "BCS-QB-B004-001",
+      "lastId": "BCS-QB-B004-250",
       "subjects": [
         "Bangla",
         "English",

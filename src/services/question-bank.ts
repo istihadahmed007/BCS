@@ -137,12 +137,14 @@ export class QuestionBankService {
 
     let filtered = all;
 
-    // Filter by Batch (e.g., '001' or 'batch_001.jsonl' or '1')
+    // Filter by Batch (supports '1', '10', '010', 'batch_010.jsonl', etc.)
     if (batch) {
-      const normalizedBatch = batch.replace(/\.jsonl$/, '').replace(/^batch_/, '');
-      const padded = normalizedBatch.padStart(3, '0');
-      const prefix = `BCS-QB-B${padded.slice(1)}`; // B01..B81
-      filtered = filtered.filter((q) => q.id.startsWith(prefix) || q.id.includes(`-B${padded.slice(1)}-`));
+      const match = batch.match(/\d+/);
+      if (match) {
+        const batchNum = parseInt(match[0], 10);
+        const batchRegex = new RegExp(`^BCS-QB-B0*${batchNum}-`, 'i');
+        filtered = filtered.filter((q) => batchRegex.test(q.id));
+      }
     }
 
     // Filter by Subject
