@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   AlertCircle,
-  ArrowLeft,
   ArrowRight,
+  Award,
   BookCheck,
   BookOpen,
+  Calendar,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -16,15 +17,14 @@ import {
   Clock,
   Eye,
   EyeOff,
-  Filter,
-  GraduationCap,
+  Flame,
   HelpCircle,
-  Layers,
   Library,
   RotateCcw,
   Search,
   Sparkles,
   Target,
+  Trophy,
   XCircle,
 } from 'lucide-react';
 
@@ -59,6 +59,21 @@ interface ManifestSummary {
   subjectStats: Record<string, number>;
   difficultyStats: Record<string, number>;
   totalBatches: number;
+}
+
+interface DailyChallengeData {
+  date: string;
+  challengeId: string;
+  totalQuestions: number;
+  questions: QuestionBankItem[];
+}
+
+interface DailyChallengeScore {
+  correct: number;
+  wrong: number;
+  unanswered: number;
+  finalScore: number;
+  percentage: number;
 }
 
 const SUBJECT_METADATA: Record<
@@ -137,7 +152,77 @@ const SUBJECT_METADATA: Record<
   },
 };
 
+function getDhakaDateString(date: Date = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(date);
+  } catch {
+    return date.toISOString().split('T')[0];
+  }
+}
+
+function formatBengaliDate(dateStr: string): string {
+  try {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const monthsBn = [
+      'জানুয়ারি',
+      'ফেব্রুয়ারি',
+      'মার্চ',
+      'এপ্রিল',
+      'মে',
+      'জুন',
+      'জুলাই',
+      'আগস্ট',
+      'সেপ্টেম্বর',
+      'অক্টোবর',
+      'নভেম্বর',
+      'ডিসেম্বর',
+    ];
+    const toBengaliDigits = (num: number | string) =>
+      num.toString().replace(/\d/g, (ch) => '০১২৩৪৫৬৭৮৯'[parseInt(ch, 10)]);
+
+    return `${toBengaliDigits(d)} ${monthsBn[m - 1]} ${toBengaliDigits(y)}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+function toBnDigits(num: number | string): string {
+  return num.toString().replace(/\d/g, (ch) => '০১২৩৪৫৬৭৮৯'[parseInt(ch, 10)]);
+}
+
+/**
+ * Calculates a window of page numbers to display with ellipses
+ */
+function getVisiblePages(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const pages: (number | 'ellipsis')[] = [];
+
+  if (currentPage <= 4) {
+    for (let i = 1; i <= 5; i++) pages.push(i);
+    pages.push('ellipsis');
+    pages.push(totalPages);
+  } else if (currentPage >= totalPages - 3) {
+    pages.push(1);
+    pages.push('ellipsis');
+    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    pages.push('ellipsis');
+    pages.push(currentPage - 1);
+    pages.push(currentPage);
+    pages.push(currentPage + 1);
+    pages.push('ellipsis');
+    pages.push(totalPages);
+  }
+
+  return pages;
+}
+
 export default function QuestionBankExplorerPage() {
+  // Questions Bank Repository State
   const [questions, setQuestions] = useState<QuestionBankItem[]>([]);
   const [manifest, setManifest] = useState<ManifestSummary | null>(null);
   const [totalQuestions, setTotalQuestions] = useState<number>(0);
@@ -145,82 +230,224 @@ export default function QuestionBankExplorerPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
 
-  // Filters
+  // Filters State
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedBatch, setSelectedBatch] = useState<string>('');
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [appliedSearch, setAppliedSearch] = useState<string>('');
   const [jumpPageInput, setJumpPageInput] = useState<string>('1');
 
-  // Interactive Question State (selected option per question ID)
+  // Interactive Question State
   const [userAnswers, setUserAnswers] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
   const [revealedAnswers, setRevealedAnswers] = useState<Record<string, boolean>>({});
   const [bookmarkedIds, setBookmarkedIds] = useState<Record<string, boolean>>({});
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
 
-  // Load questions when page, size, subject, difficulty, or batch changes
+  // ----------------------------------------------------
+  // DAILY CHALLENGE STATE
+  // ----------------------------------------------------
+  const [dailyData, setDailyData] = useState<DailyChallengeData | null>(null);
+  const [dailyAnswers, setDailyAnswers] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
+  const [dailySubmitted, setDailySubmitted] = useState<boolean>(false);
+  const [dailyScore, setDailyScore] = useState<DailyChallengeScore | null>(null);
+  const [dailyLoading, setDailyLoading] = useState<boolean>(true);
+  const [dailyError, setDailyError] = useState<string | null>(null);
+  const [activeDailyIndex, setActiveDailyIndex] = useState<number>(0);
+  const [viewAllDaily, setViewAllDaily] = useState<boolean>(false);
+  const [savedToMistakes, setSavedToMistakes] = useState<Record<string, boolean>>({});
+
+  const todayStr = getDhakaDateString();
+
+  // Load Daily Challenge & restore student's daily progress
   useEffect(() => {
-    fetchQuestions();
-  }, [currentPage, pageSize, selectedSubject, selectedDifficulty, selectedBatch]);
+    let isCancelled = false;
 
-  const fetchQuestions = async (searchTerm = searchQuery) => {
-    setIsLoading(true);
-    setErrorMsg(null);
-    try {
-      const params = new URLSearchParams();
-      params.set('page', currentPage.toString());
-      params.set('limit', pageSize.toString());
+    const loadDailyChallenge = async () => {
+      setDailyLoading(true);
+      setDailyError(null);
+      try {
+        const res = await fetch(`/api/questions/daily-challenge?date=${todayStr}`);
+        const json = await res.json();
 
-      if (selectedSubject !== 'all') params.set('subject', selectedSubject);
-      if (selectedDifficulty !== 'all') params.set('difficulty', selectedDifficulty);
-      if (selectedBatch) params.set('batch', selectedBatch);
-      if (searchTerm.trim()) params.set('search', searchTerm.trim());
+        if (isCancelled) return;
 
-      const res = await fetch(`/api/questions?${params.toString()}`);
-      const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || 'Failed to load daily challenge');
+        }
 
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || 'Failed to load questions');
+        setDailyData(json);
+
+        // Restore preserved progress from localStorage
+        try {
+          const storageKey = `bcs_daily_challenge_${todayStr}`;
+          const savedProgress = localStorage.getItem(storageKey);
+          if (savedProgress) {
+            const parsed = JSON.parse(savedProgress);
+            if (parsed && parsed.date === todayStr) {
+              if (parsed.answers) {
+                setDailyAnswers(parsed.answers);
+              }
+              if (parsed.isSubmitted) {
+                setDailySubmitted(true);
+                if (parsed.score) {
+                  setDailyScore(parsed.score);
+                }
+              }
+            }
+          }
+        } catch {
+          // localStorage might be blocked or empty
+        }
+      } catch (err: any) {
+        if (!isCancelled) {
+          setDailyError(err.message || 'Could not load Daily Challenge');
+        }
+      } finally {
+        if (!isCancelled) {
+          setDailyLoading(false);
+        }
       }
+    };
 
-      setQuestions(json.data || []);
-      setTotalQuestions(json.total || 0);
-      setTotalPages(json.totalPages || 1);
-      if (json.manifest) {
-        setManifest(json.manifest);
+    loadDailyChallenge();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [todayStr]);
+
+  // Load Question Bank MCQs whenever filters or pagination parameters change
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadQuestions = async () => {
+      setIsLoading(true);
+      setErrorMsg(null);
+      try {
+        const params = new URLSearchParams();
+        params.set('page', currentPage.toString());
+        params.set('limit', pageSize.toString());
+
+        if (selectedSubject !== 'all') params.set('subject', selectedSubject);
+        if (selectedDifficulty !== 'all') params.set('difficulty', selectedDifficulty);
+        if (selectedBatch) params.set('batch', selectedBatch);
+        if (appliedSearch) params.set('search', appliedSearch);
+
+        const res = await fetch(`/api/questions?${params.toString()}`);
+        const json = await res.json();
+
+        if (isCancelled) return;
+
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || 'Failed to load questions');
+        }
+
+        setQuestions(json.data || []);
+        setTotalQuestions(json.total || 0);
+        setTotalPages(json.totalPages || 1);
+        if (json.manifest) {
+          setManifest(json.manifest);
+        }
+      } catch (err: any) {
+        if (!isCancelled) {
+          setErrorMsg(err.message || 'Error connecting to question bank');
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Error connecting to question bank');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
+    loadQuestions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentPage, pageSize, selectedSubject, selectedDifficulty, selectedBatch, appliedSearch]);
+
+  // Sync jump input with currentPage
+  useEffect(() => {
+    setJumpPageInput(currentPage.toString());
+  }, [currentPage]);
+
+  // Search Submission: Always resets to page 1
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setAppliedSearch(searchInput.trim());
     setCurrentPage(1);
     setJumpPageInput('1');
-    fetchQuestions(searchQuery);
   };
 
+  // Clear Search: Resets search and returns to page 1
   const handleClearSearch = () => {
-    setSearchQuery('');
+    setSearchInput('');
+    setAppliedSearch('');
     setCurrentPage(1);
     setJumpPageInput('1');
-    fetchQuestions('');
   };
 
+  // Subject Pill Filter: Resets to page 1
+  const handleSelectSubject = (subj: string) => {
+    setSelectedSubject(subj);
+    setCurrentPage(1);
+    setJumpPageInput('1');
+  };
+
+  // Difficulty Filter: Resets to page 1
+  const handleSelectDifficulty = (diff: string) => {
+    setSelectedDifficulty(diff);
+    setCurrentPage(1);
+    setJumpPageInput('1');
+  };
+
+  // Batch Filter: Resets to page 1
+  const handleSelectBatch = (batch: string) => {
+    setSelectedBatch(batch);
+    setCurrentPage(1);
+    setJumpPageInput('1');
+  };
+
+  // Page Size: Resets to page 1
+  const handleSelectPageSize = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1);
+    setJumpPageInput('1');
+  };
+
+  // Reset All Filters: Resets to page 1
+  const handleResetFilters = () => {
+    setSelectedSubject('all');
+    setSelectedDifficulty('all');
+    setSelectedBatch('');
+    setSearchInput('');
+    setAppliedSearch('');
+    setCurrentPage(1);
+    setJumpPageInput('1');
+  };
+
+  // Page Change Handler
+  const handlePageChange = (newPage: number) => {
+    const safe = Math.max(1, Math.min(totalPages, newPage));
+    setCurrentPage(safe);
+    setJumpPageInput(safe.toString());
+  };
+
+  // Jump to page form submit
   const handleJumpToPage = (e: React.FormEvent) => {
     e.preventDefault();
     const pageNum = parseInt(jumpPageInput, 10);
     if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
       setCurrentPage(pageNum);
+    } else {
+      setJumpPageInput(currentPage.toString());
     }
   };
 
+  // Interactive Question State Handlers
   const handleSelectOption = (questionId: string, optionId: 'A' | 'B' | 'C' | 'D') => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: optionId }));
     setRevealedAnswers((prev) => ({ ...prev, [questionId]: true }));
@@ -231,20 +458,136 @@ export default function QuestionBankExplorerPage() {
   };
 
   const toggleBookmark = (questionId: string) => {
-    setBookmarkedIds((prev) => {
-      const next = { ...prev, [questionId]: !prev[questionId] };
-      return next;
+    setBookmarkedIds((prev) => ({ ...prev, [questionId]: !prev[questionId] }));
+  };
+
+  // ----------------------------------------------------
+  // DAILY CHALLENGE HANDLERS
+  // ----------------------------------------------------
+  const handleDailySelectOption = (questionId: string, optionKey: 'A' | 'B' | 'C' | 'D') => {
+    if (dailySubmitted) return; // Locked once submitted
+
+    const next = { ...dailyAnswers, [questionId]: optionKey };
+    setDailyAnswers(next);
+
+    // Persist immediately to localStorage
+    try {
+      localStorage.setItem(
+        `bcs_daily_challenge_${todayStr}`,
+        JSON.stringify({
+          date: todayStr,
+          answers: next,
+          isSubmitted: false,
+          savedAt: new Date().toISOString(),
+        })
+      );
+    } catch {
+      // Ignore storage error
+    }
+  };
+
+  const handleDailySubmit = () => {
+    if (!dailyData || dailyData.questions.length === 0) return;
+
+    let correct = 0;
+    let wrong = 0;
+    let unanswered = 0;
+
+    dailyData.questions.forEach((q) => {
+      const ans = dailyAnswers[q.id];
+      if (!ans) {
+        unanswered++;
+      } else if (ans === q.correct_option) {
+        correct++;
+      } else {
+        wrong++;
+      }
+    });
+
+    const rawScore = correct - wrong * 0.5;
+    const finalScore = Math.max(0, Math.round(rawScore * 100) / 100);
+    const percentage = Math.round((correct / dailyData.totalQuestions) * 100);
+
+    const calculatedScore: DailyChallengeScore = {
+      correct,
+      wrong,
+      unanswered,
+      finalScore,
+      percentage,
+    };
+
+    setDailyScore(calculatedScore);
+    setDailySubmitted(true);
+
+    // Save submission to localStorage
+    try {
+      localStorage.setItem(
+        `bcs_daily_challenge_${todayStr}`,
+        JSON.stringify({
+          date: todayStr,
+          answers: dailyAnswers,
+          isSubmitted: true,
+          score: calculatedScore,
+          submittedAt: new Date().toISOString(),
+        })
+      );
+    } catch {
+      // Ignore storage error
+    }
+
+    // Optional background sync with server
+    fetch('/api/questions/daily-challenge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date: todayStr,
+        answers: dailyAnswers,
+      }),
+    }).catch(() => {
+      // Non-blocking
     });
   };
 
-  const handleResetFilters = () => {
-    setSelectedSubject('all');
-    setSelectedDifficulty('all');
-    setSelectedBatch('');
-    setSearchQuery('');
-    setCurrentPage(1);
-    setJumpPageInput('1');
+  const handleDailyRetake = () => {
+    setDailyAnswers({});
+    setDailySubmitted(false);
+    setDailyScore(null);
+    setActiveDailyIndex(0);
+
+    try {
+      localStorage.removeItem(`bcs_daily_challenge_${todayStr}`);
+    } catch {
+      // Ignore
+    }
   };
+
+  const handleSaveToMistakes = (q: QuestionBankItem) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('bcs_mistake_notebook') || '[]');
+      if (!existing.some((item: any) => item.id === q.id || item.questionId === q.id)) {
+        existing.push({
+          id: q.id,
+          questionId: q.id,
+          subject: q.subject,
+          topic: q.topic,
+          question_bn: q.question_bn,
+          question_en: q.question_en,
+          correct_option: q.correct_option,
+          explanation_bn: q.explanation_bn,
+          savedAt: new Date().toISOString(),
+        });
+        localStorage.setItem('bcs_mistake_notebook', JSON.stringify(existing));
+      }
+      setSavedToMistakes((prev) => ({ ...prev, [q.id]: true }));
+    } catch {
+      // Ignore storage error
+    }
+  };
+
+  const dailyQuestions = dailyData?.questions || [];
+  const dailyTotal = dailyQuestions.length;
+  const dailyAnsweredCount = Object.keys(dailyAnswers).length;
+  const currentDailyQ = dailyQuestions[activeDailyIndex];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -292,6 +635,462 @@ export default function QuestionBankExplorerPage() {
           </div>
         </div>
 
+        {/* ========================================================================= */}
+        {/* 2. DAILY CHALLENGE SECTION FOR STUDENTS                                  */}
+        {/* ========================================================================= */}
+        <section
+          aria-labelledby="daily-challenge-heading"
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-slate-900/10 dark:from-emerald-950/40 dark:via-slate-900 dark:to-teal-950/30 border-2 border-emerald-500/30 p-5 sm:p-8 shadow-md transition-all space-y-6"
+        >
+          {/* Top Banner / Status Strip */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-emerald-500/20">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-extrabold shadow-sm">
+                  <Flame className="h-4 w-4 animate-bounce text-amber-300 fill-amber-300" />
+                  <span>আজকের ডেইলি চ্যালেঞ্জ</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-700">
+                  <Calendar className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>{formatBengaliDate(todayStr)}</span>
+                </span>
+                {dailySubmitted ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 text-xs font-bold border border-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>চ্যালেঞ্জ সম্পন্ন</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-200 text-xs font-semibold border border-amber-300">
+                    <Clock className="h-3.5 w-3.5 text-amber-600" />
+                    <span>আজকের জন্য সক্রিয়</span>
+                  </span>
+                )}
+              </div>
+
+              <h2
+                id="daily-challenge-heading"
+                className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white bangla-font tracking-tight pt-1"
+              >
+                ডেইলি বিসিএস প্র্যাকটিস চ্যালেঞ্জ ({toBnDigits(dailyTotal)}টি বাছাইকৃত প্রশ্ন)
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 bangla-font">
+                প্রতিদিন সকল বিসিএস পরীক্ষার্থীদের জন্য নির্ধারিত ৫টি বিশেষ প্রশ্ন। প্রতিদিনের ফলাফল ও অগ্রগতি স্বয়ংক্রিয়ভাবে সংরক্ষিত থাকে।
+              </p>
+            </div>
+
+            {/* Score & Progress Pill */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="bg-white dark:bg-slate-800 px-4 py-2.5 rounded-2xl border border-emerald-500/20 shadow-sm flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
+                  <Target className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    অগ্রগতি (Progress)
+                  </div>
+                  <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                    {toBnDigits(dailyAnsweredCount)} / {toBnDigits(dailyTotal)} সম্পন্ন
+                  </div>
+                </div>
+              </div>
+
+              {dailySubmitted && dailyScore && (
+                <div className="bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-sm flex items-center gap-3">
+                  <Trophy className="h-6 w-6 text-amber-300" />
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-emerald-100">আপনার স্কোর</div>
+                    <div className="text-base font-black">
+                      {dailyScore.finalScore.toFixed(2)} / {dailyTotal}.00 ({toBnDigits(dailyScore.percentage)}%)
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
+              <span>চ্যালেঞ্জ অগ্রগতি</span>
+              <span>{Math.round((dailyAnsweredCount / (dailyTotal || 1)) * 100)}% সম্পন্ন</span>
+            </div>
+            <div
+              className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={dailyAnsweredCount}
+              aria-valuemin={0}
+              aria-valuemax={dailyTotal}
+            >
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300 rounded-full"
+                style={{ width: `${(dailyAnsweredCount / (dailyTotal || 1)) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Daily Challenge Loading & Error State */}
+          {dailyLoading && (
+            <div className="py-12 text-center space-y-3">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-r-transparent" />
+              <p className="text-xs sm:text-sm text-slate-500">আজকের ডেইলি চ্যালেঞ্জ লোড হচ্ছে...</p>
+            </div>
+          )}
+
+          {dailyError && !dailyLoading && (
+            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs sm:text-sm flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <span>{dailyError}</span>
+            </div>
+          )}
+
+          {/* Completed Message Banner */}
+          {!dailyLoading && !dailyError && dailySubmitted && dailyScore && (
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg space-y-3">
+              <div className="flex items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
+                    <Award className="h-7 w-7 text-amber-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-extrabold bangla-font">
+                      {dailyScore.percentage >= 80
+                        ? 'অভিনন্দন! চমৎকার প্রস্তুতি! 🎉'
+                        : dailyScore.percentage >= 60
+                        ? 'ভালো প্রচেষ্টা! দারুণ কাজ করেছেন! 👍'
+                        : 'চ্যালেঞ্জ সমাপ্ত! নিয়মিত অনুশীলনে উন্নতি হবে! 📚'}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-emerald-100 bangla-font">
+                      আপনার আজকের স্কোর: <strong>{dailyScore.finalScore.toFixed(2)}</strong> (সঠিক:{' '}
+                      {toBnDigits(dailyScore.correct)}, ভুল: {toBnDigits(dailyScore.wrong)}, অনুত্তরিত:{' '}
+                      {toBnDigits(dailyScore.unanswered)}) • নেগেটিভ মার্কিং: -০.৫০
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleDailyRetake}
+                  className="px-4 py-2 bg-white text-emerald-800 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-colors shrink-0 flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span>পুনরায় প্র্যাকটিস</span>
+                </button>
+              </div>
+
+              <div className="text-[11px] text-emerald-100 pt-1 border-t border-white/20 flex flex-wrap items-center justify-between gap-2">
+                <span>আজকের ফলাফল স্বয়ংক্রিয়ভাবে সংরক্ষিত রয়েছে। প্রতিটি প্রশ্নের সঠিক উত্তর ও ব্যাখ্যা নিচে প্রদর্শিত হচ্ছে।</span>
+                <span className="font-mono text-emerald-200">পরবর্তী চ্যালেঞ্জ: আগামীকাল রাত ১২:০০ টায়</span>
+              </div>
+            </div>
+          )}
+
+          {/* Question Stepper Tabs & Controls */}
+          {!dailyLoading && !dailyError && dailyQuestions.length > 0 && (
+            <div className="space-y-4">
+              {/* Stepper Navigation Pills */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div
+                  className="flex flex-wrap items-center gap-2"
+                  role="tablist"
+                  aria-label="Daily challenge question selector"
+                >
+                  {dailyQuestions.map((q, idx) => {
+                    const isAnswered = Boolean(dailyAnswers[q.id]);
+                    const isSelectedTab = !viewAllDaily && activeDailyIndex === idx;
+                    const isCorrect = dailySubmitted && dailyAnswers[q.id] === q.correct_option;
+                    const isWrong =
+                      dailySubmitted && isAnswered && dailyAnswers[q.id] !== q.correct_option;
+
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={isSelectedTab}
+                        aria-label={`Question ${idx + 1}: ${q.subject}`}
+                        onClick={() => {
+                          setViewAllDaily(false);
+                          setActiveDailyIndex(idx);
+                        }}
+                        className={`h-9 sm:h-10 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                          isSelectedTab
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-md ring-1 ring-emerald-500 scale-105'
+                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        <span>প্রশ্ন {toBnDigits(idx + 1)}</span>
+                        {dailySubmitted ? (
+                          isCorrect ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          ) : isWrong ? (
+                            <XCircle className="h-3.5 w-3.5 text-rose-400" />
+                          ) : (
+                            <span className="h-2 w-2 rounded-full bg-slate-400" />
+                          )
+                        ) : isAnswered ? (
+                          <span className="h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-emerald-300 animate-pulse" />
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* View All / Single Stepper Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setViewAllDaily(!viewAllDaily)}
+                  className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  <span>{viewAllDaily ? 'একক প্রশ্ন ভিউ (Single Mode)' : 'সব প্রশ্ন একসাথে দেখুন (View All)'}</span>
+                </button>
+              </div>
+
+              {/* Question Content Display (Single Stepper OR All 5 Questions) */}
+              <div className="space-y-4">
+                {(viewAllDaily ? dailyQuestions : [currentDailyQ]).filter(Boolean).map((q, idx) => {
+                  const actualIndex = viewAllDaily ? idx : activeDailyIndex;
+                  const meta = SUBJECT_METADATA[q.subject];
+                  const chosenOption = dailyAnswers[q.id];
+                  const isSubmitted = dailySubmitted;
+                  const isMistakeSaved = savedToMistakes[q.id];
+
+                  return (
+                    <div
+                      key={q.id}
+                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6 space-y-4"
+                    >
+                      {/* Question Header */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800 text-xs">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-md bg-emerald-600 text-white font-bold text-[11px]">
+                            প্রশ্ন {toBnDigits(actualIndex + 1)} / {toBnDigits(dailyTotal)}
+                          </span>
+                          <span
+                            className={`font-semibold px-2.5 py-1 rounded-md ${
+                              meta?.badgeBg || 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {meta?.nameBn || q.subject}
+                          </span>
+                          <span className="text-slate-500 dark:text-slate-400 font-medium">
+                            • {q.topic} {q.subtopic ? `(${q.subtopic})` : ''}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`font-semibold px-2 py-0.5 rounded text-[11px] ${
+                              q.difficulty === 'easy'
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                : q.difficulty === 'medium'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                            }`}
+                          >
+                            {q.difficulty === 'easy'
+                              ? 'সহজ'
+                              : q.difficulty === 'medium'
+                              ? 'মাঝারি'
+                              : 'কঠিন'}
+                          </span>
+
+                          {isSubmitted && chosenOption && chosenOption !== q.correct_option && (
+                            <button
+                              type="button"
+                              onClick={() => handleSaveToMistakes(q)}
+                              className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-colors ${
+                                isMistakeSaved
+                                  ? 'bg-rose-50 text-rose-600 border-rose-300 dark:bg-rose-950 dark:text-rose-300'
+                                  : 'text-slate-500 hover:text-slate-800 border-slate-200 dark:border-slate-700'
+                              }`}
+                              title="মিস্টেক নোটবুকে সংরক্ষণ করুন"
+                            >
+                              <BookCheck className="h-3.5 w-3.5" />
+                              <span>{isMistakeSaved ? 'নোটবুকে সেভড' : 'নোটবুকে যোগ'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Question Stem */}
+                      <div className="space-y-1.5">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white bangla-font leading-snug">
+                          <span className="text-emerald-600 mr-2 font-mono">
+                            {toBnDigits(actualIndex + 1)}.
+                          </span>
+                          {q.question_bn}
+                        </h3>
+                        {q.question_en && (
+                          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 italic">
+                            {q.question_en}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Interactive Options Grid */}
+                      <div
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1"
+                        role="radiogroup"
+                        aria-label={`Options for question ${actualIndex + 1}`}
+                      >
+                        {(['A', 'B', 'C', 'D'] as const).map((optKey) => {
+                          const optionText = q.options[optKey];
+                          const isCorrect = q.correct_option === optKey;
+                          const isSelected = chosenOption === optKey;
+
+                          let optionStyle =
+                            'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800';
+
+                          if (isSubmitted) {
+                            if (isCorrect) {
+                              optionStyle =
+                                'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-semibold ring-2 ring-emerald-500';
+                            } else if (isSelected && !isCorrect) {
+                              optionStyle =
+                                'bg-rose-50 dark:bg-rose-950/70 border-rose-500 text-rose-800 dark:text-rose-200 line-through';
+                            }
+                          } else if (isSelected) {
+                            optionStyle =
+                              'bg-emerald-100 dark:bg-emerald-950 border-emerald-500 text-emerald-900 dark:text-emerald-100 ring-2 ring-emerald-500 font-semibold';
+                          }
+
+                          return (
+                            <button
+                              key={optKey}
+                              type="button"
+                              role="radio"
+                              aria-checked={isSelected}
+                              tabIndex={0}
+                              disabled={isSubmitted}
+                              onClick={() => handleDailySelectOption(q.id, optKey)}
+                              onKeyDown={(e) => {
+                                if (e.key === ' ' || e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleDailySelectOption(q.id, optKey);
+                                }
+                              }}
+                              className={`w-full text-left p-3.5 rounded-xl border text-sm transition-all flex items-start gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${optionStyle}`}
+                            >
+                              <span
+                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                                  isSubmitted && isCorrect
+                                    ? 'bg-emerald-600 text-white'
+                                    : isSubmitted && isSelected && !isCorrect
+                                    ? 'bg-rose-600 text-white'
+                                    : isSelected
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                }`}
+                              >
+                                {optKey}
+                              </span>
+                              <span className="bangla-font leading-relaxed pt-0.5">{optionText}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Explanation & Source (Revealed upon Submission) */}
+                      {isSubmitted && (
+                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs sm:text-sm space-y-2.5">
+                          <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                            <span>
+                              সঠিক উত্তর: ({q.correct_option}) {q.options[q.correct_option]}
+                            </span>
+                          </div>
+
+                          {q.explanation_bn && (
+                            <div className="bangla-font text-slate-700 dark:text-slate-300 leading-relaxed bg-white/70 dark:bg-slate-900/70 p-3 rounded-lg border border-emerald-500/10">
+                              <strong className="block text-emerald-900 dark:text-emerald-400 mb-1">
+                                বিস্তারিত ব্যাখ্যা (বাংলা):
+                              </strong>
+                              {q.explanation_bn}
+                            </div>
+                          )}
+
+                          {q.explanation_en && (
+                            <div className="text-slate-600 dark:text-slate-400 leading-relaxed bg-white/50 dark:bg-slate-900/50 p-2.5 rounded-lg border border-emerald-500/10">
+                              <strong className="block text-slate-700 dark:text-slate-300 mb-1">
+                                English Reference Note:
+                              </strong>
+                              {q.explanation_en}
+                            </div>
+                          )}
+
+                          <div className="pt-1 text-[11px] text-slate-500 flex items-center justify-between">
+                            <span>
+                              উৎস: {q.source_title}{' '}
+                              {q.source_page_or_section ? `(${q.source_page_or_section})` : ''}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Daily Challenge Action Buttons & Navigation */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                {!viewAllDaily ? (
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      disabled={activeDailyIndex === 0}
+                      onClick={() => setActiveDailyIndex((prev) => Math.max(0, prev - 1))}
+                      className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <span>আগের প্রশ্ন</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={activeDailyIndex === dailyTotal - 1}
+                      onClick={() => setActiveDailyIndex((prev) => Math.min(dailyTotal - 1, prev + 1))}
+                      className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      <span>পরের প্রশ্ন</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div />
+                )}
+
+                {!dailySubmitted ? (
+                  <button
+                    type="button"
+                    onClick={handleDailySubmit}
+                    disabled={dailyAnsweredCount === 0}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  >
+                    <Trophy className="h-4 w-4" />
+                    <span>
+                      {dailyAnsweredCount === dailyTotal
+                        ? 'চ্যালেঞ্জ সাবমিট করুন (Submit Challenge)'
+                        : `উত্তর সাবমিট করুন (${toBnDigits(dailyAnsweredCount)}/${toBnDigits(dailyTotal)} সম্পন্ন)`}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>আজকের ডেইলি চ্যালেঞ্জ সম্পন্ন ও সংরক্ষিত হয়েছে।</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 1. QUESTION BANK FILTERS & SEARCH                                         */}
+        {/* ========================================================================= */}
+
         {/* Subject Filter Pills */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -307,12 +1106,8 @@ export default function QuestionBankExplorerPage() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => {
-                setSelectedSubject('all');
-                setCurrentPage(1);
-                setJumpPageInput('1');
-              }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+              onClick={() => handleSelectSubject('all')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 selectedSubject === 'all'
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                   : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -338,12 +1133,8 @@ export default function QuestionBankExplorerPage() {
                   <button
                     key={subj}
                     type="button"
-                    onClick={() => {
-                      setSelectedSubject(subj);
-                      setCurrentPage(1);
-                      setJumpPageInput('1');
-                    }}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                    onClick={() => handleSelectSubject(subj)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                       isSelected
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -373,15 +1164,16 @@ export default function QuestionBankExplorerPage() {
               <input
                 type="text"
                 placeholder="প্রশ্ন, টপিক বা ব্যাকরণ/ব্যাখ্যার শব্দ লিখে সার্চ করুন (বাংলা ও English)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl text-sm border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
-              {searchQuery && (
+              {searchInput && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label="Clear search input"
                 >
                   <XCircle className="h-4 w-4" />
                 </button>
@@ -390,10 +1182,10 @@ export default function QuestionBankExplorerPage() {
 
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <Search className="h-4 w-4" />
-              <span>সার্চ</span>
+              <span>সার্চ (Search)</span>
             </button>
           </form>
 
@@ -404,11 +1196,8 @@ export default function QuestionBankExplorerPage() {
                 <span className="text-slate-500 font-medium">কঠিনতা (Difficulty):</span>
                 <select
                   value={selectedDifficulty}
-                  onChange={(e) => {
-                    setSelectedDifficulty(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium"
+                  onChange={(e) => handleSelectDifficulty(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   <option value="all">সকল মাত্রা (All)</option>
                   <option value="easy">সহজ (Easy)</option>
@@ -421,11 +1210,8 @@ export default function QuestionBankExplorerPage() {
                 <span className="text-slate-500 font-medium">ব্যাচ (Batch 1–81):</span>
                 <select
                   value={selectedBatch}
-                  onChange={(e) => {
-                    setSelectedBatch(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium"
+                  onChange={(e) => handleSelectBatch(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   <option value="">সকল ব্যাচ (All 81 Batches)</option>
                   {Array.from({ length: 81 }, (_, i) => i + 1).map((b) => (
@@ -440,11 +1226,8 @@ export default function QuestionBankExplorerPage() {
                 <span className="text-slate-500 font-medium">প্রতি পেজে:</span>
                 <select
                   value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(parseInt(e.target.value, 10));
-                    setCurrentPage(1);
-                  }}
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium"
+                  onChange={(e) => handleSelectPageSize(parseInt(e.target.value, 10))}
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   <option value="10">১০টি</option>
                   <option value="20">২০টি</option>
@@ -457,14 +1240,14 @@ export default function QuestionBankExplorerPage() {
             {(selectedSubject !== 'all' ||
               selectedDifficulty !== 'all' ||
               selectedBatch ||
-              searchQuery) && (
+              appliedSearch) && (
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-xs text-rose-500 hover:text-rose-600 font-semibold flex items-center gap-1"
+                className="text-xs text-rose-500 hover:text-rose-600 font-semibold flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-lg p-1"
               >
                 <RotateCcw className="h-3 w-3" />
-                <span>ফিল্টার রিসেট করুন</span>
+                <span>ফিল্টার রিসেট করুন (Reset Filters)</span>
               </button>
             )}
           </div>
@@ -498,7 +1281,7 @@ export default function QuestionBankExplorerPage() {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold"
+              className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               ফিল্টার রিসেট
             </button>
@@ -556,7 +1339,7 @@ export default function QuestionBankExplorerPage() {
                       <button
                         type="button"
                         onClick={() => toggleBookmark(q.id)}
-                        className={`p-1.5 rounded-lg border transition-colors ${
+                        className={`p-1.5 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                           isBookmarked
                             ? 'bg-amber-50 text-amber-600 border-amber-300 dark:bg-amber-950 dark:text-amber-400'
                             : 'text-slate-400 hover:text-slate-600 border-slate-200 dark:border-slate-700'
@@ -611,7 +1394,7 @@ export default function QuestionBankExplorerPage() {
                           key={optKey}
                           type="button"
                           onClick={() => handleSelectOption(q.id, optKey)}
-                          className={`w-full text-left p-3 rounded-xl border text-sm transition-all flex items-start gap-2.5 ${optionStyle}`}
+                          className={`w-full text-left p-3 rounded-xl border text-sm transition-all flex items-start gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${optionStyle}`}
                         >
                           <span
                             className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
@@ -635,7 +1418,7 @@ export default function QuestionBankExplorerPage() {
                     <button
                       type="button"
                       onClick={() => toggleRevealAnswer(q.id)}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-1"
                     >
                       {isRevealed ? (
                         <>
@@ -651,7 +1434,8 @@ export default function QuestionBankExplorerPage() {
                     </button>
 
                     <span className="text-[11px] text-slate-400">
-                      উৎস: {q.source_title} {q.source_page_or_section ? `(${q.source_page_or_section})` : ''}
+                      উৎস: {q.source_title}{' '}
+                      {q.source_page_or_section ? `(${q.source_page_or_section})` : ''}
                     </span>
                   </div>
 
@@ -660,7 +1444,9 @@ export default function QuestionBankExplorerPage() {
                     <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs sm:text-sm space-y-2.5">
                       <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
                         <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                        <span>সঠিক উত্তর: ({q.correct_option}) {q.options[q.correct_option]}</span>
+                        <span>
+                          সঠিক উত্তর: ({q.correct_option}) {q.options[q.correct_option]}
+                        </span>
                       </div>
 
                       {q.explanation_bn && (
@@ -688,65 +1474,105 @@ export default function QuestionBankExplorerPage() {
           </div>
         )}
 
-        {/* Pagination & Jump-to-Page Controls */}
+        {/* ========================================================================= */}
+        {/* 1. FIXED ACCESSIBLE & RESPONSIVE PAGINATION CONTROLS                      */}
+        {/* ========================================================================= */}
         {!isLoading && totalPages > 1 && (
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs text-slate-500">
-              পেজ <span className="font-bold text-slate-900 dark:text-white">{currentPage}</span> / {totalPages} (মোট {totalQuestions.toLocaleString()} টি প্রশ্ন)
+          <nav
+            aria-label="Question bank pagination"
+            className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4"
+          >
+            {/* Page Count & Total MCQs Status */}
+            <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
+              পেজ <span className="font-bold text-slate-900 dark:text-white font-mono">{currentPage}</span> /{' '}
+              <span className="font-mono">{totalPages}</span> (মোট{' '}
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
+                {totalQuestions.toLocaleString()}
+              </span>{' '}
+              টি প্রশ্ন)
             </div>
 
             {/* Pagination Button Controls */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center justify-center gap-1.5" role="navigation">
+              {/* First Page Shortcut */}
               <button
                 type="button"
-                onClick={() => {
-                  setCurrentPage(1);
-                  setJumpPageInput('1');
-                }}
+                onClick={() => handlePageChange(1)}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 text-xs"
-                title="প্রথম পেজ"
+                aria-label="First page"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-slate-700 dark:text-slate-300 transition-colors"
+                title="প্রথম পেজ (First Page)"
               >
                 <ChevronsLeft className="h-4 w-4" />
               </button>
 
+              {/* Previous Page Control */}
               <button
                 type="button"
-                onClick={() => {
-                  const prev = Math.max(1, currentPage - 1);
-                  setCurrentPage(prev);
-                  setJumpPageInput(prev.toString());
-                }}
+                onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1"
+                aria-label="Previous page"
+                className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-300 transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
-                <span>আগের পেজ</span>
+                <span>Previous</span>
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">(পূর্ববর্তী)</span>
               </button>
 
+              {/* Numbered Page Buttons with Ellipses */}
+              {getVisiblePages(currentPage, totalPages).map((p, idx) => {
+                if (p === 'ellipsis') {
+                  return (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      aria-hidden="true"
+                      className="px-2 py-1 text-slate-400 dark:text-slate-600 font-bold select-none text-xs"
+                    >
+                      …
+                    </span>
+                  );
+                }
+
+                const isCurrent = p === currentPage;
+                return (
+                  <button
+                    key={`page-${p}`}
+                    type="button"
+                    onClick={() => handlePageChange(p)}
+                    aria-label={`Go to page ${p}`}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    className={`min-w-[36px] h-9 px-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                      isCurrent
+                        ? 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-500 scale-105'
+                        : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+
+              {/* Next Page Control */}
               <button
                 type="button"
-                onClick={() => {
-                  const next = Math.min(totalPages, currentPage + 1);
-                  setCurrentPage(next);
-                  setJumpPageInput(next.toString());
-                }}
+                onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1"
+                aria-label="Next page"
+                className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-300 transition-colors"
               >
-                <span>পরের পেজ</span>
+                <span>Next</span>
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">(পরবর্তী)</span>
                 <ChevronRight className="h-4 w-4" />
               </button>
 
+              {/* Last Page Shortcut */}
               <button
                 type="button"
-                onClick={() => {
-                  setCurrentPage(totalPages);
-                  setJumpPageInput(totalPages.toString());
-                }}
+                onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 text-xs"
-                title="শেষ পেজ"
+                aria-label="Last page"
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-slate-700 dark:text-slate-300 transition-colors"
+                title="শেষ পেজ (Last Page)"
               >
                 <ChevronsRight className="h-4 w-4" />
               </button>
@@ -761,16 +1587,17 @@ export default function QuestionBankExplorerPage() {
                 max={totalPages}
                 value={jumpPageInput}
                 onChange={(e) => setJumpPageInput(e.target.value)}
-                className="w-16 px-2 py-1.5 text-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold"
+                aria-label="Enter page number to jump to"
+                className="w-16 px-2 py-1.5 text-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               />
               <button
                 type="submit"
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold"
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 যান
               </button>
             </form>
-          </div>
+          </nav>
         )}
 
         {/* Bottom Call-to-Action: Direct Mock Test & Practice */}
@@ -780,7 +1607,7 @@ export default function QuestionBankExplorerPage() {
               এই ২০,০০০ প্রশ্ন নিয়ে এখনই মক টেস্ট দিন!
             </h3>
             <p className="text-xs sm:text-sm text-emerald-100 bangla-font max-w-xl">
-              টাইমড পরীক্ষা ও নেগেটিভ মার্কিং (-০.৫০)-এর সাথে আপনার রিয়েল প্রস্তুতি যাচাই করুন।
+              টাইমড পরীক্ষা ও নেগেティブ মার্কিং (-০.৫০)-এর সাথে আপনার রিয়েল প্রস্তুতি যাচাই করুন।
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">

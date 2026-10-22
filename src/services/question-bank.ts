@@ -150,19 +150,19 @@ export class QuestionBankService {
     // Filter by Subject
     if (subject && subject.toLowerCase() !== 'all') {
       const targetSubj = subject.toLowerCase().trim();
-      filtered = filtered.filter((q) => q.subject.toLowerCase() === targetSubj);
+      filtered = filtered.filter((q) => q.subject && q.subject.toLowerCase() === targetSubj);
     }
 
     // Filter by Difficulty
     if (difficulty && difficulty.toLowerCase() !== 'all') {
       const targetDiff = difficulty.toLowerCase().trim();
-      filtered = filtered.filter((q) => q.difficulty.toLowerCase() === targetDiff);
+      filtered = filtered.filter((q) => q.difficulty && q.difficulty.toLowerCase() === targetDiff);
     }
 
     // Filter by Topic
     if (topic && topic.toLowerCase() !== 'all') {
       const targetTopic = topic.toLowerCase().trim();
-      filtered = filtered.filter((q) => q.topic.toLowerCase().includes(targetTopic));
+      filtered = filtered.filter((q) => q.topic && q.topic.toLowerCase().includes(targetTopic));
     }
 
     // Keyword Search (case-insensitive across Bengali and English text)
@@ -170,13 +170,13 @@ export class QuestionBankService {
       const query = search.toLowerCase().trim();
       filtered = filtered.filter((q) => {
         return (
-          q.question_bn.toLowerCase().includes(query) ||
-          q.question_en.toLowerCase().includes(query) ||
-          q.topic.toLowerCase().includes(query) ||
-          q.subtopic.toLowerCase().includes(query) ||
-          q.explanation_bn.toLowerCase().includes(query) ||
-          q.explanation_en.toLowerCase().includes(query) ||
-          q.id.toLowerCase().includes(query)
+          Boolean(q.question_bn && q.question_bn.toLowerCase().includes(query)) ||
+          Boolean(q.question_en && q.question_en.toLowerCase().includes(query)) ||
+          Boolean(q.topic && q.topic.toLowerCase().includes(query)) ||
+          Boolean(q.subtopic && q.subtopic.toLowerCase().includes(query)) ||
+          Boolean(q.explanation_bn && q.explanation_bn.toLowerCase().includes(query)) ||
+          Boolean(q.explanation_en && q.explanation_en.toLowerCase().includes(query)) ||
+          Boolean(q.id && q.id.toLowerCase().includes(query))
         );
       });
     }
@@ -284,5 +284,101 @@ export class QuestionBankService {
     }
 
     return globalForQB.__bcs_platform_questions__;
+  }
+
+  /**
+   * Deterministically returns the Daily Challenge questions for a given date.
+   * Consistent for all students throughout the day.
+   */
+  static getDailyChallenge(
+    dateStr?: string,
+    count = 5
+  ): {
+    date: string;
+    challengeId: string;
+    totalQuestions: number;
+    questions: RawQuestionBankItem[];
+  } {
+    let today = dateStr;
+    if (!today) {
+      try {
+        today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date());
+      } catch {
+        today = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    const allQuestions = this.getAllQuestions();
+    if (allQuestions.length === 0) {
+      return {
+        date: today,
+        challengeId: `daily-${today}`,
+        totalQuestions: 0,
+        questions: [],
+      };
+    }
+
+    // Seeded PRNG based on date string (e.g. '2026-10-22')
+    let hash = 0;
+    for (let i = 0; i < today.length; i++) {
+      hash = (hash << 5) - hash + today.charCodeAt(i);
+      hash |= 0;
+    }
+    let seed = Math.abs(hash) || 5381;
+    const nextRandom = () => {
+      seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    const subjects = [
+      'Bangla',
+      'English',
+      'Bangladesh Affairs',
+      'International Affairs',
+      'Science',
+      'Computer and Information Technology',
+      'Mathematics',
+      'Mental Ability',
+      'Geography and Environment',
+      'Ethics, Values and Good Governance',
+    ];
+
+    // Shuffle subjects deterministically for this date
+    const shuffledSubjects = [...subjects];
+    for (let i = shuffledSubjects.length - 1; i > 0; i--) {
+      const j = Math.floor(nextRandom() * (i + 1));
+      [shuffledSubjects[i], shuffledSubjects[j]] = [shuffledSubjects[j], shuffledSubjects[i]];
+    }
+
+    const selectedSubjects = shuffledSubjects.slice(0, Math.min(count, shuffledSubjects.length));
+    const selectedQuestions: RawQuestionBankItem[] = [];
+
+    for (const subj of selectedSubjects) {
+      const subjQuestions = allQuestions.filter(
+        (q) => q.subject.toLowerCase() === subj.toLowerCase()
+      );
+      if (subjQuestions.length > 0) {
+        const qIdx = Math.floor(nextRandom() * subjQuestions.length);
+        selectedQuestions.push(subjQuestions[qIdx]);
+      }
+    }
+
+    // Fill to count if needed
+    while (selectedQuestions.length < count && allQuestions.length > selectedQuestions.length) {
+      const qIdx = Math.floor(nextRandom() * allQuestions.length);
+      const candidate = allQuestions[qIdx];
+      if (!selectedQuestions.some((q) => q.id === candidate.id)) {
+        selectedQuestions.push(candidate);
+      }
+    }
+
+    return {
+      date: today,
+      challengeId: `daily-${today}`,
+      totalQuestions: selectedQuestions.length,
+      questions: selectedQuestions,
+    };
   }
 }
