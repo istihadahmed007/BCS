@@ -106,10 +106,25 @@ export class DailyPracticeService {
       );
     }
 
+    const normalizedUserId =
+      userId === 'student_current' || userId === 'candidate-user-1' || userId === 'student_001'
+        ? 'student_dr_rahim'
+        : userId || 'student_dr_rahim';
+
+    // Helper for non-destructive Fisher-Yates array shuffling
+    const shuffle = <T>(array: T[]): T[] => {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
+
     // Determine target count
     const targetCount = Math.min(questionCount, eligibleQuestions.length);
 
-    // If Mixed Mode, apply the 40/30/20/10 proportional algorithm
+    // If Mixed Mode, apply the 40/30/20/10 proportional algorithm with randomized sampling
     let selectedQuestions: Question[] = [];
 
     if (practiceMode === 'mixed') {
@@ -120,19 +135,19 @@ export class DailyPracticeService {
       );
 
       // Bucket A: Mistake / Due revision (up to 40%)
-      const revisionBucket = eligibleQuestions.filter((q) => mistakeQuestionIds.includes(q.id));
+      const revisionBucket = shuffle(eligibleQuestions.filter((q) => mistakeQuestionIds.includes(q.id)));
       const countA = Math.round(targetCount * 0.4);
 
       // Bucket B: Weak topics (up to 30%)
-      const weakBucket = eligibleQuestions.filter((q) => weakTopicIds.has(q.topicId));
+      const weakBucket = shuffle(eligibleQuestions.filter((q) => weakTopicIds.has(q.topicId)));
       const countB = Math.round(targetCount * 0.3);
 
       // Bucket C: Verified Past Questions (up to 20%)
-      const pastBucket = eligibleQuestions.filter((q) => q.contentOrigin === 'official_bpsc');
+      const pastBucket = shuffle(eligibleQuestions.filter((q) => q.contentOrigin === 'official_bpsc'));
       const countC = Math.round(targetCount * 0.2);
 
       // Bucket D: Remainder / New topics (10%)
-      const remainderBucket = eligibleQuestions;
+      const remainderBucket = shuffle(eligibleQuestions);
 
       const chosenSet = new Set<string>();
 
@@ -152,8 +167,8 @@ export class DailyPracticeService {
       addFrom(pastBucket, countA + countB + countC);
       addFrom(remainderBucket, targetCount);
     } else {
-      // In specific mode, take items up to targetCount
-      selectedQuestions = eligibleQuestions.slice(0, targetCount);
+      // In specific mode, shuffle and take items up to targetCount
+      selectedQuestions = shuffle(eligibleQuestions).slice(0, targetCount);
     }
 
     // Assemble daily practice questions
@@ -175,7 +190,7 @@ export class DailyPracticeService {
 
     const practiceSet: DailyPracticeSet = {
       id: setId,
-      userId,
+      userId: normalizedUserId,
       examTrackId,
       professionalStream,
       practiceMode,

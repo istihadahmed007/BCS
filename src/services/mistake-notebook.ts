@@ -129,9 +129,13 @@ export class MistakeNotebookService {
     };
   } {
     const { userId, subject, topic, trackId, errorType, reviewStatus, search, resolved } = params;
+    const normalizedUserId =
+      userId === 'student_current' || userId === 'candidate-user-1' || userId === 'student_001'
+        ? 'student_dr_rahim'
+        : userId || 'student_dr_rahim';
 
     const allUserMistakes = Array.from(MISTAKE_NOTEBOOK_STORE.values()).filter(
-      (m) => m.userId === userId
+      (m) => m.userId === normalizedUserId
     );
 
     const now = new Date();
@@ -217,10 +221,14 @@ export class MistakeNotebookService {
     candidateNotes?: string;
   }): MistakeNotebookEntry {
     const { userId, questionId, userSelectedOption = null, testSessionId, errorType = 'conceptual_misunderstanding', candidateNotes = '' } = params;
+    const normalizedUserId =
+      userId === 'student_current' || userId === 'candidate-user-1' || userId === 'student_001'
+        ? 'student_dr_rahim'
+        : userId || 'student_dr_rahim';
 
-    // Check if entry already exists for this (userId, questionId)
+    // Check if entry already exists for this (normalizedUserId, questionId)
     const existing = Array.from(MISTAKE_NOTEBOOK_STORE.values()).find(
-      (m) => m.userId === userId && m.questionId === questionId
+      (m) => m.userId === normalizedUserId && m.questionId === questionId
     );
 
     const now = new Date().toISOString();
@@ -240,7 +248,10 @@ export class MistakeNotebookService {
     }
 
     // Load original question from SourceIngestionService or SEED_QUESTIONS
-    let question = SourceIngestionService.getApprovedQuestions().find((q) => q.id === questionId);
+    let question = SourceIngestionService.getQuestionById(questionId);
+    if (!question) {
+      question = SourceIngestionService.getApprovedQuestions().find((q) => q.id === questionId);
+    }
     if (!question) {
       question = SEED_QUESTIONS.find((q) => q.id === questionId);
     }
@@ -252,7 +263,7 @@ export class MistakeNotebookService {
     const newId = `mistake-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const newEntry: MistakeNotebookEntry = {
       id: newId,
-      userId,
+      userId: normalizedUserId,
       questionId,
       question,
       testSessionId,

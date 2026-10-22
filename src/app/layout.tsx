@@ -124,13 +124,6 @@ export default function RootLayout({
                 <FileText className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                 <span>Mistakes</span>
               </Link>
-              <Link
-                href="/admin"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <ShieldCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Admin</span>
-              </Link>
             </nav>
 
             {/* Quick Diagnostic / Start Button */}
@@ -201,7 +194,7 @@ export default function RootLayout({
                 </li>
                 <li>
                   <Link href="/question-bank" className="hover:text-emerald-400 font-semibold text-emerald-400 transition-colors">
-                    Question Bank (২০,০০০ ভেরিফায়েড প্রশ্ন)
+                    Question Bank (২০,০০০ প্রশ্নভাণ্ডার)
                   </Link>
                 </li>
                 <li>

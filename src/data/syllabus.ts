@@ -326,4 +326,97 @@ export const SYLLABUS_TOPICS: SyllabusTopic[] = [
     weightageLevel: 'critical',
     displayOrder: 2,
   },
+
+  // ----------------------------------------------------
+  // General Science (General BCS - 15 marks)
+  // ----------------------------------------------------
+  {
+    id: 'top-sci-physical-biological',
+    subjectId: 'sub-gbcs-science',
+    topicCode: 'SCI-01',
+    titleEn: 'Physical, Chemical & Biological Science',
+    titleBn: 'ভৌত, রাসায়নিক ও জীব বিজ্ঞান',
+    description: 'আলো, শব্দ, চুম্বকত্ব, অম্ল-ক্ষারক, পলিমার, রক্ত ও সংবহনতন্ত্র, বংশগতি ও জীবপ্রযুক্তি, পুষ্টি ও ভিটামিন।',
+    officialSyllabusPage: 'Official Syllabus Page 8',
+    weightageLevel: 'critical',
+    displayOrder: 1,
+  },
+  {
+    id: 'top-sci-modern-earth',
+    subjectId: 'sub-gbcs-science',
+    topicCode: 'SCI-02',
+    titleEn: 'Modern Science & Earth Environment',
+    titleBn: 'আধুনিক বিজ্ঞান ও পৃথিবী-মহাকাশ বিজ্ঞান',
+    description: 'বায়ুমণ্ডল, মহাকাশ অভিযান, নিউক্লিয়ার এনার্জি, রোগব্যাধি ও অ্যান্টিবায়োটিক, স্বাস্থ্য ও পরিবেশ দূষণ।',
+    officialSyllabusPage: 'Official Syllabus Page 8-9',
+    weightageLevel: 'high',
+    displayOrder: 2,
+  },
+
+  // ----------------------------------------------------
+  // Computer & Information Technology (General BCS - 15 marks)
+  // ----------------------------------------------------
+  {
+    id: 'top-com-hardware-software',
+    subjectId: 'sub-gbcs-computer',
+    topicCode: 'COM-01',
+    titleEn: 'Computer Systems, Architecture & Software',
+    titleBn: 'কম্পিউটার সংগঠন, পেরিফেরালস ও অপারেটিং সিস্টেম',
+    description: 'CPU, মেমোরি সংগঠন (RAM/ROM), ইনপুট/আউটপুট ডিভাইস, সিস্টেম সফটওয়্যার, নাম্বার সিস্টেম ও ডেটা রিপ্রেজেন্টেশন।',
+    officialSyllabusPage: 'Official Syllabus Page 9',
+    weightageLevel: 'critical',
+    displayOrder: 1,
+  },
+  {
+    id: 'top-com-networks-security',
+    subjectId: 'sub-gbcs-computer',
+    topicCode: 'COM-02',
+    titleEn: 'Networking, Internet, Cloud & Cyber Security',
+    titleBn: 'নেটওয়ার্কিং, ইন্টারনেট, ক্লাউড কম্পিউটিং ও সাইবার নিরাপত্তা',
+    description: 'LAN/WAN, রাউটার, আইপি অ্যাড্রেস, ক্লাউড আর্কিটেকচার, ফায়ারওয়াল, সাইবার অপরাধ ও ডিজিটাল বাংলাদেশ/স্মার্ট বাংলাদেশ উদ্যোগ।',
+    officialSyllabusPage: 'Official Syllabus Page 9-10',
+    weightageLevel: 'critical',
+    displayOrder: 2,
+  },
+
+  // ----------------------------------------------------
+  // Geography, Environment & Disaster Management (General BCS - 10 marks)
+  // ----------------------------------------------------
+  {
+    id: 'top-geo-bangladesh-environment',
+    subjectId: 'sub-gbcs-geography',
+    topicCode: 'GEO-01',
+    titleEn: 'Geography of Bangladesh, Regional Landscape & Resources',
+    titleBn: 'বাংলাদেশ ও বৈশ্বিক ভূপ্রকৃতি এবং প্রাকৃতিক সম্পদ',
+    description: 'ভূপ্রকৃতি, নদ-নদী, সীমানা ও সমুদ্রসীমা, খনিজ সম্পদ, বনাঞ্চল ও অর্থনৈতিক ভৌগোলিক অঞ্চলসমূহ।',
+    officialSyllabusPage: 'Official Syllabus Page 10',
+    weightageLevel: 'high',
+    displayOrder: 1,
+  },
+  {
+    id: 'top-geo-disasters-climate',
+    subjectId: 'sub-gbcs-geography',
+    topicCode: 'GEO-02',
+    titleEn: 'Natural Disasters, Climate Change & Mitigation',
+    titleBn: 'প্রাকৃতিক দুর্যোগ ও জলবায়ু পরিবর্তন ব্যবস্থাপনা',
+    description: 'ঘূর্ণিঝড়, বন্যা, ভূমিকম্প, গ্রিনহাউস ইফেক্ট, বৈশ্বিক উষ্ণায়ন, দুর্যোগপূর্ব ও পরবর্তী সাড়াদান ব্যবস্থাপনা।',
+    officialSyllabusPage: 'Official Syllabus Page 10',
+    weightageLevel: 'high',
+    displayOrder: 2,
+  },
+
+  // ----------------------------------------------------
+  // Ethics, Values & Good Governance (General BCS - 10 marks)
+  // ----------------------------------------------------
+  {
+    id: 'top-eth-values-governance',
+    subjectId: 'sub-gbcs-ethics',
+    topicCode: 'ETH-01',
+    titleEn: 'Values, Ethics, Public Morality & Good Governance',
+    titleBn: 'মূল্যবোধ, নীতিশাস্ত্র, নাগরিক নৈতিকতা ও সুশাসন',
+    description: 'মূল্যবোধের উৎস, প্রাতিষ্ঠানিক জবাবদিহিতা, স্বচ্ছতা, আইনের শাসন, মানবাধিকার, দুর্নীতি দমন ও ই-গভর্ন্যান্স।',
+    officialSyllabusPage: 'Official Syllabus Page 11',
+    weightageLevel: 'high',
+    displayOrder: 1,
+  },
 ];

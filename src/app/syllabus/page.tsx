@@ -13,19 +13,22 @@ import {
   Stethoscope,
   Target,
 } from 'lucide-react';
-import { SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
+import { GENERAL_BCS_SUBJECTS, SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
 import { SYLLABUS_TOPICS } from '@/data/syllabus';
 import { OFFICIAL_SOURCES } from '@/data/catalog';
 
 export default function SyllabusPage() {
-  const [activeTab, setActiveTab] = useState<'shared' | 'medical' | 'dental'>('shared');
+  const [activeTab, setActiveTab] = useState<'general' | 'shared' | 'medical' | 'dental'>('general');
 
-  const filteredSubjects = SPECIAL_BCS_HEALTH_SUBJECTS.filter((sub) => {
-    if (activeTab === 'shared') return !sub.isProfessional;
-    if (activeTab === 'medical') return sub.isProfessional && sub.professionalStream === 'assistant_surgeon';
-    if (activeTab === 'dental') return sub.isProfessional && sub.professionalStream === 'assistant_dental_surgeon';
-    return true;
-  });
+  const filteredSubjects =
+    activeTab === 'general'
+      ? GENERAL_BCS_SUBJECTS
+      : SPECIAL_BCS_HEALTH_SUBJECTS.filter((sub) => {
+          if (activeTab === 'shared') return !sub.isProfessional;
+          if (activeTab === 'medical') return sub.isProfessional && sub.professionalStream === 'assistant_surgeon';
+          if (activeTab === 'dental') return sub.isProfessional && sub.professionalStream === 'assistant_dental_surgeon';
+          return true;
+        });
 
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950">
@@ -35,29 +38,42 @@ export default function SyllabusPage() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-semibold mb-2">
               <BookOpen className="h-3.5 w-3.5" />
-              <span>Official 30-Page BPSC Written Syllabus Structure</span>
+              <span>Official BPSC Syllabus Curriculum & Subject Breakdown</span>
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Curriculum & Syllabus Explorer
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-400 bangla-font mt-1">
-              বিপিএসসি কর্তৃক প্রকাশিত অফিসিয়াল সিলেবাসের প্রতিটি বিষয়, টপিক কোড, মার্কস ও রেফারেন্স পৃষ্ঠা।
+              বাংলাদেশ সরকারি কর্ম কমিশন (BPSC) প্রিলিমিনারি ও স্পেশাল বিসিএস অফিসিয়াল সিলেবাসের প্রতিটি বিষয়, টপিক কোড, মার্কস ও রেফারেন্স।
             </p>
           </div>
 
           <a
-            href={OFFICIAL_SOURCES[1]?.sourceUrl}
+            href={OFFICIAL_SOURCES[1]?.sourceUrl || 'https://bpsc.gov.bd'}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-all"
           >
-            <span>Download Official 30-Page BPSC PDF</span>
+            <span>Download Official BPSC PDF</span>
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>
 
         {/* Section Tabs */}
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setActiveTab('general')}
+            className={`px-5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'general'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
+            }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>General BCS Preliminary (10 Subjects • 200 Marks)</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('shared')}
@@ -68,7 +84,7 @@ export default function SyllabusPage() {
             }`}
           >
             <Layers className="h-4 w-4" />
-            <span>Shared General Subjects (100 Marks)</span>
+            <span>Special BCS Shared Subjects (100 Marks)</span>
           </button>
 
           <button
@@ -101,7 +117,18 @@ export default function SyllabusPage() {
         {/* Subjects & Topics List */}
         <div className="space-y-8">
           {filteredSubjects.map((sub) => {
-            const subjectTopics = SYLLABUS_TOPICS.filter((t) => t.subjectId === sub.id);
+            const subjectTopics = SYLLABUS_TOPICS.filter((t) => {
+              if (t.subjectId === sub.id) return true;
+              const sharedMap: Record<string, string> = {
+                'sub-gbcs-bangla': 'sub-sbcs-bangla',
+                'sub-gbcs-english': 'sub-sbcs-english',
+                'sub-gbcs-bdaffairs': 'sub-sbcs-bdaffairs',
+                'sub-gbcs-intaffairs': 'sub-sbcs-intaffairs',
+                'sub-gbcs-math': 'sub-sbcs-math',
+                'sub-gbcs-mental-ability': 'sub-sbcs-mental-ability',
+              };
+              return sharedMap[sub.id] === t.subjectId;
+            });
             return (
               <div
                 key={sub.id}

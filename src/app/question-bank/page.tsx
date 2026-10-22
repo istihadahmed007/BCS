@@ -262,62 +262,50 @@ export default function QuestionBankExplorerPage() {
   const todayStr = getDhakaDateString();
 
   // Load Daily Challenge & restore student's daily progress
-  useEffect(() => {
-    let isCancelled = false;
+  const loadDailyChallenge = useCallback(async () => {
+    setDailyLoading(true);
+    setDailyError(null);
+    try {
+      const res = await fetch(`/api/questions/daily-challenge?date=${todayStr}`);
+      const json = await res.json();
 
-    const loadDailyChallenge = async () => {
-      setDailyLoading(true);
-      setDailyError(null);
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to load daily challenge');
+      }
+
+      setDailyData(json);
+
+      // Restore preserved progress from localStorage
       try {
-        const res = await fetch(`/api/questions/daily-challenge?date=${todayStr}`);
-        const json = await res.json();
-
-        if (isCancelled) return;
-
-        if (!res.ok || !json.success) {
-          throw new Error(json.error || 'Failed to load daily challenge');
-        }
-
-        setDailyData(json);
-
-        // Restore preserved progress from localStorage
-        try {
-          const storageKey = `bcs_daily_challenge_${todayStr}`;
-          const savedProgress = localStorage.getItem(storageKey);
-          if (savedProgress) {
-            const parsed = JSON.parse(savedProgress);
-            if (parsed && parsed.date === todayStr) {
-              if (parsed.answers) {
-                setDailyAnswers(parsed.answers);
-              }
-              if (parsed.isSubmitted) {
-                setDailySubmitted(true);
-                if (parsed.score) {
-                  setDailyScore(parsed.score);
-                }
+        const storageKey = `bcs_daily_challenge_${todayStr}`;
+        const savedProgress = localStorage.getItem(storageKey);
+        if (savedProgress) {
+          const parsed = JSON.parse(savedProgress);
+          if (parsed && parsed.date === todayStr) {
+            if (parsed.answers) {
+              setDailyAnswers(parsed.answers);
+            }
+            if (parsed.isSubmitted) {
+              setDailySubmitted(true);
+              if (parsed.score) {
+                setDailyScore(parsed.score);
               }
             }
           }
-        } catch {
-          // localStorage might be blocked or empty
         }
-      } catch (err: any) {
-        if (!isCancelled) {
-          setDailyError(err.message || 'Could not load Daily Challenge');
-        }
-      } finally {
-        if (!isCancelled) {
-          setDailyLoading(false);
-        }
+      } catch {
+        // localStorage might be blocked or empty
       }
-    };
-
-    loadDailyChallenge();
-
-    return () => {
-      isCancelled = true;
-    };
+    } catch (err: any) {
+      setDailyError(err.message || 'Could not load Daily Challenge');
+    } finally {
+      setDailyLoading(false);
+    }
   }, [todayStr]);
+
+  useEffect(() => {
+    loadDailyChallenge();
+  }, [loadDailyChallenge]);
 
   // Load Question Bank MCQs whenever filters or pagination parameters change
   useEffect(() => {
@@ -597,18 +585,18 @@ export default function QuestionBankExplorerPage() {
           <div className="relative z-10 space-y-4 max-w-4xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold backdrop-blur-sm">
               <Sparkles className="h-4 w-4 animate-pulse text-emerald-400" />
-              <span>100% Certified Syllabus-Compliant MCQ Repository</span>
+              <span>BPSC Syllabus Aligned • 20,000 Questions Repository</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
               BCS Question Bank{' '}
               <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent">
-                (২০,০০০ ভেরিফায়েড প্রশ্ন)
+                (২০,০০০ প্রশ্নভাণ্ডার)
               </span>
             </h1>
 
             <p className="text-sm sm:text-base text-emerald-100 font-normal leading-relaxed bangla-font max-w-3xl">
-              বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর ১০টি সাধারণ বিষয়ের ওপর তৈরি ২০,০০০ নির্ভরযোগ্য প্রশ্ন, প্রতিটি প্রশ্নের সাথে বাংলা ও ইংরেজি অনুবাদ, সঠিক উত্তর এবং প্রমাণভিত্তিক বিস্তারিত ব্যাখ্যা।
+              বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর ১০টি সাধারণ বিষয়ের ওপর তৈরি ২০,০০০ সংরক্ষিত প্রশ্ন (৮১টি ব্যাচে বিন্যস্ত: ব্যাচ ১–২ এ ১০০-১৫০টি ও ব্যাচ ৩–৮১ এ ২৫০টি প্রশ্ন)। প্রতিটি প্রশ্নের সাথে বাংলা ও ইংরেজি অনুবাদ, সঠিক উত্তর এবং বিশদ রেফারেন্সযুক্ত ব্যাখ্যা।
             </p>
 
             {/* Quick KPI Stat Strip */}
@@ -617,19 +605,19 @@ export default function QuestionBankExplorerPage() {
                 <div className="text-2xl sm:text-3xl font-extrabold text-emerald-300">
                   {manifest ? manifest.totalQuestions.toLocaleString() : '20,000'}
                 </div>
-                <div className="text-xs text-emerald-200">মোট পরীক্ষিত প্রশ্ন</div>
+                <div className="text-xs text-emerald-200">মোট প্রশ্ন (৮১ ব্যাচ)</div>
               </div>
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
                 <div className="text-2xl sm:text-3xl font-extrabold text-teal-300">১০টি বিষয়</div>
-                <div className="text-xs text-teal-200">পূর্ণ সিলেবাস কাভারেজ</div>
+                <div className="text-xs text-teal-200">পূর্ণাঙ্গ সিলেবাস কাভারেজ</div>
               </div>
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
                 <div className="text-2xl sm:text-3xl font-extrabold text-sky-300">৮১ ব্যাচ</div>
-                <div className="text-xs text-sky-200">স্ট্রাকচার্ড JSONL ভলিউম</div>
+                <div className="text-xs text-sky-200">স্ট্রাকচার্ড ডাটাবেজ ভলিউম</div>
               </div>
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                <div className="text-2xl sm:text-3xl font-extrabold text-amber-300">১০০%</div>
-                <div className="text-xs text-amber-200">নির্ভুল ডাটাবেজ সার্টিফিকেট</div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-amber-300">৭৫০+</div>
+                <div className="text-xs text-amber-200">বিশেষজ্ঞ-নিরীক্ষিত কোর প্রশ্ন</div>
               </div>
             </div>
           </div>
@@ -671,7 +659,9 @@ export default function QuestionBankExplorerPage() {
                 id="daily-challenge-heading"
                 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white bangla-font tracking-tight pt-1"
               >
-                ডেইলি বিসিএস প্র্যাকটিস চ্যালেঞ্জ ({toBnDigits(dailyTotal)}টি বাছাইকৃত প্রশ্ন)
+                {dailyLoading
+                  ? 'আজকের ডেইলি বিসিএস প্র্যাকটিস চ্যালেঞ্জ'
+                  : `ডেইলি বিসিএস প্র্যাকটিস চ্যালেঞ্জ (${toBnDigits(dailyTotal)}টি বাছাইকৃত প্রশ্ন)`}
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 bangla-font">
                 প্রতিদিন সকল বিসিএস পরীক্ষার্থীদের জন্য নির্ধারিত ৫টি বিশেষ প্রশ্ন। প্রতিদিনের ফলাফল ও অগ্রগতি স্বয়ংক্রিয়ভাবে সংরক্ষিত থাকে।
@@ -689,7 +679,9 @@ export default function QuestionBankExplorerPage() {
                     অগ্রগতি (Progress)
                   </div>
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white">
-                    {toBnDigits(dailyAnsweredCount)} / {toBnDigits(dailyTotal)} সম্পন্ন
+                    {dailyLoading
+                      ? 'লোড হচ্ছে...'
+                      : `${toBnDigits(dailyAnsweredCount)} / ${toBnDigits(dailyTotal)} সম্পন্ন`}
                   </div>
                 </div>
               </div>
@@ -712,7 +704,11 @@ export default function QuestionBankExplorerPage() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
               <span>চ্যালেঞ্জ অগ্রগতি</span>
-              <span>{Math.round((dailyAnsweredCount / (dailyTotal || 1)) * 100)}% সম্পন্ন</span>
+              <span>
+                {dailyLoading
+                  ? 'লোড হচ্ছে...'
+                  : `${Math.round((dailyAnsweredCount / (dailyTotal || 1)) * 100)}% সম্পন্ন`}
+              </span>
             </div>
             <div
               className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden"
@@ -723,7 +719,7 @@ export default function QuestionBankExplorerPage() {
             >
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300 rounded-full"
-                style={{ width: `${(dailyAnsweredCount / (dailyTotal || 1)) * 100}%` }}
+                style={{ width: `${dailyLoading ? 0 : (dailyAnsweredCount / (dailyTotal || 1)) * 100}%` }}
               />
             </div>
           </div>
@@ -732,14 +728,31 @@ export default function QuestionBankExplorerPage() {
           {dailyLoading && (
             <div className="py-12 text-center space-y-3">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-r-transparent" />
-              <p className="text-xs sm:text-sm text-slate-500">আজকের ডেইলি চ্যালেঞ্জ লোড হচ্ছে...</p>
+              <p className="text-xs sm:text-sm text-slate-500">আজকের ডেইলি চ্যালেঞ্জ প্রশ্নপত্র তৈরি হচ্ছে...</p>
             </div>
           )}
 
-          {dailyError && !dailyLoading && (
-            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs sm:text-sm flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <span>{dailyError}</span>
+          {!dailyLoading && (dailyError || dailyQuestions.length === 0) && (
+            <div className="p-5 sm:p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-6 w-6 text-amber-600 shrink-0" />
+                <div>
+                  <div className="font-bold text-sm">
+                    {dailyError || 'আজকের ডেইলি চ্যালেঞ্জ প্রশ্ন সাময়িকভাবে লোড করা যায়নি'}
+                  </div>
+                  <div className="text-xs text-amber-700 dark:text-amber-300">
+                    অনুগ্রহ করে নিচের বাটনে ক্লিক করে পুনরায় চেষ্টা করুন।
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => loadDailyChallenge()}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shrink-0 shadow-sm"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>পুনরায় চেষ্টা করুন (Retry)</span>
+              </button>
             </div>
           )}
 
@@ -1213,12 +1226,15 @@ export default function QuestionBankExplorerPage() {
                   onChange={(e) => handleSelectBatch(e.target.value)}
                   className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
-                  <option value="">সকল ব্যাচ (All 81 Batches)</option>
-                  {Array.from({ length: 81 }, (_, i) => i + 1).map((b) => (
-                    <option key={b} value={b.toString()}>
-                      Batch {b.toString().padStart(3, '0')}
-                    </option>
-                  ))}
+                  <option value="">সকল ব্যাচ (All 81 Batches • ২০,০০০ প্রশ্ন)</option>
+                  {Array.from({ length: 81 }, (_, i) => i + 1).map((b) => {
+                    const count = b === 1 ? 100 : b === 2 ? 150 : 250;
+                    return (
+                      <option key={b} value={b.toString()}>
+                        ব্যাচ {b.toString().padStart(3, '0')} ({toBnDigits(count)}টি প্রশ্ন)
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

@@ -75,11 +75,20 @@ export default function DailyStudyPage() {
     setIsLoading(true);
     setErrorMsg(null);
     try {
+      let activeUid = 'student_dr_rahim';
+      try {
+        const savedUser = localStorage.getItem('bcs_active_user');
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser);
+          if (parsed.id) activeUid = parsed.id;
+        }
+      } catch (e) {}
+
       const res = await fetch('/api/practice/daily', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'student_current',
+          userId: activeUid,
           examTrackId: examTrack,
           professionalStream,
           practiceMode,
@@ -139,6 +148,37 @@ export default function DailyStudyPage() {
           explanationEn: json.data.explanationEn,
         });
         setActiveSet(json.data.practiceSet);
+
+        // Sync answer into localStorage for real dashboard analytics
+        try {
+          const savedAnswers = JSON.parse(localStorage.getItem('bcs_user_answers') || '[]');
+          savedAnswers.push({
+            questionId: currentQ.question.id,
+            subjectCode: currentQ.question.subjectCode,
+            topicId: currentQ.question.topicId,
+            isCorrect: json.data.isCorrect,
+            timestamp: new Date().toISOString(),
+          });
+          localStorage.setItem('bcs_user_answers', JSON.stringify(savedAnswers));
+
+          if (!json.data.isCorrect) {
+            const mistakes = JSON.parse(localStorage.getItem('bcs_mistake_notebook') || '[]');
+            if (!mistakes.some((m: any) => m.questionId === currentQ.question.id)) {
+              mistakes.unshift({
+                id: `mistake-${Date.now()}`,
+                questionId: currentQ.question.id,
+                subject: currentQ.question.subjectCode,
+                topic: currentQ.question.topicTitleBn,
+                question_bn: currentQ.question.stemBn,
+                question_en: currentQ.question.stemEn,
+                correct_option: json.data.correctAnswerId,
+                explanation_bn: json.data.explanationBn,
+                savedAt: new Date().toISOString(),
+              });
+              localStorage.setItem('bcs_mistake_notebook', JSON.stringify(mistakes));
+            }
+          }
+        } catch (e) {}
       }
     } catch (err: unknown) {
       console.error('Answer submission failed', err);
@@ -563,6 +603,22 @@ export default function DailyStudyPage() {
                       {submissionFeedback.explanationEn}
                     </p>
                   )}
+
+                  {/* Long-term Memorization & Revision Cue */}
+                  <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-start gap-2 bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <Sparkles className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                      <strong className="text-slate-900 dark:text-white font-bold block">
+                        স্মরণিকা ও পরীক্ষার কী-টেকঅ্যাওয়ে (Key Memory Cue):
+                      </strong>
+                      <span>
+                        টপিক: {currentQ?.question.topicTitleBn || currentQ?.question.topicTitleEn || 'সিলেবাস টপিক'} •{' '}
+                        {submissionFeedback?.isCorrect
+                          ? 'প্রশ্নের মূল পয়েন্টটি স্মৃতিতে ধরে রাখতে নিয়মিত স্পেসড রিভিশন তালিকায় রাখুন।'
+                          : 'ভুল উত্তরটি আপনার ব্যক্তিগত মিস্টেক নোটবুকে যুক্ত করা হয়েছে। আগামী ২৪ ঘণ্টার মধ্যে এটি পুনরায় রিভিশন করুন।'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 

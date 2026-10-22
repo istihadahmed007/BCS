@@ -84,6 +84,11 @@ export default function MistakeNotebookPage() {
   // Practice drill generation
   const [isGeneratingDrill, setIsGeneratingDrill] = useState<boolean>(false);
 
+  // Active retry state for individual mistake cards
+  const [retryActive, setRetryActive] = useState<Record<string, boolean>>({});
+  const [retrySelections, setRetrySelections] = useState<Record<string, 'A' | 'B' | 'C' | 'D' | null>>({});
+  const [retrySubmitted, setRetrySubmitted] = useState<Record<string, boolean>>({});
+
   // Load persistent user session
   useEffect(() => {
     const savedUser = localStorage.getItem('bcs_active_user');
@@ -522,8 +527,25 @@ export default function MistakeNotebookPage() {
                       </span>
                     </div>
 
-                    {/* Resolved Status Toggle & Delete */}
+                    {/* Resolved Status Toggle, Retry & Delete */}
                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRetryActive((prev) => ({ ...prev, [entry.id]: !prev[entry.id] }));
+                          setRetrySelections((prev) => ({ ...prev, [entry.id]: null }));
+                          setRetrySubmitted((prev) => ({ ...prev, [entry.id]: false }));
+                        }}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
+                          retryActive[entry.id]
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950 dark:text-amber-200'
+                            : 'border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/40 hover:bg-indigo-100'
+                        }`}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        <span>{retryActive[entry.id] ? 'রিভিউ মোড' : 'রিট্রাই (Retry)'}</span>
+                      </button>
+
                       <button
                         onClick={() => handleToggleResolve(entry)}
                         className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
@@ -556,49 +578,150 @@ export default function MistakeNotebookPage() {
                     )}
                   </div>
 
-                  {/* Options Comparison (Student Chosen vs Correct) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-                    {q.options.map((opt) => {
-                      const isCorrect = opt.id === q.correctAnswerId;
-                      const isSelected = opt.id === entry.userSelectedOption;
+                  {/* Active Retry Mode vs Static Options Comparison */}
+                  {retryActive[entry.id] ? (
+                    <div className="space-y-3 mb-4 p-4 rounded-2xl bg-indigo-50/30 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900">
+                      <div className="flex items-center justify-between text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                        <span>অ্যাক্টিভ রিকল মোড: সঠিক উত্তরটি নির্বাচন করে রিট্রাই করুন</span>
+                        {retrySubmitted[entry.id] && (
+                          <span
+                            className={
+                              retrySelections[entry.id] === q.correctAnswerId ? 'text-emerald-600' : 'text-rose-600'
+                            }
+                          >
+                            {retrySelections[entry.id] === q.correctAnswerId ? 'সঠিক উত্তর! 🎉' : 'ভুল উত্তর! ❌'}
+                          </span>
+                        )}
+                      </div>
 
-                      let style = 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-700 dark:text-slate-300';
-                      if (isCorrect) {
-                        style = 'border-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 font-bold';
-                      } else if (isSelected) {
-                        style = 'border-rose-400 bg-rose-50/80 dark:bg-rose-950/40 text-rose-950 dark:text-rose-100 font-bold';
-                      }
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {q.options.map((opt) => {
+                          const isSelected = retrySelections[entry.id] === opt.id;
+                          const isSubmitted = retrySubmitted[entry.id];
+                          const isCorrect = opt.id === q.correctAnswerId;
 
-                      return (
-                        <div
-                          key={opt.id}
-                          className={`p-2.5 rounded-xl border text-xs flex items-center justify-between ${style}`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`h-5 w-5 rounded-md flex items-center justify-center font-bold text-[10px] ${
-                                isCorrect
-                                  ? 'bg-emerald-600 text-white'
-                                  : isSelected
-                                  ? 'bg-rose-600 text-white'
-                                  : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                              }`}
+                          let btnStyle =
+                            'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:border-indigo-400';
+                          if (isSelected) {
+                            btnStyle =
+                              'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-950 dark:text-indigo-100 ring-2 ring-indigo-500';
+                          }
+                          if (isSubmitted) {
+                            if (isCorrect) {
+                              btnStyle =
+                                'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-100 font-bold';
+                            } else if (isSelected && !isCorrect) {
+                              btnStyle =
+                                'border-rose-500 bg-rose-50 dark:bg-rose-950/60 text-rose-900 dark:text-rose-100';
+                            }
+                          }
+
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              disabled={isSubmitted}
+                              onClick={() => setRetrySelections((prev) => ({ ...prev, [entry.id]: opt.id }))}
+                              className={`p-3 rounded-xl border text-xs text-left flex items-center gap-2.5 transition-all ${btnStyle}`}
                             >
-                              {opt.id}
-                            </span>
-                            <span className="bangla-font">{opt.textBn}</span>
-                          </div>
+                              <span
+                                className={`h-5 w-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                                  isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'
+                                }`}
+                              >
+                                {opt.id}
+                              </span>
+                              <span className="bangla-font leading-relaxed">{opt.textBn}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
 
-                          <div className="text-[10px] font-bold">
-                            {isCorrect && <span className="text-emerald-700 dark:text-emerald-400">সঠিক উত্তর ✓</span>}
-                            {isSelected && !isCorrect && (
-                              <span className="text-rose-700 dark:text-rose-400">আপনার ভুল উত্তর ✗</span>
+                      <div className="flex items-center justify-between pt-2">
+                        {!retrySubmitted[entry.id] ? (
+                          <button
+                            type="button"
+                            disabled={!retrySelections[entry.id]}
+                            onClick={() => setRetrySubmitted((prev) => ({ ...prev, [entry.id]: true }))}
+                            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-sm transition-all"
+                          >
+                            উত্তর যাচাই করুন (Submit Answer)
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            {retrySelections[entry.id] === q.correctAnswerId ? (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleResolve(entry)}
+                                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow-sm"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                <span>সমাধান হিসেবে চিহ্নিত করুন (Mark Resolved)</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRetrySelections((prev) => ({ ...prev, [entry.id]: null }));
+                                  setRetrySubmitted((prev) => ({ ...prev, [entry.id]: false }));
+                                }}
+                                className="px-3.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100"
+                              >
+                                আবার চেষ্টা করুন
+                              </button>
                             )}
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Options Comparison (Student Chosen vs Correct) */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                      {q.options.map((opt) => {
+                        const isCorrect = opt.id === q.correctAnswerId;
+                        const isSelected = opt.id === entry.userSelectedOption;
+
+                        let style =
+                          'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-700 dark:text-slate-300';
+                        if (isCorrect) {
+                          style =
+                            'border-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 font-bold';
+                        } else if (isSelected) {
+                          style =
+                            'border-rose-400 bg-rose-50/80 dark:bg-rose-950/40 text-rose-950 dark:text-rose-100 font-bold';
+                        }
+
+                        return (
+                          <div
+                            key={opt.id}
+                            className={`p-2.5 rounded-xl border text-xs flex items-center justify-between ${style}`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`h-5 w-5 rounded-md flex items-center justify-center font-bold text-[10px] ${
+                                  isCorrect
+                                    ? 'bg-emerald-600 text-white'
+                                    : isSelected
+                                    ? 'bg-rose-600 text-white'
+                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                }`}
+                              >
+                                {opt.id}
+                              </span>
+                              <span className="bangla-font">{opt.textBn}</span>
+                            </div>
+
+                            <div className="text-[10px] font-bold">
+                              {isCorrect && <span className="text-emerald-700 dark:text-emerald-400">সঠিক উত্তর ✓</span>}
+                              {isSelected && !isCorrect && (
+                                <span className="text-rose-700 dark:text-rose-400">আপনার ভুল উত্তর ✗</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Verified Explanation & Traceable Evidence */}
                   <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs mb-4 space-y-2">

@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: practiceSet,
+      questions: practiceSet.questions,
     });
   } catch (error) {
     return NextResponse.json(
@@ -45,3 +46,43 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const userId = searchParams.get('userId') || 'student_001';
+    const examTrackId = (searchParams.get('examTrackId') || 'general_bcs_preli') as ExamTrackId;
+    const professionalStream = (searchParams.get('professionalStream') || 'general') as ProfessionalStreamId;
+    const practiceMode = (searchParams.get('practiceMode') || 'daily_mixed') as DailyPracticeMode;
+    const questionCount = Number(searchParams.get('questionCount')) || 10;
+    const subjectCode = searchParams.get('subjectCode') || undefined;
+    const topicId = searchParams.get('topicId') || undefined;
+
+    const practiceSet = DailyPracticeService.generatePracticeSet({
+      userId,
+      examTrackId,
+      professionalStream,
+      practiceMode,
+      questionCount,
+      subjectCode,
+      topicId,
+      mistakeQuestionIds: [],
+      topicMasteries: [],
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: practiceSet,
+      questions: practiceSet.questions,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate daily practice set',
+      },
+      { status: 500 }
+    );
+  }
+}
+
