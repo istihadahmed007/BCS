@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId') || request.headers.get('x-user-id') || 'student_dr_rahim';
+    const userId = searchParams.get('userId') || request.headers.get('x-user-id') || 'student_current';
 
     if (!userId) {
       return NextResponse.json(
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const userId = body.userId || request.headers.get('x-user-id') || 'student_dr_rahim';
+    const userId = body.userId || request.headers.get('x-user-id') || 'student_current';
     const { questionId, userSelectedOption, testSessionId, errorType, candidateNotes } = body;
 
     if (!questionId) {

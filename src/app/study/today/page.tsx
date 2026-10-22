@@ -75,7 +75,7 @@ export default function DailyStudyPage() {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      let activeUid = 'student_dr_rahim';
+      let activeUid = 'student_current';
       try {
         const savedUser = localStorage.getItem('bcs_active_user');
         if (savedUser) {
@@ -666,35 +666,35 @@ export default function DailyStudyPage() {
   // RENDER: LAUNCH & CONFIGURATION DASHBOARD
   // =========================================================================
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
       {/* Top Banner */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">
+      <div>
+        <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
           <Calendar className="h-4 w-4" />
           <span>Daily Source-Backed Practice Queue</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           দৈনিক বিসিএস প্রশ্ন ব্যাংক ও অনুশীলন
         </h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed bangla-font">
+        <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed bangla-font">
           বিপিএসসি-র অফিশিয়াল সিলেবাস ও যাচাইকৃত পূর্ববর্তী বছরের প্রশ্নপত্রের উপর ভিত্তি করে তৈরি ব্যক্তিগতকৃত দৈনিক প্রশ্ন সেট। প্রতিটি প্রশ্নের রয়েছে নির্ভুল সোর্স রেফারেন্স ও বিশদ ব্যাখ্যা।
         </p>
       </div>
 
       {errorMsg && (
-        <div className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-sm flex items-center gap-2">
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-sm flex items-center gap-2">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {/* Main Configuration Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         <div className="lg:col-span-2 space-y-6">
           {/* Step 1: Examination Track & Stream */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-6 shadow-xs">
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Target className="h-4 w-4 text-emerald-600" />
+              <Target className="h-4 w-4 text-blue-600" />
               <span>১. পরীক্ষার ট্র্যাক ও ক্যাডার নির্বাচন করুন</span>
             </h3>
 
@@ -704,7 +704,7 @@ export default function DailyStudyPage() {
                 onClick={() => setExamTrack('special_bcs_health_51_2026')}
                 className={`p-4 rounded-2xl border text-left transition-all ${
                   examTrack === 'special_bcs_health_51_2026'
-                    ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-emerald-600/20'
+                    ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-600/20'
                     : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
@@ -712,7 +712,7 @@ export default function DailyStudyPage() {
                   <span className="font-bold text-sm text-slate-900 dark:text-white">
                     ৫১তম বিশেষ বিসিএস (স্বাস্থ্য)
                   </span>
-                  <Stethoscope className="h-4 w-4 text-emerald-600" />
+                  <Stethoscope className="h-4 w-4 text-blue-600" />
                 </div>
                 <p className="text-xs text-slate-500">
                   ২০০ নম্বর | ২০০ প্রশ্ন | ১২০ মিনিট | নেগেটিভ মার্কিং -০.৫০
@@ -724,7 +724,7 @@ export default function DailyStudyPage() {
                 onClick={() => setExamTrack('general_bcs')}
                 className={`p-4 rounded-2xl border text-left transition-all ${
                   examTrack === 'general_bcs'
-                    ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-emerald-600/20'
+                    ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-600/20'
                     : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
@@ -947,15 +947,15 @@ export default function DailyStudyPage() {
             </p>
             <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
               <Link
-                href="/admin/sources"
-                className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1"
+                href="/question-bank"
+                className="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1"
               >
-                <span>সোর্স রেজিস্ট্রি দেখুন</span>
+                <span>প্রশ্ন ব্যাংক এক্সপ্লোর করুন</span>
                 <ExternalLink className="h-3 w-3" />
               </Link>
               <Link
                 href="/mistake-notebook"
-                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium"
               >
                 মিস্টেক নোটবুক
               </Link>

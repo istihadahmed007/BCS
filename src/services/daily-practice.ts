@@ -107,9 +107,9 @@ export class DailyPracticeService {
     }
 
     const normalizedUserId =
-      userId === 'student_current' || userId === 'candidate-user-1' || userId === 'student_001'
-        ? 'student_dr_rahim'
-        : userId || 'student_dr_rahim';
+      userId === 'student_dr_rahim' || userId === 'candidate-user-1' || userId === 'student_001'
+        ? 'student_current'
+        : userId || 'student_current';
 
     // Helper for non-destructive Fisher-Yates array shuffling
     const shuffle = <T>(array: T[]): T[] => {

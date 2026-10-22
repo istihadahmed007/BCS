@@ -10,11 +10,11 @@ import { SEED_QUESTIONS } from '@/data/seed-questions';
 // Runtime store for user-isolated mistake notebook entries
 const MISTAKE_NOTEBOOK_STORE: Map<string, MistakeNotebookEntry> = new Map();
 
-// Helper to seed realistic initial mistake entries for Dr. Rahim Ahmed (student_current / default user)
+// Helper to seed realistic initial mistake entries for Student (student_current / default user)
 function initializeSeedMistakes() {
   if (MISTAKE_NOTEBOOK_STORE.size > 0) return;
 
-  const defaultUser = 'student_dr_rahim';
+  const defaultUser = 'student_current';
   const now = new Date();
 
   const q1 = SEED_QUESTIONS.find((q) => q.id === 'q-med1-001');
@@ -130,9 +130,9 @@ export class MistakeNotebookService {
   } {
     const { userId, subject, topic, trackId, errorType, reviewStatus, search, resolved } = params;
     const normalizedUserId =
-      userId === 'student_current' || userId === 'candidate-user-1' || userId === 'student_001'
-        ? 'student_dr_rahim'
-        : userId || 'student_dr_rahim';
+      userId === 'student_dr_rahim' || userId === 'candidate-user-1' || userId === 'student_001'
+        ? 'student_current'
+        : userId || 'student_current';
 
     const allUserMistakes = Array.from(MISTAKE_NOTEBOOK_STORE.values()).filter(
       (m) => m.userId === normalizedUserId
@@ -222,9 +222,9 @@ export class MistakeNotebookService {
   }): MistakeNotebookEntry {
     const { userId, questionId, userSelectedOption = null, testSessionId, errorType = 'conceptual_misunderstanding', candidateNotes = '' } = params;
     const normalizedUserId =
-      userId === 'student_current' || userId === 'candidate-user-1' || userId === 'student_001'
-        ? 'student_dr_rahim'
-        : userId || 'student_dr_rahim';
+      userId === 'student_dr_rahim' || userId === 'candidate-user-1' || userId === 'student_001'
+        ? 'student_current'
+        : userId || 'student_current';
 
     // Check if entry already exists for this (normalizedUserId, questionId)
     const existing = Array.from(MISTAKE_NOTEBOOK_STORE.values()).find(

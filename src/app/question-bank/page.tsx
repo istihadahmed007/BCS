@@ -578,58 +578,57 @@ export default function QuestionBankExplorerPage() {
   const currentDailyQ = dailyQuestions[activeDailyIndex];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Hero Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white p-6 sm:p-10 shadow-xl border border-emerald-800">
-          <div className="relative z-10 space-y-4 max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold backdrop-blur-sm">
-              <Sparkles className="h-4 w-4 animate-pulse text-emerald-400" />
-              <span>BPSC Syllabus Aligned • 20,000 Questions Repository</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 lg:p-9 shadow-lg shadow-blue-500/20">
+        <div className="relative z-10 space-y-4 max-w-4xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/30 border border-blue-300/30 text-blue-100 text-xs font-semibold backdrop-blur-xs">
+            <Sparkles className="h-4 w-4 text-amber-300" />
+            <span>BPSC Syllabus Aligned • 20,000 Questions Repository</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
+            BCS Question Bank{' '}
+            <span className="text-blue-100">
+              (২০,০০০ প্রশ্নভাণ্ডার)
+            </span>
+          </h1>
+
+          <p className="text-sm sm:text-base text-blue-100/90 font-normal leading-relaxed bangla-font max-w-3xl">
+            বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর ১০টি সাধারণ বিষয়ের ওপর তৈরি ২০,০০০ সংরক্ষিত প্রশ্ন (৮১টি ব্যাচে বিন্যস্ত: ব্যাচ ১–২ এ ১০০-১৫০টি ও ব্যাচ ৩–৮১ এ ২৫০টি প্রশ্ন)। প্রতিটি প্রশ্নের সাথে বাংলা ও ইংরেজি প্রশ্ন, সঠিক উত্তর এবং বিশদ রেফারেন্সযুক্ত ব্যাখ্যা।
+          </p>
+
+          {/* Quick KPI Stat Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
+              <div className="text-2xl sm:text-3xl font-extrabold text-white">
+                {manifest ? manifest.totalQuestions.toLocaleString() : '20,000'}
+              </div>
+              <div className="text-xs text-blue-100">মোট প্রশ্ন (৮১ ব্যাচ)</div>
             </div>
-
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-              BCS Question Bank{' '}
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent">
-                (২০,০০০ প্রশ্নভাণ্ডার)
-              </span>
-            </h1>
-
-            <p className="text-sm sm:text-base text-emerald-100 font-normal leading-relaxed bangla-font max-w-3xl">
-              বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর ১০টি সাধারণ বিষয়ের ওপর তৈরি ২০,০০০ সংরক্ষিত প্রশ্ন (৮১টি ব্যাচে বিন্যস্ত: ব্যাচ ১–২ এ ১০০-১৫০টি ও ব্যাচ ৩–৮১ এ ২৫০টি প্রশ্ন)। প্রতিটি প্রশ্নের সাথে বাংলা ও ইংরেজি অনুবাদ, সঠিক উত্তর এবং বিশদ রেফারেন্সযুক্ত ব্যাখ্যা।
-            </p>
-
-            {/* Quick KPI Stat Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                <div className="text-2xl sm:text-3xl font-extrabold text-emerald-300">
-                  {manifest ? manifest.totalQuestions.toLocaleString() : '20,000'}
-                </div>
-                <div className="text-xs text-emerald-200">মোট প্রশ্ন (৮১ ব্যাচ)</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                <div className="text-2xl sm:text-3xl font-extrabold text-teal-300">১০টি বিষয়</div>
-                <div className="text-xs text-teal-200">পূর্ণাঙ্গ সিলেবাস কাভারেজ</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                <div className="text-2xl sm:text-3xl font-extrabold text-sky-300">৮১ ব্যাচ</div>
-                <div className="text-xs text-sky-200">স্ট্রাকচার্ড ডাটাবেজ ভলিউম</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                <div className="text-2xl sm:text-3xl font-extrabold text-amber-300">৭৫০+</div>
-                <div className="text-xs text-amber-200">বিশেষজ্ঞ-নিরীক্ষিত কোর প্রশ্ন</div>
-              </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
+              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">১০টি বিষয়</div>
+              <div className="text-xs text-blue-200">পূর্ণাঙ্গ সিলেবাস কাভারেজ</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
+              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">৮১ ব্যাচ</div>
+              <div className="text-xs text-blue-200">ডাটাবেজ ব্যাচ ভলিউম</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
+              <div className="text-2xl sm:text-3xl font-extrabold text-amber-300">১০০%</div>
+              <div className="text-xs text-blue-100">সিলেবাস প্রশ্নভাণ্ডার</div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ========================================================================= */}
-        {/* 2. DAILY CHALLENGE SECTION FOR STUDENTS                                  */}
-        {/* ========================================================================= */}
-        <section
-          aria-labelledby="daily-challenge-heading"
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-slate-900/10 dark:from-emerald-950/40 dark:via-slate-900 dark:to-teal-950/30 border-2 border-emerald-500/30 p-5 sm:p-8 shadow-md transition-all space-y-6"
-        >
+      {/* ========================================================================= */}
+      {/* 2. DAILY CHALLENGE SECTION FOR STUDENTS                                  */}
+      {/* ========================================================================= */}
+      <section
+        aria-labelledby="daily-challenge-heading"
+        className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs p-5 sm:p-8 space-y-6"
+      >
           {/* Top Banner / Status Strip */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-emerald-500/20">
             <div className="space-y-1">
@@ -1642,6 +1641,5 @@ export default function QuestionBankExplorerPage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }

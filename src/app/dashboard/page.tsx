@@ -26,6 +26,7 @@ import {
   MoreVertical,
   Activity,
   Calendar,
+  User,
 } from 'lucide-react';
 import { ExamTrackId, ProfessionalStreamId, StudyPlan, StudyTask, TopicMastery } from '@/types';
 import { ReadinessIndicator, WeaknessAnalysisEngine } from '@/services/weakness';
@@ -107,7 +108,7 @@ export default function DashboardPage() {
   ) => {
     setLoading(true);
     try {
-      let activeUid = 'student_dr_rahim';
+      let activeUid = 'student_current';
       try {
         const savedUser = localStorage.getItem('bcs_active_user');
         if (savedUser) {
@@ -197,13 +198,13 @@ export default function DashboardPage() {
 
       const totalAtt = answers.length;
       const totalCorr = answers.filter((a) => a.isCorrect).length;
-      const accPct = totalAtt > 0 ? Number(((totalCorr / totalAtt) * 100).toFixed(0)) : 85;
+      const accPct = totalAtt > 0 ? Number(((totalCorr / totalAtt) * 100).toFixed(0)) : 0;
 
       setStudentStats({
-        totalAttempted: totalAtt > 0 ? totalAtt : 142,
-        totalCorrect: totalAtt > 0 ? totalCorr : 121,
-        accuracyPct: totalAtt > 0 ? accPct : 85,
-        dueForReviewCount: dueReview > 0 ? dueReview : 12,
+        totalAttempted: totalAtt,
+        totalCorrect: totalCorr,
+        accuracyPct: accPct,
+        dueForReviewCount: dueReview,
         resolvedMistakesCount: resolvedCount,
         hasRealData: totalAtt > 0,
       });
@@ -220,7 +221,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
         
         {/* ============================================================== */}
         {/* 1. WIDE BLUE WELCOME BANNER (Matching Visual Reference)       */}
@@ -254,13 +255,13 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
                   Welcome Back, <br />
-                  <span className="text-blue-100">Aryan Sharma! 👋</span>
+                  <span className="text-blue-100">Candidate! 👋</span>
                 </h2>
                 <p className="text-sm sm:text-base text-blue-100/90 font-normal mt-2 leading-relaxed bangla-font">
-                  Ready to test your knowledge? Start your exam and track your performance with active recall.
+                  Ready to test your knowledge? Start today&apos;s active recall session and track your retention.
                 </p>
                 <p className="text-xs text-blue-200/80 mt-0.5 bangla-font">
-                  আপনার আজকের রিটেনশন সেশন প্রস্তুত। নির্ভুল প্রস্তুতি ও আত্মবিশ্বাসে এগিয়ে থাকুন।
+                  আপনার আজকের রিটেনশন সেশন প্রস্তুত। সক্রিয় স্মরণ ও নিয়মিত অনুশীলনে এগিয়ে থাকুন।
                 </p>
               </div>
 
@@ -294,19 +295,19 @@ export default function DashboardPage() {
 
             {/* Right Floating Banner Cards (Matching Reference Image) */}
             <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center gap-4 w-full lg:w-auto">
-              {/* Floating Card 1: Time Left / Target */}
-              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/50 dark:border-slate-800 text-slate-900 dark:text-white min-w-[200px] w-full sm:w-auto">
+              {/* Floating Card 1: Study Goal */}
+              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/50 dark:border-slate-800 text-slate-900 dark:text-white min-w-[210px] w-full sm:w-auto">
                 <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                   <Clock className="h-4 w-4 text-blue-600" />
-                  <span>Time Left / Target</span>
+                  <span>Today&apos;s Study Goal</span>
                 </div>
-                <div className="text-2xl font-extrabold text-blue-700 dark:text-blue-400 mt-1 font-mono tracking-tight">
-                  01:29:45
+                <div className="text-xl font-extrabold text-blue-700 dark:text-blue-400 mt-1 tracking-tight">
+                  ১০টি প্রশ্ন • ১৫ মিনিট
                 </div>
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center justify-between">
-                  <span>Current Test:</span>
+                  <span>Session:</span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    Aptitude & BCS
+                    সক্রিয় স্মরণ ও রিভিশন
                   </span>
                 </div>
               </div>
@@ -316,20 +317,26 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
                   <span className="flex items-center gap-1.5">
                     <Trophy className="h-4 w-4 text-amber-500" />
-                    <span>Your Score</span>
+                    <span>Your Accuracy</span>
                   </span>
-                  <span className="text-[10px] text-emerald-600 bg-emerald-50 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded-full font-bold">
-                    +15%
-                  </span>
+                  {studentStats.hasRealData ? (
+                    <span className="text-[10px] text-emerald-600 bg-emerald-50 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded-full font-bold">
+                      {studentStats.totalCorrect}/{studentStats.totalAttempted}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full font-medium">
+                      Not available
+                    </span>
+                  )}
                 </div>
                 <div className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
-                  {studentStats.accuracyPct}%
+                  {studentStats.hasRealData ? `${studentStats.accuracyPct}%` : '—'}
                 </div>
-                {/* Visual Mini Progress Sparkline */}
+                {/* Visual Progress Sparkline */}
                 <div className="mt-2 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-blue-600 to-emerald-500 rounded-full transition-all duration-700"
-                    style={{ width: `${studentStats.accuracyPct}%` }}
+                    style={{ width: `${studentStats.hasRealData ? studentStats.accuracyPct : 0}%` }}
                   />
                 </div>
               </div>
@@ -502,7 +509,7 @@ export default function DashboardPage() {
 
               {/* 4 Overview Stat Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {/* Stat 1: Tests Attempted */}
+                {/* Stat 1: Questions Attempted */}
                 <div className="bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800/60 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <div className="h-9 w-9 rounded-xl bg-blue-100/70 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -511,14 +518,13 @@ export default function DashboardPage() {
                   </div>
                   <div className="mt-3">
                     <div className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                      12
+                      {studentStats.totalAttempted}
                     </div>
                     <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                      Tests Attempted
+                      Questions Solved
                     </div>
-                    <div className="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
-                      <span>&uarr; 20%</span>
-                      <span className="text-slate-400 font-normal">vs last month</span>
+                    <div className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold mt-2 flex items-center gap-1">
+                      <span>{studentStats.hasRealData ? `${studentStats.totalCorrect} Correct` : 'Start practice'}</span>
                     </div>
                   </div>
                 </div>
@@ -532,14 +538,13 @@ export default function DashboardPage() {
                   </div>
                   <div className="mt-3">
                     <div className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                      {studentStats.accuracyPct}%
+                      {studentStats.hasRealData ? `${studentStats.accuracyPct}%` : '—'}
                     </div>
                     <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                      Average Score
+                      Average Accuracy
                     </div>
-                    <div className="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
-                      <span>&uarr; 15%</span>
-                      <span className="text-slate-400 font-normal">vs last month</span>
+                    <div className="text-[10px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+                      <span>{studentStats.hasRealData ? 'Verified Session' : 'Not available yet'}</span>
                     </div>
                   </div>
                 </div>
@@ -553,35 +558,33 @@ export default function DashboardPage() {
                   </div>
                   <div className="mt-3">
                     <div className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                      8/12
+                      {masteries.length > 0 ? `${masteries.filter((m) => m.weaknessLabel === 'mastered').length}/${masteries.length}` : (studentStats.hasRealData ? '0' : '—')}
                     </div>
                     <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                       Topics Qualified
                     </div>
-                    <div className="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
-                      <span>&uarr; 25%</span>
-                      <span className="text-slate-400 font-normal">vs last month</span>
+                    <div className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold mt-2 flex items-center gap-1">
+                      <span>{masteries.length > 0 ? 'Mastered Topics' : 'Not available'}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Stat 4: Total Questions / Marks */}
+                {/* Stat 4: Spaced Revision Due */}
                 <div className="bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800/60 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <div className="h-9 w-9 rounded-xl bg-amber-100/70 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                      <Star className="h-5 w-5" />
+                      <RotateCcw className="h-5 w-5" />
                     </div>
                   </div>
                   <div className="mt-3">
                     <div className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                      {studentStats.totalAttempted}
+                      {studentStats.dueForReviewCount > 0 ? studentStats.dueForReviewCount : 0}
                     </div>
                     <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                      Total Solved
+                      Revision Due Today
                     </div>
-                    <div className="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
-                      <span>&uarr; 18%</span>
-                      <span className="text-slate-400 font-normal">vs last month</span>
+                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-2 flex items-center gap-1">
+                      <span>{studentStats.dueForReviewCount > 0 ? 'Scheduled Review' : 'All up to date'}</span>
                     </div>
                   </div>
                 </div>
@@ -895,19 +898,19 @@ export default function DashboardPage() {
               <div className="flex items-center gap-4 pt-4">
                 <div className="relative">
                   <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
-                    তা
+                    <User className="h-7 w-7 text-white" />
                   </div>
                   <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
-                    Aryan Sharma (তানভীর)
+                    Candidate Profile
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Roll No. 2026EDTECH105
+                    Session: Active BCS Study
                   </p>
                   <p className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold mt-0.5">
-                    General BCS & Health Special
+                    {track === 'general_bcs' ? 'General BCS (10 Subjects)' : 'Special BCS Health'}
                   </p>
                 </div>
               </div>
@@ -916,20 +919,22 @@ export default function DashboardPage() {
               <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between text-xs font-semibold">
                   <span className="text-slate-600 dark:text-slate-300">
-                    Profile & Syllabus Progress
+                    Syllabus Coverage
                   </span>
-                  <span className="text-blue-600 font-bold">80%</span>
+                  <span className="text-blue-600 font-bold">
+                    {studentStats.hasRealData ? 'In Progress' : 'Not started'}
+                  </span>
                 </div>
                 <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-600 rounded-full transition-all duration-700"
-                    style={{ width: '80%' }}
+                    style={{ width: `${studentStats.hasRealData ? Math.min(100, studentStats.totalAttempted * 2) : 5}%` }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* B. Upcoming Tests (Matching Reference Image) */}
+            {/* B. Upcoming Tests (Authentic BCS Subject Tracks) */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -957,10 +962,10 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                        Data Structures & IT Test
+                        কম্পিউটার ও তথ্যপ্রযুক্তি মডেল টেস্ট
                       </h5>
                       <span className="text-[10px] text-slate-400">
-                        10:00 AM - 11:30 AM
+                        10:00 AM - 11:30 AM • ১৫ নম্বর
                       </span>
                     </div>
                   </div>
@@ -982,10 +987,10 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                        Database & BD Affairs
+                        বাংলাদেশ বিষয়াবলী মেগা মডেল টেস্ট
                       </h5>
                       <span className="text-[10px] text-slate-400">
-                        02:00 PM - 03:30 PM
+                        02:00 PM - 03:30 PM • ৩০ নম্বর
                       </span>
                     </div>
                   </div>
@@ -1007,10 +1012,10 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                        English & Aptitude Test
+                        ইংরেজি ভাষা ও সাহিত্য টেস্ট
                       </h5>
                       <span className="text-[10px] text-slate-400">
-                        11:00 AM - 12:30 PM
+                        11:00 AM - 12:30 PM • ৩৫ নম্বর
                       </span>
                     </div>
                   </div>
@@ -1021,11 +1026,11 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* C. Announcements Section (Matching Reference Image) */}
+            {/* C. Announcements Section */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Announcements
+                  Announcements (বিজ্ঞপ্তি)
                 </h4>
                 <Link
                   href="/dashboard"

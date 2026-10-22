@@ -10,7 +10,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const userId = body.userId || request.headers.get('x-user-id') || 'student_dr_rahim';
+    const userId = body.userId || request.headers.get('x-user-id') || 'student_current';
 
     const { candidateNotes, errorType, resolved, scheduledReviewAt } = body;
 
@@ -41,7 +41,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId') || request.headers.get('x-user-id') || 'student_dr_rahim';
+    const userId = searchParams.get('userId') || request.headers.get('x-user-id') || 'student_current';
 
     const deleted = MistakeNotebookService.deleteMistake(id, userId);
 

@@ -31,88 +31,87 @@ export default function SyllabusPage() {
         });
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-semibold mb-2">
-              <BookOpen className="h-3.5 w-3.5" />
-              <span>Official BPSC Syllabus Curriculum & Subject Breakdown</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Curriculum & Syllabus Explorer
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400 bangla-font mt-1">
-              বাংলাদেশ সরকারি কর্ম কমিশন (BPSC) প্রিলিমিনারি ও স্পেশাল বিসিএস অফিসিয়াল সিলেবাসের প্রতিটি বিষয়, টপিক কোড, মার্কস ও রেফারেন্স।
-            </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-semibold mb-2">
+            <BookOpen className="h-3.5 w-3.5" />
+            <span>Official BPSC Syllabus Curriculum & Subject Breakdown</span>
           </div>
-
-          <a
-            href={OFFICIAL_SOURCES[1]?.sourceUrl || 'https://bpsc.gov.bd'}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-all"
-          >
-            <span>Download Official BPSC PDF</span>
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Curriculum & Syllabus Explorer
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 bangla-font">
+            বাংলাদেশ সরকারি কর্ম কমিশন (BPSC) প্রিলিমিনারি ও স্পেশাল বিসিএস অফিসিয়াল সিলেবাসের প্রতিটি বিষয়, টপিক কোড, মার্কস ও রেফারেন্স।
+          </p>
         </div>
 
-        {/* Section Tabs */}
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setActiveTab('general')}
-            className={`px-5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'general'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
-            }`}
-          >
-            <BookOpen className="h-4 w-4" />
-            <span>General BCS Preliminary (10 Subjects • 200 Marks)</span>
-          </button>
+        <a
+          href={OFFICIAL_SOURCES[1]?.sourceUrl || 'https://bpsc.gov.bd'}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-all"
+        >
+          <span>Download Official BPSC PDF</span>
+          <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+      </div>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('shared')}
-            className={`px-5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'shared'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
-            }`}
-          >
-            <Layers className="h-4 w-4" />
-            <span>Special BCS Shared Subjects (100 Marks)</span>
-          </button>
+      {/* Section Tabs */}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={() => setActiveTab('general')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'general'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+          }`}
+        >
+          <BookOpen className="h-4 w-4" />
+          <span>General BCS Preliminary (10 Subjects • 200 Marks)</span>
+        </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('medical')}
-            className={`px-5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'medical'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
-            }`}
-          >
-            <Stethoscope className="h-4 w-4" />
-            <span>Medical Science — Assistant Surgeon (100 Marks)</span>
-          </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('shared')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'shared'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+          }`}
+        >
+          <Layers className="h-4 w-4" />
+          <span>Special BCS Shared Subjects (100 Marks)</span>
+        </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('dental')}
-            className={`px-5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'dental'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
-            }`}
-          >
-            <GraduationCap className="h-4 w-4" />
-            <span>Dental Science — Dental Surgeon (100 Marks)</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('medical')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'medical'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+          }`}
+        >
+          <Stethoscope className="h-4 w-4" />
+          <span>Medical Science — Assistant Surgeon (100 Marks)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('dental')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'dental'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+          }`}
+        >
+          <GraduationCap className="h-4 w-4" />
+          <span>Dental Science — Dental Surgeon (100 Marks)</span>
+        </button>
+      </div>
 
         {/* Subjects & Topics List */}
         <div className="space-y-8">
@@ -211,6 +210,5 @@ export default function SyllabusPage() {
           })}
         </div>
       </div>
-    </div>
   );
 }

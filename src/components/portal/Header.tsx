@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Menu,
@@ -12,11 +12,9 @@ import {
   GraduationCap,
   Sparkles,
   BookOpen,
-  Stethoscope,
-  CheckCircle2,
   Clock,
-  Layers,
   LogOut,
+  X,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -34,11 +32,28 @@ export default function Header({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Close menus on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const notifications = [
     {
       id: 'notif-1',
       title: 'BPSC Notice: ৪৬তম প্রিলিমিনারি আসন বিন্যাস',
-      desc: 'পরীক্ষার্থীদের আসন বিন্যাস ও কেন্দ্র নির্দেশিকা প্রকাশিত হয়েছে।',
+      desc: 'পরীক্ষার্থীদের আসন বিন্যাস ও কেন্দ্র নির্দেশিকা সংক্রান্ত নোটিশ।',
       time: '১০ মিনিট আগে',
       unread: true,
     },
@@ -51,28 +66,28 @@ export default function Header({
     },
     {
       id: 'notif-3',
-      title: 'নতুন প্রশ্ন ব্যাংক আপডেট',
-      desc: '২০,০০০ ভেরিফাইড বিসিএস প্রশ্ন ব্যাংকে নতুন ব্যাচ যুক্ত হয়েছে।',
-      time: 'গতকাল',
+      title: 'প্রশ্ন ব্যাংক আপডেট',
+      desc: '২০,০০০ ভেরিফাইড বিসিএস প্রশ্ন ব্যাংকের সকল ব্যাচ সক্রিয় রয়েছে।',
+      time: 'আজ সকালে',
       unread: true,
     },
   ];
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 h-16 sm:h-18 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-colors">
+    <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-colors">
       {/* Left: Mobile Toggle & Page Title */}
       <div className="flex items-center gap-3 sm:gap-4">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          aria-label="Open navigation menu"
+          className="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          aria-label="Toggle navigation menu"
         >
           <Menu className="h-5 w-5" />
         </button>
 
         <div>
-          <h1 className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <span>Online Exam Portal</span>
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:block">
@@ -83,38 +98,56 @@ export default function Header({
 
       {/* Center: Search Field */}
       <div className="hidden md:flex items-center flex-1 max-w-md mx-6">
-        <div className="relative w-full">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (searchQuery.trim()) {
+              window.location.href = `/question-bank?search=${encodeURIComponent(searchQuery.trim())}`;
+            }
+          }}
+          className="relative w-full"
+        >
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search topics, questions, subjects..."
             className="w-full pl-4 pr-10 py-2 rounded-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            aria-label="Search questions and topics"
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <button
+            type="submit"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors"
+            aria-label="Submit search"
+          >
             <Search className="h-4 w-4" />
-          </div>
-        </div>
+          </button>
+        </form>
       </div>
 
       {/* Right: Actions, Notifications & Profile */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Track Badge (Desktop) */}
         <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold">
           <GraduationCap className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          <span>৪৬তম বিসিএস প্রিলিমিনারি</span>
+          <span>
+            {selectedTrack === 'special_bcs_health_51_2026'
+              ? '৫১তম বিশেষ বিসিএস (স্বাস্থ্য)'
+              : '৪৬তম বিসিএস প্রিলিমিনারি'}
+          </span>
         </div>
 
-        {/* Notifications Icon */}
-        <div className="relative">
+        {/* Notifications Icon & Popover */}
+        <div className="relative" ref={notifRef}>
           <button
             type="button"
             onClick={() => {
               setShowNotifications(!showNotifications);
               setShowProfileMenu(false);
             }}
-            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors"
+            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             aria-label="View notifications"
+            aria-expanded={showNotifications}
           >
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
@@ -122,7 +155,6 @@ export default function Header({
             </span>
           </button>
 
-          {/* Notifications Dropdown */}
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-3 z-50">
               <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -137,7 +169,7 @@ export default function Header({
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+                    className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="text-xs font-bold text-slate-900 dark:text-white bangla-font">
@@ -167,11 +199,11 @@ export default function Header({
           )}
         </div>
 
-        {/* Message / Streak Icon */}
+        {/* Message / Study Streak */}
         <Link
           href="/study/today"
-          className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors"
-          title="Daily Study Streak"
+          className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          title="Daily Study Session"
         >
           <Mail className="h-5 w-5" />
           <span className="absolute top-1 right-1 h-4 w-4 bg-amber-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
@@ -180,29 +212,30 @@ export default function Header({
         </Link>
 
         {/* Student Profile Pill */}
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
             type="button"
             onClick={() => {
               setShowProfileMenu(!showProfileMenu);
               setShowNotifications(false);
             }}
-            className="flex items-center gap-2.5 pl-2 pr-1 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             aria-label="Student profile menu"
+            aria-expanded={showProfileMenu}
           >
-            {/* Avatar */}
-            <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs ring-2 ring-white dark:ring-slate-800 shadow-xs">
-              তা
+            {/* Neutral Avatar */}
+            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              <User className="h-4 w-4" />
             </div>
             <div className="text-left hidden md:block">
               <span className="block text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                Hi, তানভীর
+                Student
               </span>
               <span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                Student • 46th BCS
+                BCS Aspirant
               </span>
             </div>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
           </button>
 
           {/* Profile Dropdown */}
@@ -210,13 +243,15 @@ export default function Header({
             <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50">
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                 <p className="text-xs font-bold text-slate-900 dark:text-white">
-                  তানভীর আহমেদ (Aryan)
+                  Student Profile (শিক্ষার্থী)
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Roll: 2026-BCS-9402
+                  Status: Active Study Session
                 </p>
-                <span className="inline-block mt-1 text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full">
-                  General & Special BCS
+                <span className="inline-block mt-1 text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                  {selectedTrack === 'special_bcs_health_51_2026'
+                    ? 'Special BCS Health'
+                    : 'General BCS (10 Subjects)'}
                 </span>
               </div>
 
@@ -227,7 +262,7 @@ export default function Header({
                   className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <User className="h-4 w-4 text-slate-400" />
-                  <span>প্রোফাইল সেটিংস (Profile)</span>
+                  <span>প্রোফাইল ও ট্র্যাক সেটিংস</span>
                 </Link>
                 <Link
                   href="/syllabus"
@@ -251,10 +286,10 @@ export default function Header({
                 <Link
                   href="/onboarding"
                   onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                  className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>ট্র্যাক পরিবর্তন / লগআউট</span>
+                  <span>ট্র্যাক পরিবর্তন / Reset Session</span>
                 </Link>
               </div>
             </div>

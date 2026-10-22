@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { Globe, Phone, MapPin } from 'lucide-react';
+import { Globe, Mail, MapPin } from 'lucide-react';
 
 interface PortalShellProps {
   children: React.ReactNode;
@@ -43,10 +43,13 @@ export default function PortalShell({
                 <Globe className="h-3.5 w-3.5 text-blue-400" />
                 <span>www.bcs.vartualtutor.com</span>
               </span>
-              <span className="flex items-center gap-1.5 hover:text-white transition-colors">
-                <Phone className="h-3.5 w-3.5 text-emerald-400" />
-                <span>+880 1700-000000</span>
-              </span>
+              <a
+                href="mailto:support@vartualtutor.com"
+                className="flex items-center gap-1.5 hover:text-white transition-colors"
+              >
+                <Mail className="h-3.5 w-3.5 text-emerald-400" />
+                <span>support@vartualtutor.com</span>
+              </a>
               <span className="flex items-center gap-1.5 hover:text-white transition-colors hidden sm:flex">
                 <MapPin className="h-3.5 w-3.5 text-amber-400" />
                 <span>BPSC Cadre Hub, Agargaon, Dhaka</span>

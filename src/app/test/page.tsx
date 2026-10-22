@@ -54,49 +54,48 @@ export default function MockTestHubPage() {
   };
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Hub Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-semibold mb-2">
-              <Target className="h-3.5 w-3.5" />
-              <span>Server-Authoritative Mock Test Engine</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              BCS Examination Testing Center
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400 bangla-font mt-1">
-              প্রকৃত পরীক্ষার নিয়মে নির্ভুল সার্ভার স্কোরিং (+১.০০ ও -০.৫০ নেগেটিভ মার্কিং) এবং রিয়েল-টাইম টাইমার।
-            </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
+      {/* Hub Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-semibold mb-2">
+            <Target className="h-3.5 w-3.5" />
+            <span>Server-Authoritative Mock Test Engine</span>
           </div>
-
-          {/* Track Selector Toggle */}
-          <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-            <button
-              type="button"
-              onClick={() => setSelectedTrack('special_bcs_health_51_2026')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                selectedTrack === 'special_bcs_health_51_2026'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              51st Special Health
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedTrack('general_bcs')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                selectedTrack === 'general_bcs'
-                  ? 'bg-sky-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              General BCS
-            </button>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            BCS Examination Testing Center
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 bangla-font mt-1">
+            প্রকৃত পরীক্ষার নিয়মে নির্ভুল সার্ভার স্কোরিং (+১.০০ ও -০.৫০ নেগেটিভ মার্কিং) এবং রিয়েল-টাইম টাইমার।
+          </p>
         </div>
+
+        {/* Track Selector Toggle */}
+        <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setSelectedTrack('special_bcs_health_51_2026')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              selectedTrack === 'special_bcs_health_51_2026'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            51st Special Health
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedTrack('general_bcs')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              selectedTrack === 'general_bcs'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            General BCS
+          </button>
+        </div>
+      </div>
 
         {/* If Special Health, Stream Switcher */}
         {selectedTrack === 'special_bcs_health_51_2026' && (
@@ -227,7 +226,7 @@ export default function MockTestHubPage() {
                 type="button"
                 onClick={() => startTest('full_mock', '51st Special BCS Health Full Mock Test', 120)}
                 disabled={isLaunching}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold text-xs shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
               >
                 <Target className="h-3.5 w-3.5" />
                 <span>Begin 120-Minute Full Mock</span>
@@ -281,7 +280,7 @@ export default function MockTestHubPage() {
         </div>
 
         {/* Scoring & Anti-Cheat Rules Box */}
-        <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white mb-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <span>Server-Side Deterministic Scoring Rules</span>
@@ -290,7 +289,6 @@ export default function MockTestHubPage() {
             পরীক্ষা শুরু হওয়ার সাথে সাথেই প্রতিটি প্রশ্নের স্ন্যাপশট ও সঠিক উত্তর সার্ভারে সংরক্ষিত হয়। কোনো ব্রাউজার রিকোয়েস্টের মাধ্যমে মার্ক বা টাইমার পরিবর্তন করা সম্ভব নয়। ভুল উত্তরের জন্য ০.৫০ নম্বর স্বয়ংক্রিয়ভাবে কর্তন করা হবে।
           </p>
         </div>
-      </div>
     </div>
   );
 }

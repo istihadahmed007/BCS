@@ -45,8 +45,8 @@ export default function MistakeNotebookPage() {
   const router = useRouter();
 
   // User session state (persisted across refreshes)
-  const [userId, setUserId] = useState<string>('student_dr_rahim');
-  const [userName, setUserName] = useState<string>('Dr. Rahim Ahmed');
+  const [userId, setUserId] = useState<string>('student_current');
+  const [userName, setUserName] = useState<string>('Student');
 
   // Mistakes and stats
   const [mistakes, setMistakes] = useState<MistakeNotebookEntry[]>([]);
@@ -101,7 +101,7 @@ export default function MistakeNotebookPage() {
     } else {
       localStorage.setItem(
         'bcs_active_user',
-        JSON.stringify({ id: 'student_dr_rahim', name: 'Dr. Rahim Ahmed', role: 'student' })
+        JSON.stringify({ id: 'student_current', name: 'Student', role: 'student' })
       );
     }
   }, []);
@@ -269,29 +269,28 @@ export default function MistakeNotebookPage() {
   };
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Top Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-400 text-xs font-semibold mb-2">
-              <BookMarked className="h-3.5 w-3.5" />
-              <span>Evidence-Backed Personal Error Journal</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              ব্যক্তিগত মিস্টেক নোটবুক ও রিভিশন ড্রিল
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed bangla-font">
-              অনুশীলন ও মক টেস্টে ভুল হওয়া প্রশ্নগুলোর স্বয়ংক্রিয় সংরক্ষণাগার। নির্ভুল শ্রেণীকরণ, ব্যক্তিগত স্টাডি নোট এবং স্পেসড রিপিটেশন নিয়মে দুর্বলতা দূরীকরণ।
-            </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-400 text-xs font-semibold mb-2">
+            <BookMarked className="h-3.5 w-3.5" />
+            <span>Evidence-Backed Personal Error Journal</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            ব্যক্তিগত মিস্টেক নোটবুক ও রিভিশন ড্রিল
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed bangla-font">
+            অনুশীলন ও মক টেস্টে ভুল হওয়া প্রশ্নগুলোর স্বয়ংক্রিয় সংরক্ষণাগার। নির্ভুল শ্রেণীকরণ, ব্যক্তিগত স্টাডি নোট এবং স্পেসড রিপিটেশন নিয়মে দুর্বলতা দূরীকরণ।
+          </p>
+        </div>
 
-          {/* User Session Badge & Retake Practice Button */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="font-semibold">{userName}</span>
-            </div>
+        {/* User Session Badge & Retake Practice Button */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="font-semibold">Active Session</span>
+          </div>
 
             <button
               onClick={handleStartMistakePractice}
@@ -833,6 +832,5 @@ export default function MistakeNotebookPage() {
           )}
         </div>
       </div>
-    </div>
   );
 }

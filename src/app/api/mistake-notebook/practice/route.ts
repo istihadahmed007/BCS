@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const userId = body.userId || request.headers.get('x-user-id') || 'student_dr_rahim';
+    const userId = body.userId || request.headers.get('x-user-id') || 'student_current';
     const {
       examTrackId = 'special_bcs_health_51_2026',
       professionalStream = 'assistant_surgeon',
