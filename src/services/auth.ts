@@ -83,7 +83,8 @@ export class AuthService {
    * Generates official Google OAuth2 authorization URL
    */
   static getGoogleAuthUrl(redirectOrigin?: string, stateToken?: string, redirectPath?: string): string {
-    const clientId = process.env.GOOGLE_CLIENT_ID || 'dummy-google-client-id.apps.googleusercontent.com';
+    const rawClientId = process.env.GOOGLE_CLIENT_ID || 'dummy-google-client-id.apps.googleusercontent.com';
+    const clientId = rawClientId.trim().replace(/^["']|["']$/g, '');
     const baseUrl = redirectOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
@@ -114,8 +115,10 @@ export class AuthService {
     code: string,
     redirectOrigin?: string
   ): Promise<{ email: string; name: string; avatarUrl?: string; googleId: string }> {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const rawClientId = process.env.GOOGLE_CLIENT_ID;
+    const rawClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const clientId = rawClientId ? rawClientId.trim().replace(/^["']|["']$/g, '') : undefined;
+    const clientSecret = rawClientSecret ? rawClientSecret.trim().replace(/^["']|["']$/g, '') : undefined;
     const baseUrl = redirectOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
