@@ -9,7 +9,10 @@ import {
   BookMarked,
   BookOpen,
   Calendar,
+  Check,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock,
   ExternalLink,
   Flame,
@@ -21,6 +24,7 @@ import {
   Sparkles,
   Stethoscope,
   Target,
+  Trophy,
   XCircle,
 } from 'lucide-react';
 import {
@@ -32,6 +36,39 @@ import {
 } from '@/types';
 import { GENERAL_BCS_SUBJECTS, SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
 
+function formatBengaliDate(date: Date = new Date()): string {
+  try {
+    const monthsBn = [
+      'জানুয়ারি',
+      'ফেব্রুয়ারি',
+      'মার্চ',
+      'এপ্রিল',
+      'মে',
+      'জুন',
+      'জুলাই',
+      'আগস্ট',
+      'সেপ্টেম্বর',
+      'অক্টোবর',
+      'নভেম্বর',
+      'ডিসেম্বর',
+    ];
+    const d = date.getDate();
+    const m = date.getMonth();
+    const y = date.getFullYear();
+
+    const toBnDigits = (n: number) =>
+      n.toString().replace(/\d/g, (ch) => '০১২৩৪৫৬৭৮৯'[parseInt(ch, 10)]);
+
+    return `${toBnDigits(d)} ${monthsBn[m]}, ${toBnDigits(y)}`;
+  } catch {
+    return date.toLocaleDateString();
+  }
+}
+
+function toBnDigits(num: number | string): string {
+  return num.toString().replace(/\d/g, (ch) => '০১২৩৪৫৬৭৮৯'[parseInt(ch, 10)]);
+}
+
 export default function DailyStudyPage() {
   // Session Configuration State
   const [examTrack, setExamTrack] = useState<ExamTrackId>('special_bcs_health_51_2026');
@@ -39,6 +76,7 @@ export default function DailyStudyPage() {
   const [practiceMode, setPracticeMode] = useState<DailyPracticeMode>('mixed');
   const [questionCount, setQuestionCount] = useState<number>(10);
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
+  const [showAlgorithmExplainer, setShowAlgorithmExplainer] = useState<boolean>(false);
 
   // Active Session State
   const [activeSet, setActiveSet] = useState<DailyPracticeSet | null>(null);
@@ -58,6 +96,18 @@ export default function DailyStudyPage() {
   // Timer state for current session
   const [secondsElapsed, setSecondsElapsed] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+
+  // Load saved enrollment preference
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('bcs_enrollment');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.trackId) setExamTrack(parsed.trackId);
+        if (parsed.stream) setProfessionalStream(parsed.stream);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -90,7 +140,7 @@ export default function DailyStudyPage() {
         body: JSON.stringify({
           userId: activeUid,
           examTrackId: examTrack,
-          professionalStream,
+          professionalStream: examTrack === 'general_bcs' ? 'general' : professionalStream,
           practiceMode,
           questionCount,
           subjectCode: selectedSubject !== 'all' ? selectedSubject : undefined,
@@ -104,7 +154,7 @@ export default function DailyStudyPage() {
 
       const newSet: DailyPracticeSet = json.data;
       if (!newSet.questions || newSet.questions.length === 0) {
-        throw new Error('No eligible questions found in verified database for this configuration.');
+        throw new Error('এই কনফিগারেশনের জন্য কোনো প্রশ্ন পাওয়া যায়নি। অন্য বিষয় বা মোড নির্বাচন করুন।');
       }
 
       setActiveSet(newSet);
@@ -115,7 +165,7 @@ export default function DailyStudyPage() {
       setSecondsElapsed(0);
       setIsTimerRunning(true);
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'Error generating daily session');
+      setErrorMsg(err instanceof Error ? err.message : 'অনুশীলন সেশন শুরু করতে সমস্যা হয়েছে।');
     } finally {
       setIsLoading(false);
     }
@@ -260,75 +310,81 @@ export default function DailyStudyPage() {
     const correct = activeSet.correctCount;
     const wrong = activeSet.wrongCount;
     const accuracy = activeSet.accuracyPct;
-    // Special BCS Health calculation: 1.0 mark per correct, -0.50 penalty per wrong
-    const netScore = examTrack === 'special_bcs_health_51_2026'
-      ? Math.max(0, correct * 1.0 - wrong * 0.50)
-      : Math.max(0, correct * 1.0 - wrong * 0.50);
-
+    const netScore = Math.max(0, correct * 1.0 - wrong * 0.50);
     const wrongQuestions = activeSet.questions.filter((q) => q.isCorrect === false);
 
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-8 text-center relative">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold mb-3">
+          <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 text-center relative">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold mb-3">
               <Award className="h-4 w-4 text-amber-300" />
               <span>Daily Practice Set Completed</span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">অভিনন্দন! আজকের অনুশীলন সমাপ্ত</h1>
-            <p className="mt-2 text-sm text-emerald-100 max-w-xl mx-auto bangla-font">
-              আপনার ফলাফল স্বয়ংক্রিয়ভাবে দুর্বলতা বিশ্লেষণ অ্যালগরিদম ও মিস্টেক নোটবুকে সংরক্ষণ করা হয়েছে।
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bangla-font">
+              অভিনন্দন! আজকের অনুশীলন সমাপ্ত
+            </h1>
+            <p className="mt-2 text-xs sm:text-sm text-blue-100 max-w-xl mx-auto bangla-font leading-relaxed">
+              আপনার ফলাফল স্বয়ংক্রিয়ভাবে দুর্বলতা বিশ্লেষণ ও মিস্টেক নোটবুকে সংরক্ষণ করা হয়েছে।
             </p>
           </div>
 
           {/* Key Metrics */}
-          <div className="p-8">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center">
-                <span className="text-xs uppercase font-bold text-emerald-700 dark:text-emerald-400">Total Questions</span>
-                <p className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">{totalQ}</p>
+          <div className="p-6 sm:p-8 space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+                <span className="text-[11px] uppercase font-bold text-slate-500">মোট প্রশ্ন</span>
+                <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+                  {toBnDigits(totalQ)}
+                </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center">
-                <span className="text-xs uppercase font-bold text-emerald-700 dark:text-emerald-400">Correct (+1.0)</span>
-                <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{correct}</p>
+                <span className="text-[11px] uppercase font-bold text-emerald-700 dark:text-emerald-400">সঠিক (+১.০)</span>
+                <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                  {toBnDigits(correct)}
+                </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-center">
-                <span className="text-xs uppercase font-bold text-rose-700 dark:text-rose-400">Incorrect (-0.50)</span>
-                <p className="text-3xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">{wrong}</p>
+                <span className="text-[11px] uppercase font-bold text-rose-700 dark:text-rose-400">ভুল (-০.৫০)</span>
+                <p className="text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">
+                  {toBnDigits(wrong)}
+                </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-center">
-                <span className="text-xs uppercase font-bold text-sky-700 dark:text-sky-400">Net Marks</span>
-                <p className="text-3xl font-extrabold text-sky-600 dark:text-sky-400 mt-1">
+              <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-center">
+                <span className="text-[11px] uppercase font-bold text-blue-700 dark:text-blue-400">অর্জিত নম্বর</span>
+                <p className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
                   {netScore.toFixed(2)}
-                  <span className="text-xs text-slate-500 font-normal"> / {totalQ}</span>
+                  <span className="text-xs text-slate-500 font-normal"> / {toBnDigits(totalQ)}</span>
                 </p>
               </div>
             </div>
 
             {/* Performance Insights */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 mb-8">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-amber-500" />
-                  <h3 className="font-bold text-slate-900 dark:text-white">Accuracy & Time Performance</h3>
+                  <Flame className="h-4 w-4 text-amber-500" />
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white bangla-font">
+                    সঠিকতার হার ও সময় ব্যয়
+                  </h3>
                 </div>
                 <span className="text-xs font-mono font-medium text-slate-500">
-                  Total Time: {formatTimer(secondsElapsed)}
+                  ব্যয়িত সময়: {formatTimer(secondsElapsed)}
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-400">
                   <span>Accuracy Rate</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{accuracy}%</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{accuracy}%</span>
                 </div>
-                <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-emerald-500 h-full transition-all duration-500"
+                    className="bg-blue-600 h-full transition-all duration-500 rounded-full"
                     style={{ width: `${accuracy}%` }}
                   />
                 </div>
@@ -337,41 +393,41 @@ export default function DailyStudyPage() {
 
             {/* Mistake Notebook Sync Status */}
             {wrongQuestions.length > 0 && (
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-3">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
-                    <BookMarked className="h-5 w-5" />
-                    <h3 className="font-bold text-slate-900 dark:text-white">
-                      ভুল হওয়া প্রশ্ন ({wrongQuestions.length}) — মিস্টেক নোটবুকে যুক্ত হয়েছে
+                    <BookMarked className="h-4 w-4" />
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white bangla-font">
+                      ভুল হওয়া প্রশ্ন ({toBnDigits(wrongQuestions.length)}টি) — মিস্টেক নোটবুকে সংরক্ষিত
                     </h3>
                   </div>
                   <Link
                     href="/mistake-notebook"
-                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-semibold"
                   >
-                    <span>View Mistake Notebook</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <span>মিস্টেক নোটবুক দেখুন</span>
+                    <ArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {wrongQuestions.map((wq, i) => (
                     <div
                       key={wq.id}
-                      className="p-4 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 text-sm"
+                      className="p-4 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/40 dark:bg-rose-950/20 text-xs sm:text-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="font-bold text-xs text-rose-700 dark:text-rose-400">
                           #{i + 1} • {wq.question.subjectCode.toUpperCase()}
                         </span>
                         <span className="text-[11px] text-slate-500 font-mono">
-                          Correct: ({wq.question.correctAnswerId})
+                          সঠিক উত্তর: ({wq.question.correctAnswerId})
                         </span>
                       </div>
                       <p className="mt-1 font-medium text-slate-900 dark:text-slate-100 bangla-font">
                         {wq.question.stemBn}
                       </p>
-                      <p className="mt-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-lg border border-rose-100 dark:border-rose-950 bangla-font">
+                      <p className="mt-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white/70 dark:bg-slate-900/70 p-2.5 rounded-lg border border-rose-100 dark:border-rose-950 bangla-font">
                         <strong className="text-emerald-700 dark:text-emerald-400">ব্যাখ্যা:</strong> {wq.question.explanationBn}
                       </p>
                     </div>
@@ -381,24 +437,24 @@ export default function DailyStudyPage() {
             )}
 
             {/* Actions */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => {
                   setActiveSet(null);
                   setCurrentIndex(0);
                 }}
-                className="px-6 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors flex items-center gap-2"
               >
-                <RotateCcw className="h-4 w-4" />
-                <span>নতুন অনুশীলন শুরু করুন</span>
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>নতুন অনুশীলন কনফিগার করুন</span>
               </button>
 
               <Link
                 href="/dashboard"
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all shadow-sm flex items-center gap-2"
               >
                 <span>ড্যাশবোর্ডে ফিরে যান</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
@@ -415,145 +471,115 @@ export default function DailyStudyPage() {
     const isSpecialHealth = activeSet.examTrackId === 'special_bcs_health_51_2026';
 
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-4">
         {/* Session Top Bar */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 mb-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
-              Question {currentIndex + 1} of {activeSet.questionCount}
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 font-mono">
+              প্রশ্ন {toBnDigits(currentIndex + 1)} / {toBnDigits(activeSet.questionCount)}
             </span>
-            <span className="text-xs text-slate-500 font-medium">
-              Completed: {activeSet.completedCount} / {activeSet.questionCount}
+            <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+              সম্পন্ন: {toBnDigits(activeSet.completedCount)} / {toBnDigits(activeSet.questionCount)}
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-xs font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300">
-              <Clock className="h-3.5 w-3.5 text-emerald-600" />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg text-slate-700 dark:text-slate-300">
+              <Clock className="h-3.5 w-3.5 text-blue-600" />
               <span>{formatTimer(secondsElapsed)}</span>
             </div>
 
             <button
               onClick={handleToggleBookmark}
-              className={`p-2 rounded-lg border text-xs flex items-center gap-1 transition-colors ${
+              className={`p-1.5 px-3 rounded-lg border text-xs flex items-center gap-1.5 transition-colors ${
                 currentQ.isBookmarked
-                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 text-amber-600 dark:text-amber-400 font-semibold'
+                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 text-amber-700 dark:text-amber-400 font-semibold'
                   : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
               title="Bookmark Question"
             >
-              <BookMarked className="h-4 w-4" />
-              <span className="hidden sm:inline">
-                {currentQ.isBookmarked ? 'Bookmarked' : 'Bookmark'}
-              </span>
+              <BookMarked className="h-3.5 w-3.5" />
+              <span>{currentQ.isBookmarked ? 'বুকমার্কড' : 'বুকমার্ক'}</span>
             </button>
           </div>
         </div>
 
         {/* Question Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
-          {/* Metadata badges */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-              {qData.subjectCode}
-            </span>
-
-            {/* Traceable Source Badge */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>{qData.sourceCitation || 'BPSC Verified Source'}</span>
-              {qData.examinationYear && <span>({qData.examinationYear})</span>}
-            </div>
-
-            {/* Content Origin Pill */}
-            <span
-              className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                qData.contentOrigin === 'official_bpsc'
-                  ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
-                  : 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300'
-              }`}
-            >
-              {qData.contentOrigin === 'official_bpsc'
-                ? 'Official Past Question'
-                : 'Expert-Reviewed Practice'}
-            </span>
-
-            {isSpecialHealth && (
-              <span className="text-[11px] text-rose-600 dark:text-rose-400 font-mono ml-auto">
-                Wrong: -0.50 Mark
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold text-[11px] border border-blue-200 dark:border-blue-800">
+                {qData.subjectCode.toUpperCase()}
               </span>
-            )}
+              <span className="text-slate-600 dark:text-slate-400 font-medium">
+                {qData.topicTitleBn || qData.topicTitleEn || 'সিলেবাস টপিক'}
+              </span>
+            </div>
+            <span className="text-slate-400 text-[11px] font-mono">
+              ID: {qData.id}
+            </span>
           </div>
 
-          {/* Question Text */}
-          <div className="mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-relaxed bangla-font">
+          {/* Stems */}
+          <div className="space-y-2">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-relaxed bangla-font">
               {qData.stemBn}
             </h2>
-            {qData.stemEn && qData.stemEn !== qData.stemBn && (
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 font-medium italic">
+            {qData.stemEn && qData.stemEn.trim() !== qData.stemBn.trim() && (
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 italic">
                 {qData.stemEn}
               </p>
             )}
           </div>
 
-          {/* Options Grid */}
-          <div className="space-y-3 mb-6">
+          {/* Options List */}
+          <div className="space-y-2.5">
             {qData.options.map((opt) => {
-              const isSelected = selectedOption === opt.id;
+              const optKey = opt.id as 'A' | 'B' | 'C' | 'D';
+              const isSelected = selectedOption === optKey;
               const isSubmitted = isAnswerSubmitted;
-              const isCorrectAnswer = opt.id === qData.correctAnswerId;
+              const isCorrectAnswer = optKey === submissionFeedback?.correctAnswerId;
 
-              let optionStyle = 'border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900';
+              let btnClasses =
+                'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 hover:border-blue-400 hover:bg-blue-50/20';
 
-              if (isSubmitted) {
+              if (isSelected && !isSubmitted) {
+                btnClasses =
+                  'border-blue-600 bg-blue-50/60 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-2 ring-blue-500/30';
+              } else if (isSubmitted) {
                 if (isCorrectAnswer) {
-                  optionStyle = 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-100 font-semibold ring-2 ring-emerald-500/20';
+                  btnClasses =
+                    'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-100 ring-2 ring-emerald-500/30';
                 } else if (isSelected && !isCorrectAnswer) {
-                  optionStyle = 'border-rose-500 bg-rose-50/70 dark:bg-rose-950/50 text-rose-950 dark:text-rose-100 ring-2 ring-rose-500/20';
+                  btnClasses =
+                    'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 ring-2 ring-rose-500/30';
                 } else {
-                  optionStyle = 'border-slate-200 dark:border-slate-800 opacity-60 bg-white dark:bg-slate-900';
+                  btnClasses = 'border-slate-200 dark:border-slate-800 opacity-60 text-slate-500';
                 }
-              } else if (isSelected) {
-                optionStyle = 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-white font-medium ring-2 ring-emerald-600/20';
               }
 
               return (
                 <button
                   key={opt.id}
+                  type="button"
                   disabled={isSubmitted}
-                  onClick={() => setSelectedOption(opt.id as 'A' | 'B' | 'C' | 'D')}
-                  className={`w-full p-4 rounded-2xl border text-left flex items-start gap-3 transition-all ${optionStyle}`}
+                  onClick={() => setSelectedOption(optKey)}
+                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 ${btnClasses}`}
                 >
-                  <span
-                    className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
-                      isSubmitted && isCorrectAnswer
-                        ? 'bg-emerald-600 text-white'
-                        : isSubmitted && isSelected && !isCorrectAnswer
-                        ? 'bg-rose-600 text-white'
-                        : isSelected
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {opt.id}
-                  </span>
-                  <div className="flex-1">
-                    <span className="text-base text-slate-900 dark:text-slate-100 bangla-font leading-relaxed">
-                      {opt.textBn}
+                  <div className="flex items-start gap-3">
+                    <span className="h-6 w-6 rounded-lg bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 font-mono">
+                      {optKey}
                     </span>
-                    {opt.textEn && opt.textEn !== opt.textBn && (
-                      <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {opt.textEn}
-                      </span>
-                    )}
+                    <span className="text-xs sm:text-sm font-medium bangla-font leading-relaxed">
+                      {opt.textBn || opt.textEn}
+                    </span>
                   </div>
 
                   {isSubmitted && isCorrectAnswer && (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-1" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-1" />
                   )}
                   {isSubmitted && isSelected && !isCorrectAnswer && (
-                    <XCircle className="h-5 w-5 text-rose-600 shrink-0 mt-1" />
+                    <XCircle className="h-4 w-4 text-rose-600 shrink-0 mt-1" />
                   )}
                 </button>
               );
@@ -562,20 +588,20 @@ export default function DailyStudyPage() {
 
           {/* Submission and Feedback Area */}
           {!isAnswerSubmitted ? (
-            <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
-              <div className="text-xs text-slate-500">
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-xs text-slate-500">
                 {selectedOption ? 'অপশন নির্বাচন করা হয়েছে' : 'একটি অপশন নির্বাচন করুন'}
-              </div>
+              </span>
               <button
                 disabled={!selectedOption}
                 onClick={handleSubmitAnswer}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-all shadow-md shadow-emerald-600/20"
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs transition-all shadow-sm"
               >
                 উত্তর জমা দিন
               </button>
             </div>
           ) : (
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
               {/* Feedback Alert */}
               <div
                 className={`p-4 rounded-2xl border flex items-start gap-3 ${
@@ -585,45 +611,29 @@ export default function DailyStudyPage() {
                 }`}
               >
                 {submissionFeedback?.isCorrect ? (
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                 ) : (
-                  <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
                 )}
-                <div>
+                <div className="space-y-1 text-xs">
                   <h4 className="font-bold text-sm">
                     {submissionFeedback?.isCorrect
                       ? 'সঠিক উত্তর! (+১.০ নম্বর)'
                       : `ভুল উত্তর! সঠিক উত্তর: (${submissionFeedback?.correctAnswerId}) ${isSpecialHealth ? '[-০.৫০ নম্বর পেনাল্টি]' : ''}`}
                   </h4>
-                  <p className="mt-1 text-xs leading-relaxed bangla-font">
+                  <p className="leading-relaxed bangla-font text-slate-700 dark:text-slate-200">
                     {submissionFeedback?.explanationBn}
                   </p>
                   {submissionFeedback?.explanationEn && (
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 italic">
+                    <p className="text-[11px] text-slate-500 italic">
                       {submissionFeedback.explanationEn}
                     </p>
                   )}
-
-                  {/* Long-term Memorization & Revision Cue */}
-                  <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-start gap-2 bg-white/60 dark:bg-slate-900/60 p-2.5 rounded-xl">
-                    <Sparkles className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                    <div className="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
-                      <strong className="text-slate-900 dark:text-white font-bold block">
-                        স্মরণিকা ও পরীক্ষার কী-টেকঅ্যাওয়ে (Key Memory Cue):
-                      </strong>
-                      <span>
-                        টপিক: {currentQ?.question.topicTitleBn || currentQ?.question.topicTitleEn || 'সিলেবাস টপিক'} •{' '}
-                        {submissionFeedback?.isCorrect
-                          ? 'প্রশ্নের মূল পয়েন্টটি স্মৃতিতে ধরে রাখতে নিয়মিত স্পেসড রিভিশন তালিকায় রাখুন।'
-                          : 'ভুল উত্তরটি আপনার ব্যক্তিগত মিস্টেক নোটবুকে যুক্ত করা হয়েছে। আগামী ২৪ ঘণ্টার মধ্যে এটি পুনরায় রিভিশন করুন।'}
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
               {/* Navigation Controls */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between pt-2">
                 <button
                   disabled={currentIndex === 0}
                   onClick={handlePreviousQuestion}
@@ -636,20 +646,19 @@ export default function DailyStudyPage() {
                   {currentIndex === activeSet.questions.length - 1 ? (
                     <button
                       onClick={() => {
-                        // Mark as completed
                         activeSet.status = 'completed';
                         setActiveSet({ ...activeSet });
                       }}
-                      className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-sm"
                     >
-                      অনুশীলন সমাপ্ত করুন (Complete)
+                      অনুশীলন সমাপ্ত করুন
                     </button>
                   ) : (
                     <button
                       onClick={handleNextQuestion}
-                      className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20"
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
                     >
-                      <span>পরবর্তী প্রশ্ন (Next)</span>
+                      <span>পরবর্তী প্রশ্ন</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </button>
                   )}
@@ -663,305 +672,486 @@ export default function DailyStudyPage() {
   }
 
   // =========================================================================
-  // RENDER: LAUNCH & CONFIGURATION DASHBOARD
+  // RENDER: LAUNCH & CONFIGURATION DASHBOARD (CLEAN & REDESIGNED)
   // =========================================================================
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
-      {/* Top Banner */}
-      <div>
-        <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
-          <Calendar className="h-4 w-4" />
-          <span>Daily Source-Backed Practice Queue</span>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      {/* 5.B: Compact Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+              BCSCrack Daily Practice
+            </span>
+            <span className="text-xs text-slate-500 flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5 text-slate-400" />
+              <span>{formatBengaliDate()}</span>
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight bangla-font">
+            দৈনিক অনুশীলন
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed bangla-font">
+            আপনার প্রস্তুতি অনুযায়ী প্রশ্ন অনুশীলন করুন, ভুল সংশোধন করুন এবং নিয়মিত রিভিশন করুন।
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          দৈনিক বিসিএস প্রশ্ন ব্যাংক ও অনুশীলন
-        </h1>
-        <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed bangla-font">
-          বিপিএসসি-র অফিশিয়াল সিলেবাস ও যাচাইকৃত পূর্ববর্তী বছরের প্রশ্নপত্রের উপর ভিত্তি করে তৈরি ব্যক্তিগতকৃত দৈনিক প্রশ্ন সেট। প্রতিটি প্রশ্নের রয়েছে নির্ভুল সোর্স রেফারেন্স ও বিশদ ব্যাখ্যা।
-        </p>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href="/question-bank"
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+          >
+            <BookOpen className="h-3.5 w-3.5 text-blue-600" />
+            <span>প্রশ্ন ব্যাংক (২০k)</span>
+          </Link>
+          <Link
+            href="/mistake-notebook"
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+          >
+            <BookMarked className="h-3.5 w-3.5 text-rose-600" />
+            <span>মিস্টেক নোটবুক</span>
+          </Link>
+        </div>
       </div>
 
       {errorMsg && (
-        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-sm flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs sm:text-sm flex items-center gap-2.5">
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Main Configuration Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Step 1: Examination Track & Stream */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-6 shadow-xs">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Target className="h-4 w-4 text-blue-600" />
-              <span>১. পরীক্ষার ট্র্যাক ও ক্যাডার নির্বাচন করুন</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <button
-                type="button"
-                onClick={() => setExamTrack('special_bcs_health_51_2026')}
-                className={`p-4 rounded-2xl border text-left transition-all ${
-                  examTrack === 'special_bcs_health_51_2026'
-                    ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-600/20'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">
-                    ৫১তম বিশেষ বিসিএস (স্বাস্থ্য)
-                  </span>
-                  <Stethoscope className="h-4 w-4 text-blue-600" />
-                </div>
-                <p className="text-xs text-slate-500">
-                  ২০০ নম্বর | ২০০ প্রশ্ন | ১২০ মিনিট | নেগেটিভ মার্কিং -০.৫০
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setExamTrack('general_bcs')}
-                className={`p-4 rounded-2xl border text-left transition-all ${
-                  examTrack === 'general_bcs'
-                    ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-600/20'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">
-                    সাধারণ বিসিএস প্রিলিমিনারি
-                  </span>
-                  <BookOpen className="h-4 w-4 text-sky-600" />
-                </div>
-                <p className="text-xs text-slate-500">
-                  সাধারণ ১০টি বিষয় | ২০০ নম্বর | ২০০ প্রশ্ন | ১২০ মিনিট
-                </p>
-              </button>
-            </div>
-
-            {/* Stream Selector for Special BCS */}
-            {examTrack === 'special_bcs_health_51_2026' && (
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
-                  পেশাগত বিষয় (Professional Science Stream):
-                </span>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setProfessionalStream('assistant_surgeon')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
-                      professionalStream === 'assistant_surgeon'
-                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    সহকারী সার্জন (MBBS)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setProfessionalStream('assistant_dental_surgeon')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
-                      professionalStream === 'assistant_dental_surgeon'
-                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    সহকারী ডেন্টাল সার্জন (BDS)
-                  </button>
-                </div>
-              </div>
-            )}
+      {/* Main Setup Flow in Single Cohesive Flow */}
+      <div className="space-y-6 sm:space-y-8">
+        {/* ========================================================================= */}
+        {/* 5.C: STEP 1 — SELECT EXAMINATION AND TRACK                                */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="step-1-heading" className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 id="step-1-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 bangla-font">
+              <span className="h-6 w-6 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold flex items-center justify-center">
+                ১
+              </span>
+              <span>পরীক্ষার ধরন নির্বাচন করুন</span>
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">BPSC সিলেবাস অনুসারী</span>
           </div>
 
-          {/* Step 2: Practice Mode */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-emerald-600" />
-              <span>২. অনুশীলনের ধরণ (Practice Mode)</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                {
-                  id: 'mixed',
-                  title: 'দৈনিক মিক্সড প্র্যাকটিস (Recommended)',
-                  desc: '৪০% রিভিশন + ৩০% দুর্বল টপিক + ২০% বিগত প্রশ্ন + ১০% নতুন টপিক',
-                  recommended: true,
-                },
-                {
-                  id: 'past_papers',
-                  title: 'বিগত বিসিএস প্রশ্নপত্র',
-                  desc: 'বিপিএসসি কর্তৃক গৃহীত বাস্তব পূর্ববর্তী পরীক্ষার প্রশ্নাবলি',
-                },
-                {
-                  id: 'subject_wise',
-                  title: 'বিষয়ভিত্তিক অনুশীলন',
-                  desc: 'সিলেবাসের নির্দিষ্ট যেকোনো একটি বিষয়ের উপর পূর্ণ প্রস্তুতি',
-                },
-                {
-                  id: 'mistake_notebook',
-                  title: 'মিস্টেক নোটবুক ড্রিল',
-                  desc: 'পূর্বে ভুল হওয়া প্রশ্নাবলির তাৎক্ষণিক নিয়মিত রিভিশন',
-                },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setPracticeMode(m.id as DailyPracticeMode)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all relative ${
-                    practiceMode === m.id
-                      ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-emerald-600/20'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
-                >
-                  {m.recommended && (
-                    <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-white">
-                      AI Mix
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {/* Option 1: 51st Special BCS Health */}
+            <div
+              onClick={() => setExamTrack('special_bcs_health_51_2026')}
+              className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
+                examTrack === 'special_bcs_health_51_2026'
+                  ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/30 ring-2 ring-blue-600/20 shadow-xs'
+                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                      স্বাস্থ্য ক্যাডার
                     </span>
-                  )}
-                  <h4 className="font-bold text-xs text-slate-900 dark:text-white bangla-font">
-                    {m.title}
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-1 bangla-font leading-relaxed">
-                    {m.desc}
+                    <span className="text-[11px] text-slate-400 font-medium">৫০তম/৫১তম স্পেশাল</span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white bangla-font">
+                    ৫১তম বিশেষ বিসিএস (স্বাস্থ্য)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    ২০০ নম্বর • ২০০ প্রশ্ন • ১২০ মিনিট • নেগেটিভ মার্কিং -০.৫০
                   </p>
-                </button>
-              ))}
+                </div>
+
+                <div
+                  className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 mt-1 ${
+                    examTrack === 'special_bcs_health_51_2026'
+                      ? 'border-blue-600 bg-blue-600 text-white'
+                      : 'border-slate-300 dark:border-slate-600'
+                  }`}
+                >
+                  {examTrack === 'special_bcs_health_51_2026' && <Check className="h-3 w-3 stroke-[3]" />}
+                </div>
+              </div>
+
+              {/* Cadre Stream Switcher */}
+              {examTrack === 'special_bcs_health_51_2026' && (
+                <div className="mt-4 pt-3 border-t border-blue-200/60 dark:border-blue-900/60">
+                  <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2 block">
+                    ক্যাডার স্ট্রিম নির্বাচন করুন:
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProfessionalStream('assistant_surgeon');
+                      }}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                        professionalStream === 'assistant_surgeon'
+                          ? 'border-blue-600 bg-blue-600 text-white shadow-xs'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Stethoscope className="h-3.5 w-3.5" />
+                      <span>সহকারী সার্জন (MBBS)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProfessionalStream('assistant_dental_surgeon');
+                      }}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                        professionalStream === 'assistant_dental_surgeon'
+                          ? 'border-blue-600 bg-blue-600 text-white shadow-xs'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>🦷</span>
+                      <span>সহকারী ডেন্টাল সার্জন (BDS)</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Subject Selector for Subject-Wise */}
-            {practiceMode === 'subject_wise' && (
-              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
-                  বিষয় নির্বাচন করুন:
-                </label>
-                <select
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  className="w-full text-xs font-medium p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+            {/* Option 2: General BCS */}
+            <div
+              onClick={() => setExamTrack('general_bcs')}
+              className={`p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
+                examTrack === 'general_bcs'
+                  ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/30 ring-2 ring-blue-600/20 shadow-xs'
+                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
+                      সাধারণ ক্যাডার
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-medium">৪৬তম/৪৭তম প্রিলিমিনারি</span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white bangla-font">
+                    সাধারণ বিসিএস প্রিলিমিনারি
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    ১০টি সাধারণ বিষয় • ২০০ নম্বর • ২০০ প্রশ্ন • ১২০ মিনিট
+                  </p>
+                </div>
+
+                <div
+                  className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 mt-1 ${
+                    examTrack === 'general_bcs'
+                      ? 'border-blue-600 bg-blue-600 text-white'
+                      : 'border-slate-300 dark:border-slate-600'
+                  }`}
                 >
-                  <option value="all">সকল বিষয় (All Subjects)</option>
-                  {(examTrack === 'general_bcs' ? GENERAL_BCS_SUBJECTS : SPECIAL_BCS_HEALTH_SUBJECTS).map((s) => (
-                    <option key={s.code} value={s.code}>
-                      {s.nameBn} ({s.marks} Marks)
-                    </option>
-                  ))}
-                </select>
+                  {examTrack === 'general_bcs' && <Check className="h-3 w-3 stroke-[3]" />}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500">
+                বাংলা, ইংরেজি, বাংলাদেশ, আন্তর্জাতিক, গণিত, বিজ্ঞান ও অন্যান্য আবশ্যিক সাধারণ বিষয়সমূহ।
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 5.D: STEP 2 — SELECT PRACTICE MODE                                        */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="step-2-heading" className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 id="step-2-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 bangla-font">
+              <span className="h-6 w-6 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold flex items-center justify-center">
+                ২
+              </span>
+              <span>অনুশীলনের ধরন নির্বাচন করুন</span>
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">৪টি স্মার্ট প্র্যাকটিস মোড</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              {
+                id: 'mixed',
+                title: 'দৈনিক মিক্সড প্র্যাকটিস',
+                desc: 'রিভিশন, দুর্বল টপিক, বিগত প্রশ্ন ও নতুন সিলেবাসের সমন্বিত সেট',
+                badge: 'AI Mix (সুপারিশকৃত)',
+                icon: Sparkles,
+              },
+              {
+                id: 'past_papers',
+                title: 'বিগত বিসিএস প্রশ্নপত্র',
+                desc: 'বিপিএসসি কর্তৃক গৃহীত বাস্তব পূর্ববর্তী পরীক্ষার প্রশ্নাবলি',
+                badge: null,
+                icon: BookOpen,
+              },
+              {
+                id: 'subject_wise',
+                title: 'বিষয়ভিত্তিক অনুশীলন',
+                desc: 'সিলেবাসের নির্দিষ্ট যেকোনো একটি বিষয়ের উপর পূর্ণ প্রস্তুতি',
+                badge: null,
+                icon: Layers,
+              },
+              {
+                id: 'mistake_notebook',
+                title: 'মিস্টেক নোটবুক ড্রিল',
+                desc: 'পূর্বে ভুল হওয়া প্রশ্নাবলির তাৎক্ষণিক নিয়মিত রিভিশন ও সংশোধন',
+                badge: null,
+                icon: BookMarked,
+              },
+            ].map((m) => {
+              const isSelected = practiceMode === m.id;
+              const IconComp = m.icon;
+
+              return (
+                <div
+                  key={m.id}
+                  onClick={() => setPracticeMode(m.id as DailyPracticeMode)}
+                  className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                    isSelected
+                      ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/30 ring-2 ring-blue-600/20 shadow-xs'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${
+                        isSelected
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                      }`}>
+                        <IconComp className="h-4 w-4" />
+                      </div>
+                      {m.badge && (
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300">
+                          {m.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white bangla-font">
+                      {m.title}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 bangla-font leading-relaxed">
+                      {m.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+                    <span className={`text-[11px] font-bold ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`}>
+                      {isSelected ? '✓ নির্বাচিত' : 'নির্বাচন করুন'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Subject Selector when Subject-Wise is selected */}
+          {practiceMode === 'subject_wise' && (
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5 text-blue-600" />
+                <span>অনুশীলনের বিষয় নির্বাচন করুন:</span>
+              </label>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="w-full text-xs font-medium p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 shadow-2xs"
+              >
+                <option value="all">সকল বিষয় (All Subjects)</option>
+                {(examTrack === 'general_bcs' ? GENERAL_BCS_SUBJECTS : SPECIAL_BCS_HEALTH_SUBJECTS).map((s) => (
+                  <option key={s.code} value={s.code}>
+                    {s.nameBn} ({s.marks} Marks)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* 6. Simplified Expandable Explanation: দৈনিক মিক্স কীভাবে কাজ করে? */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowAlgorithmExplainer(!showAlgorithmExplainer)}
+              className="w-full p-3.5 px-4 flex items-center justify-between text-left hover:bg-slate-100/70 dark:hover:bg-slate-800/60 transition-colors"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+                <span>দৈনিক মিক্স কীভাবে কাজ করে? (How Daily Mix Works)</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-slate-500">
+                <span>{showAlgorithmExplainer ? 'সংক্ষিপ্ত করুন' : 'বিস্তারিত দেখুন'}</span>
+                {showAlgorithmExplainer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </div>
+            </button>
+
+            {showAlgorithmExplainer && (
+              <div className="p-4 pt-1 border-t border-slate-200/60 dark:border-slate-800 space-y-3">
+                <p className="text-xs text-slate-600 dark:text-slate-400 bangla-font leading-relaxed">
+                  দৈনিক মিক্সড সেশনে প্রশ্নের অনুপাত একটি বৈজ্ঞানিক স্পেসড রিপিটেশন অ্যালগরিদম মেনে তৈরি হয়। এটি কোনো শিক্ষার্থীর অর্জিত নম্বর নয়, বরং দৈনিক প্রশ্ন সেটের কাঠামো:
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="text-blue-600 dark:text-blue-400 font-extrabold text-sm mb-0.5">৪০%</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-200">স্পেসড রিভিশন</div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">পূর্বে পড়া টপিক নিয়মিত মনে রাখা</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="text-rose-600 dark:text-rose-400 font-extrabold text-sm mb-0.5">৩০%</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-200">দুর্বল টপিক</div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">ভুল হওয়া অংশে বাড়তি অনুশীলন</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="text-amber-600 dark:text-amber-400 font-extrabold text-sm mb-0.5">২০%</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-200">বিগত প্রশ্নাবলি</div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">যাচাইকৃত বিপিএসসি পরীক্ষার প্রশ্ন</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm mb-0.5">১০%</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-200">নতুন টপিক</div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">সিলেবাসের অবশিষ্ট বিষয়ের প্রশ্ন</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>প্রতিটি প্রশ্নের বাংলা ও ইংরেজি ব্যাখ্যা সরকারি কর্ম কমিশনের সিলেবাস রেফারেন্সসহ যাচাইকৃত।</span>
+                </div>
               </div>
             )}
           </div>
+        </section>
 
-          {/* Step 3: Question Count */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Target className="h-4 w-4 text-emerald-600" />
-              <span>৩. প্রশ্নের সংখ্যা নির্বাচন করুন</span>
-            </h3>
+        {/* ========================================================================= */}
+        {/* 5.E: STEP 3 — CHOOSE NUMBER OF QUESTIONS                                  */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="step-3-heading" className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 id="step-3-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 bangla-font">
+              <span className="h-6 w-6 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold flex items-center justify-center">
+                ৩
+              </span>
+              <span>প্রশ্নের সংখ্যা নির্বাচন করুন</span>
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">সময় ও গভীরতা অনুসারে</span>
+          </div>
 
-            <div className="grid grid-cols-4 gap-3">
-              {[10, 20, 30, 50].map((count) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { count: 10, label: '১০টি প্রশ্ন', time: '~১০ মিনিট' },
+              { count: 20, label: '২০টি প্রশ্ন', time: '~২০ মিনিট' },
+              { count: 30, label: '৩০টি প্রশ্ন', time: '~৩০ মিনিট' },
+              { count: 50, label: '৫০টি প্রশ্ন', time: '~৫০ মিনিট' },
+            ].map((item) => {
+              const isSelected = questionCount === item.count;
+
+              return (
                 <button
-                  key={count}
+                  key={item.count}
                   type="button"
-                  onClick={() => setQuestionCount(count)}
-                  className={`py-3 rounded-2xl border text-center transition-all ${
-                    questionCount === count
-                      ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20'
-                      : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800'
+                  onClick={() => setQuestionCount(item.count)}
+                  className={`p-3.5 rounded-2xl border text-center transition-all ${
+                    isSelected
+                      ? 'border-blue-600 bg-blue-600 text-white font-bold shadow-sm shadow-blue-600/20'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <span className="text-lg block">{count}</span>
-                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">
-                    Questions
+                  <span className="text-lg sm:text-xl font-extrabold block">
+                    {toBnDigits(item.count)}টি
+                  </span>
+                  <span className={`text-[11px] block mt-0.5 ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}>
+                    {item.time}
                   </span>
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        </div>
+        </section>
 
-        {/* Right Sidebar: Strategy & Launch */}
-        <div className="space-y-6">
-          <div className="bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden border border-emerald-800">
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
-                <Sparkles className="h-4 w-4" />
-                <span>Deterministic Queue Engine</span>
+        {/* ========================================================================= */}
+        {/* 5.F: PRACTICE SUMMARY AND MAIN ACTION                                      */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="summary-heading" className="pt-2">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 id="summary-heading" className="text-sm font-bold text-slate-900 dark:text-white bangla-font">
+                  অনুশীলন সেশন সারসংক্ষেপ (Session Summary)
+                </h3>
+                <p className="text-xs text-slate-500">আপনার নির্বাচিত সেটিংস অনুযায়ী সেশন তৈরি হবে</p>
               </div>
-              <h3 className="text-xl font-bold tracking-tight mb-2">
-                বৈজ্ঞানিক অনুশীলন অ্যালগরিদম
-              </h3>
-              <p className="text-xs text-emerald-100/90 leading-relaxed bangla-font mb-4">
-                দৈনিক মিক্সড সেশনে প্রশ্নের অনুপাত স্বয়ংক্রিয়ভাবে বিপিএসসি সিলেবাস ও স্পেসড রিপিটেশন নিয়ম মেনে নির্ধারণ করা হয়:
-              </p>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 w-fit">
+                নেগেটিভ মার্কিং: প্রতি ভুলে -০.৫০ নম্বর
+              </span>
+            </div>
 
-              <div className="space-y-2 text-xs font-medium mb-6">
-                <div className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-xl">
-                  <span>স্পেসড রিভিশন (Due Revision)</span>
-                  <span className="font-bold text-amber-300">৪০%</span>
-                </div>
-                <div className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-xl">
-                  <span>দুর্বল টপিক রিইনফোর্সমেন্ট</span>
-                  <span className="font-bold text-rose-300">৩০%</span>
-                </div>
-                <div className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-xl">
-                  <span>যাচাইকৃত বিগত বছরের প্রশ্ন</span>
-                  <span className="font-bold text-sky-300">২০%</span>
-                </div>
-                <div className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-xl">
-                  <span>নতুন ও অপ্রস্তুত সিলেবাস টপিক</span>
-                  <span className="font-bold text-emerald-300">১০%</span>
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 block text-[11px]">নির্বাচিত পরীক্ষা</span>
+                <span className="font-bold text-slate-900 dark:text-white mt-0.5 block truncate">
+                  {examTrack === 'special_bcs_health_51_2026'
+                    ? `৫১তম বিশেষ বিসিএস (${professionalStream === 'assistant_surgeon' ? 'MBBS' : 'BDS'})`
+                    : 'সাধারণ বিসিএস প্রিলিমিনারি'}
+                </span>
               </div>
 
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 block text-[11px]">অনুশীলন মোড</span>
+                <span className="font-bold text-slate-900 dark:text-white mt-0.5 block truncate">
+                  {practiceMode === 'mixed'
+                    ? 'দৈনিক মিক্সড প্র্যাকটিস'
+                    : practiceMode === 'past_papers'
+                    ? 'বিগত বিসিএস প্রশ্নপত্র'
+                    : practiceMode === 'subject_wise'
+                    ? 'বিষয়ভিত্তিক অনুশীলন'
+                    : 'মিস্টেক নোটবুক ড্রিল'}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 block text-[11px]">মোট প্রশ্ন ও পূর্ণমান</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400 mt-0.5 block">
+                  {toBnDigits(questionCount)}টি MCQ ({toBnDigits(questionCount)} নম্বর)
+                </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500 block text-[11px]">স্কোরিং নিয়ম</span>
+                <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">
+                  +১.০০ / -০.৫০
+                </span>
+              </div>
+            </div>
+
+            {/* Primary Action Button */}
+            <div className="pt-2">
               <button
                 type="button"
                 disabled={isLoading}
                 onClick={handleStartPractice}
-                className="w-full py-3.5 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-950 font-bold text-sm transition-all shadow-lg shadow-black/20 flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-extrabold text-sm sm:text-base transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
               >
                 {isLoading ? (
                   <>
-                    <RefreshCw className="h-4 w-4 animate-spin text-emerald-700" />
-                    <span>জেনারেট হচ্ছে...</span>
+                    <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                    <span>আজকের প্রশ্ন সেট তৈরি হচ্ছে...</span>
                   </>
                 ) : (
                   <>
                     <span>আজকের প্র্যাকটিস শুরু করুন</span>
-                    <ArrowRight className="h-4 w-4 text-emerald-700" />
+                    <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </button>
             </div>
           </div>
-
-          {/* Quick Source Traceability Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 text-xs text-slate-600 dark:text-slate-400">
-            <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white mb-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <span>প্রমাণভিত্তিক সোর্স ভেরিফিকেশন</span>
-            </div>
-            <p className="leading-relaxed bangla-font mb-3">
-              প্রতিটি প্রশ্ন বিপিএসসি-র অফিশিয়াল গেজেট, বিগত পরীক্ষার প্রশ্নপত্র বা অনুমোদিত রেফারেন্স বইয়ের সূচিপত্রের সাথে ট্যাগ করা।
-            </p>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-              <Link
-                href="/question-bank"
-                className="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1"
-              >
-                <span>প্রশ্ন ব্যাংক এক্সপ্লোর করুন</span>
-                <ExternalLink className="h-3 w-3" />
-              </Link>
-              <Link
-                href="/mistake-notebook"
-                className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium"
-              >
-                মিস্টেক নোটবুক
-              </Link>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   );
