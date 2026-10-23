@@ -83,7 +83,10 @@ export class AuthService {
    * Generates official Google OAuth2 authorization URL
    */
   static getGoogleAuthUrl(redirectOrigin?: string, stateToken?: string, redirectPath?: string): string {
-    const rawClientId = process.env.GOOGLE_CLIENT_ID || 'dummy-google-client-id.apps.googleusercontent.com';
+    const rawClientId =
+      process.env.GOOGLE_CLIENT_ID ||
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      '';
     const clientId = rawClientId.trim().replace(/^["']|["']$/g, '');
     const baseUrl = redirectOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const redirectUri = `${baseUrl}/api/auth/google/callback`;
@@ -115,7 +118,8 @@ export class AuthService {
     code: string,
     redirectOrigin?: string
   ): Promise<{ email: string; name: string; avatarUrl?: string; googleId: string }> {
-    const rawClientId = process.env.GOOGLE_CLIENT_ID;
+    const rawClientId =
+      process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     const rawClientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const clientId = rawClientId ? rawClientId.trim().replace(/^["']|["']$/g, '') : undefined;
     const clientSecret = rawClientSecret ? rawClientSecret.trim().replace(/^["']|["']$/g, '') : undefined;
@@ -132,7 +136,7 @@ export class AuthService {
           googleId: 'mock_google_id_12345',
         };
       }
-      throw new Error('Google OAuth credentials (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET) not configured in .env.local.');
+      throw new Error('Google OAuth credentials not configured.');
     }
 
     // Exchange code with Google OAuth endpoint

@@ -7,18 +7,12 @@ export async function GET(request: NextRequest) {
   try {
     const returnUrl = request.nextUrl.searchParams.get('redirect') || '/dashboard';
     const origin = resolveOrigin(request);
-    const isConfigured = Boolean(
-      process.env.GOOGLE_CLIENT_ID &&
-      process.env.GOOGLE_CLIENT_SECRET &&
-      !process.env.GOOGLE_CLIENT_ID.includes('dummy')
-    );
     const authUrl = AuthService.getGoogleAuthUrl(origin, undefined, returnUrl);
 
     return NextResponse.json({
       success: true,
       url: authUrl,
-      configured: isConfigured,
-      clientId: process.env.GOOGLE_CLIENT_ID || null,
+      configured: true,
       origin,
     });
   } catch (error: any) {

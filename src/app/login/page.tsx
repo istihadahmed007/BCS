@@ -92,14 +92,6 @@ function LoginContent() {
             )}
             <span>{isLoading ? 'Google-এ সংযোগ হচ্ছে...' : 'Continue with Google'}</span>
           </button>
-
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="text-[11px] text-slate-500 hover:text-blue-600 block mx-auto underline pt-1"
-          >
-            OAuth সেটিংস পরিবর্তন করতে চান? এখানে ক্লিক করুন
-          </button>
         </div>
 
         <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 text-left space-y-2">
