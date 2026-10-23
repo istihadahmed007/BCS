@@ -81,8 +81,8 @@ export class AuthService {
     const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
     if (!clientId || !clientSecret) {
-      // In sandbox/testing mode when secrets are not yet entered
-      if (code.startsWith('mock_code_') || process.env.NODE_ENV === 'test' || !clientId) {
+      // Only allowed in automated test suite
+      if (process.env.NODE_ENV === 'test' && (code.startsWith('mock_code_') || !clientId)) {
         return {
           email: 'google_user@test.com',
           name: 'Test Google Candidate',
@@ -90,7 +90,7 @@ export class AuthService {
           googleId: 'mock_google_id_12345',
         };
       }
-      throw new Error('Google OAuth credentials (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET) not configured in server environment.');
+      throw new Error('Google OAuth credentials (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET) not configured in .env.local.');
     }
 
     // Exchange code with Google OAuth endpoint
@@ -124,8 +124,8 @@ export class AuthService {
   static async verifyGoogleIdToken(
     idToken: string
   ): Promise<{ email: string; name: string; avatarUrl?: string; googleId: string }> {
-    // Development/Test mock token bypass
-    if (idToken.startsWith('mock_id_token_') || process.env.NODE_ENV === 'test') {
+    // Development/Test mock token bypass strictly for automated test runner
+    if (process.env.NODE_ENV === 'test' && idToken.startsWith('mock_id_token_')) {
       const parts = idToken.split('_');
       const email = parts[3] ? `${parts[3]}@gmail.com` : 'candidate@gmail.com';
       return {
