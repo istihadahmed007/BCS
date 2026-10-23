@@ -327,15 +327,15 @@ export default function DailyStudyPage() {
       <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 text-center relative">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold mb-3">
-              <Award className="h-4 w-4 text-amber-300" />
+          <div className="bg-white border-b border-[#E3E8F2] p-6 sm:p-8 text-center relative">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F0EBFF] text-[#6538F5] text-xs font-bold mb-3 border border-[#6538F5]/20">
+              <Award className="h-4 w-4 text-[#D97706]" />
               <span>Daily Practice Set Completed</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bangla-font">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#17233F] tracking-tight bangla-font">
               অভিনন্দন! আজকের অনুশীলন সমাপ্ত
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-blue-100 max-w-xl mx-auto bangla-font leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-[#66748B] max-w-xl mx-auto bangla-font leading-relaxed">
               আপনার ফলাফল স্বয়ংক্রিয়ভাবে দুর্বলতা বিশ্লেষণ ও মিস্টেক নোটবুকে সংরক্ষণ করা হয়েছে।
             </p>
           </div>

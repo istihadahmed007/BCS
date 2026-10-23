@@ -921,36 +921,40 @@ export default function QuestionBankExplorerPage() {
         </div>
       </div>
 
-      {/* Official Medical & Examination Disclaimer Banner */}
-      <div className="rounded-2xl p-4 bg-amber-500/10 border border-amber-500/30 text-amber-950 dark:text-amber-200 text-xs flex items-start gap-3 shadow-xs">
-        <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-extrabold text-sm text-amber-900 dark:text-amber-300">
-              ⚠️ শিক্ষামূলক ও বিসিএস পরীক্ষা প্রস্তুতি বিজ্ঞপ্তি (Educational Exam Practice Disclaimer)
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-300 font-bold">
-              BPSC 51st Special Syllabus Aligned
-            </span>
+      {/* Reference Alert / Disclaimer Strip */}
+      <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 bg-[#FFF5E6]/70 border border-[#D97706]/30 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="h-9 w-9 rounded-xl bg-[#D97706]/15 text-[#D97706] flex items-center justify-center shrink-0">
+            <AlertCircle className="h-4 w-4" />
           </div>
-          <p className="leading-relaxed bangla-font text-xs text-amber-800 dark:text-amber-300/90">
-            এই প্রশ্নভাণ্ডারের সকল সাধারণ, মেডিকেল ও ডেন্টাল বিষয়ক প্রশ্নাবলী বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর ৫১তম বিশেষ বিসিএস (স্বাস্থ্য) লিখিত পরীক্ষা ও সাধারণ বিসিএস প্রিলিমিনারি সিলেবাস অনুযায়ী কেবলমাত্র পরীক্ষার অনুশীলন ও আত্মমূল্যায়নের উদ্দেশ্যে প্রণীত। এটি কোনো ক্লিনিক্যাল বা ডায়াগনস্টিক চিকিৎসার নির্দেশিকা নয়।
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase text-[#D97706] tracking-wider">
+                বিসিএস পরীক্ষা প্রস্তুতি নির্দেশিকা (Educational Practice Notice)
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D97706]/15 text-[#D97706] font-bold">
+                BPSC 51st Special & 46th General Aligned
+              </span>
+            </div>
+            <p className="text-xs text-[#66748B] leading-relaxed bangla-font mt-0.5">
+              এই প্রশ্নভাণ্ডারের সকল সাধারণ, মেডিকেল ও ডেন্টাল বিষয়ক প্রশ্নাবলী বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর সার্কুলার ও সিলেবাস অনুযায়ী কেবলমাত্র পরীক্ষার অনুশীলন ও আত্মমূল্যায়নের উদ্দেশ্যে প্রণীত।
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Primary Area Switcher: General vs Professional vs Combined */}
-      <div className="bg-slate-100 dark:bg-slate-900/90 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
+      {/* Primary Area Switcher: Segmented Pill Control */}
+      <div className="bg-white p-2 rounded-2xl border border-[#E3E8F2] flex flex-wrap items-center gap-2 shadow-xs">
         <button
           type="button"
           onClick={() => handleSelectBankArea('all')}
           className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
             bankArea === 'all'
-              ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-300 dark:ring-slate-700'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-[#6538F5] text-white shadow-xs'
+              : 'text-[#66748B] hover:text-[#17233F]'
           }`}
         >
-          <Layers className="h-4 w-4 text-indigo-600" />
+          <Layers className="h-4 w-4" />
           <span>সম্মিলিত প্রশ্নভাণ্ডার (All Bank — ২০,২০০ প্রশ্ন)</span>
         </button>
 
@@ -959,12 +963,12 @@ export default function QuestionBankExplorerPage() {
           onClick={() => handleSelectBankArea('general')}
           className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
             bankArea === 'general'
-              ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-500'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-[#2563EB] text-white shadow-xs'
+              : 'text-[#66748B] hover:text-[#17233F]'
           }`}
         >
           <BookOpen className="h-4 w-4" />
-          <span>General Part (সাধারণ বিষয়াবলী — ১০০ নম্বর)</span>
+          <span>General Part (আবশ্যিক সাধারণ — ১০০ নম্বর)</span>
         </button>
 
         <button
@@ -972,65 +976,92 @@ export default function QuestionBankExplorerPage() {
           onClick={() => handleSelectBankArea('professional')}
           className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
             bankArea === 'professional'
-              ? 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-500'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-[#059669] text-white shadow-xs'
+              : 'text-[#66748B] hover:text-[#17233F]'
           }`}
         >
           <Stethoscope className="h-4 w-4" />
-          <span>Professional / Medical Part (১০০ নম্বর — {stream === 'assistant_surgeon' ? 'MBBS' : 'BDS'})</span>
+          <span>Professional Part (মেডিকেল ও ডেন্টাল — ১০০ নম্বর)</span>
         </button>
       </div>
 
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 lg:p-9 shadow-lg shadow-blue-500/20">
-        <div className="relative z-10 space-y-4 max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/30 border border-blue-300/30 text-blue-100 text-xs font-semibold backdrop-blur-xs">
-            <Sparkles className="h-4 w-4 text-amber-300" />
-            <span>BPSC Official Syllabus • ২০,২০০টি সংরক্ষিত প্রশ্নভাণ্ডার ও রিয়েল মডেল টেস্ট</span>
+      {/* Hero Header: Bright White Panel with 4 Metric Cards */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#E3E8F2] shadow-xs space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0EBFF] border border-[#6538F5]/20 text-[#6538F5] text-xs font-black">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>BPSC Official Syllabus • ২০,২০০টি সংরক্ষিত প্রশ্নভাণ্ডার ও ৩২৪টি সেট</span>
+            </div>
+
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#17233F] tracking-tight">
+              BCS Question Bank & Examination Center
+            </h1>
+
+            <p className="text-xs sm:text-sm text-[#66748B] font-normal leading-relaxed bangla-font">
+              বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর সার্কুলার অনুযায়ী সাধারণ অংশ (১০০ মার্ক) এবং প্রফেশনাল পার্ট (মেডিকেল ও ডেন্টাল সায়েন্স ১০০ মার্ক)-এর সমন্বয়ে গঠিত স্বয়ংসম্পূর্ণ বিসিএস প্রস্তুতি প্ল্যাটফর্ম।
+            </p>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-            BCS Question Bank & Examination Center
-          </h1>
+          <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+            <Link
+              href="/test"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#6538F5] hover:bg-[#8055F7] text-white text-xs font-bold shadow-xs transition-all"
+            >
+              <Play className="h-3.5 w-3.5 fill-current" />
+              <span>Start Mock Test</span>
+            </Link>
+          </div>
+        </div>
 
-          <p className="text-sm sm:text-base text-blue-100/90 font-normal leading-relaxed bangla-font max-w-3xl">
-            বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর সার্কুলার অনুযায়ী সাধারণ অংশ (১০০ মার্ক) এবং প্রফেশনাল পার্ট (মেডিকেল ও ডেন্টাল সায়েন্স ১০০ মার্ক)-এর সমন্বয়ে গঠিত স্বয়ংসম্পূর্ণ বিসিএস প্রস্তুতি প্ল্যাটফর্ম। প্রতিটি প্রশ্নের বিশদ বাংলা ও ইংরেজি ব্যাখ্যাসহ নির্ভুল অনুশীলন।
-          </p>
+        {/* 4 Metric Cards Row (Inspired by reference screenshot) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-2 border-t border-[#E3E8F2]">
+          <div className="bg-[#F8FAFF] rounded-2xl p-4 border border-[#EDF3FF]">
+            <div className="text-2xl sm:text-3xl font-black text-[#17233F]">
+              {manifest ? manifest.totalQuestions.toLocaleString() : '20,200'}
+            </div>
+            <div className="text-xs font-bold text-[#66748B] mt-0.5">মোট প্রশ্ন (৮৫ ব্যাচ)</div>
+            <span className="inline-block mt-2 text-[10px] font-bold text-[#6538F5] bg-[#F0EBFF] px-2 py-0.5 rounded-md">
+              Verified MCQs
+            </span>
+          </div>
 
-          {/* Quick KPI Stat Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-              <div className="text-2xl sm:text-3xl font-extrabold text-white">
-                {manifest ? manifest.totalQuestions.toLocaleString() : '20,200'}
-              </div>
-              <div className="text-xs text-blue-100">মোট প্রশ্ন (৮৫ ব্যাচ)</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">১৪টি বিষয়</div>
-              <div className="text-xs text-blue-200">সাধারণ + মেডিকেল + ডেন্টাল</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">৮৫ ব্যাচ</div>
-              <div className="text-xs text-blue-200">ডাটাবেজ ভলিউম</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-              <div className="text-2xl sm:text-3xl font-extrabold text-amber-300">১০০%</div>
-              <div className="text-xs text-blue-100">বিপিএসসি সিলেবাস কাভারেজ</div>
-            </div>
+          <div className="bg-[#F8FAFF] rounded-2xl p-4 border border-[#EDF3FF]">
+            <div className="text-2xl sm:text-3xl font-black text-[#2563EB]">১৪টি বিষয়</div>
+            <div className="text-xs font-bold text-[#66748B] mt-0.5">সাধারণ + মেডিকেল + ডেন্টাল</div>
+            <span className="inline-block mt-2 text-[10px] font-bold text-[#2563EB] bg-[#EDF3FF] px-2 py-0.5 rounded-md">
+              100% Curated
+            </span>
+          </div>
+
+          <div className="bg-[#F8FAFF] rounded-2xl p-4 border border-[#EDF3FF]">
+            <div className="text-2xl sm:text-3xl font-black text-[#059669]">৩২৪টি সেট</div>
+            <div className="text-xs font-bold text-[#66748B] mt-0.5">১৭,৪০০টি প্র্যাকটিস প্রশ্ন</div>
+            <span className="inline-block mt-2 text-[10px] font-bold text-[#059669] bg-[#E8F8F0] px-2 py-0.5 rounded-md">
+              Instant Tests
+            </span>
+          </div>
+
+          <div className="bg-[#F8FAFF] rounded-2xl p-4 border border-[#EDF3FF]">
+            <div className="text-2xl sm:text-3xl font-black text-[#D97706]">১০০%</div>
+            <div className="text-xs font-bold text-[#66748B] mt-0.5">সিলেবাস কাভারেজ</div>
+            <span className="inline-block mt-2 text-[10px] font-bold text-[#D97706] bg-[#FFF5E6] px-2 py-0.5 rounded-md">
+              BPSC Aligned
+            </span>
           </div>
         </div>
       </div>
 
       {/* Primary Section Switcher: 324 Exam Sets vs Question Explorer */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-slate-100 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-white rounded-2xl border border-[#E3E8F2] shadow-xs">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setActiveMainSection('sets')}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-2.5 ${
+            className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
               activeMainSection === 'sets'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 ring-2 ring-emerald-500'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
+                ? 'bg-[#059669] text-white shadow-xs'
+                : 'text-[#66748B] hover:text-[#17233F]'
             }`}
           >
             <BookOpen className="h-4 w-4" />
@@ -1043,10 +1074,10 @@ export default function QuestionBankExplorerPage() {
           <button
             type="button"
             onClick={() => setActiveMainSection('explorer')}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-2.5 ${
+            className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
               activeMainSection === 'explorer'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/20 ring-2 ring-blue-500'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
+                ? 'bg-[#6538F5] text-white shadow-xs'
+                : 'text-[#66748B] hover:text-[#17233F]'
             }`}
           >
             <Layers className="h-4 w-4" />

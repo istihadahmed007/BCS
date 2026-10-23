@@ -210,8 +210,8 @@ export default function AdminPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
+                    ? 'bg-[#6538F5] text-white shadow-xs'
+                    : 'bg-white text-[#66748B] border border-[#E3E8F2] hover:text-[#17233F]'
                 }`}
               >
                 <Icon className="h-4 w-4" />

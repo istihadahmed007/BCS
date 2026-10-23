@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { Globe, Mail, MapPin } from 'lucide-react';
+import { ShieldCheck, Phone, MapPin, Globe } from 'lucide-react';
 
 interface PortalShellProps {
   children: React.ReactNode;
@@ -19,13 +19,13 @@ export default function PortalShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors">
+    <div className="min-h-screen bg-[#F5F7FC] text-[#17233F] flex flex-col font-sans antialiased">
       {/* Fixed Left Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content Area */}
       <div className="lg:pl-64 flex flex-col flex-1 min-w-0 transition-all">
-        {/* Compact Top Header */}
+        {/* Top Header */}
         <Header
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           selectedTrack={selectedTrack}
@@ -35,29 +35,26 @@ export default function PortalShell({
         {/* Page Content */}
         <main className="flex-1 pb-12">{children}</main>
 
-        {/* Sleek Dark Blue Footer Bar matching reference image */}
-        <footer className="bg-[#0c2461] border-t border-blue-950 text-slate-300 text-xs py-4 px-4 sm:px-6 lg:px-8 mt-auto">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 text-slate-300">
-              <span className="flex items-center gap-1.5 hover:text-white transition-colors">
-                <Globe className="h-3.5 w-3.5 text-blue-400" />
-                <span>www.bcs.vartualtutor.com</span>
-              </span>
-              <a
-                href="mailto:support@vartualtutor.com"
-                className="flex items-center gap-1.5 hover:text-white transition-colors"
-              >
-                <Mail className="h-3.5 w-3.5 text-emerald-400" />
-                <span>support@vartualtutor.com</span>
-              </a>
-              <span className="flex items-center gap-1.5 hover:text-white transition-colors hidden sm:flex">
-                <MapPin className="h-3.5 w-3.5 text-amber-400" />
-                <span>BPSC Cadre Hub, Agargaon, Dhaka</span>
-              </span>
+        {/* Verification & Accreditation Bottom Strip matching reference widget style */}
+        <footer className="bg-white border-t border-[#E3E8F2] text-[#66748B] text-xs py-3.5 px-4 sm:px-6 lg:px-8 mt-auto shadow-xs">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#17233F]">
+              <ShieldCheck className="h-4 w-4 text-[#059669]" />
+              <span>Official BPSC Syllabus Aligned &bull; Deterministic (-0.50) Negative Marking</span>
             </div>
 
-            <div className="text-slate-400 text-[11px]">
-              &copy; {new Date().getFullYear()} BCS Crack • Smart BPSC Exam Preparation. All Rights Reserved.
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 text-[11px] text-[#66748B]">
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 text-[#6538F5]" />
+                <span>Agargaon Cadre Zone, Dhaka</span>
+              </span>
+              <span className="hidden md:inline text-slate-300">|</span>
+              <span className="flex items-center gap-1 font-mono">
+                <Phone className="h-3.5 w-3.5 text-[#6538F5]" />
+                <span>+880 1800 456 280</span>
+              </span>
+              <span className="hidden md:inline text-slate-300">|</span>
+              <span>&copy; {new Date().getFullYear()} BCS Vartual Tutor</span>
             </div>
           </div>
         </footer>

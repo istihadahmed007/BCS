@@ -216,37 +216,37 @@ function PackagesContent() {
 
         {/* Page Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-semibold bangla-font">
-            <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F0EBFF] text-[#6538F5] border border-[#6538F5]/20 text-xs font-bold bangla-font">
+            <Sparkles className="h-3.5 w-3.5 text-[#6538F5]" />
             <span>বিসিএস ক্র্যাক সাবস্ক্রিপশন ও প্রিপারেশন প্যাকেজ</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight bangla-font">
+          <h1 className="text-3xl sm:text-4xl font-black text-[#17233F] tracking-tight bangla-font">
             আপনার বিসিএস লক্ষ্য অনুযায়ী সেরা প্যাকেজটি বেছে নিন
           </h1>
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto bangla-font leading-relaxed">
+          <p className="text-sm sm:text-base text-[#66748B] max-w-2xl mx-auto bangla-font leading-relaxed">
             কোনো প্রকার অস্পষ্টতা ছাড়াই সম্পূর্ণ স্বচ্ছ মূল্যে ২০,০০০+ ভেরিফাইড প্রশ্ন ব্যাংক, বিগত প্রশ্ন সমাধান এবং ৫১তম বিশেষ বিসিএস মেডিক্যাল পার্টের প্রস্তুতি নিন।
           </p>
         </div>
 
         {/* Active Subscription Status Banner (If User Logged In) */}
         {currentUser && activeSubscription && (
-          <div className="bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-white border border-[#E3E8F2] rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-bold text-[#8792A5] uppercase tracking-wider">
                   বর্তমান স্ট্যাটাস:
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-xs font-bold bangla-font">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#F0EBFF] text-[#6538F5] text-xs font-bold bangla-font">
                   {activeSubscription.packageName}
                 </span>
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="flex h-2 w-2 rounded-full bg-[#059669] animate-pulse" />
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 bangla-font">
-                অ্যাকাউন্ট: <span className="font-semibold text-slate-900 dark:text-white">{currentUser.email}</span>
+              <p className="text-xs text-[#66748B] bangla-font">
+                অ্যাকাউন্ট: <span className="font-semibold text-[#17233F]">{currentUser.email}</span>
                 {activeSubscription.tier !== 'free' && (
                   <>
                     {' '}• মেয়াদ শেষ হবে:{' '}
-                    <span className="font-semibold text-slate-900 dark:text-white">
+                    <span className="font-semibold text-[#17233F]">
                       {new Date(activeSubscription.expiresAt).toLocaleDateString('bn-BD')}
                     </span>
                   </>
@@ -255,7 +255,7 @@ function PackagesContent() {
             </div>
             <Link
               href="/study/today"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors bangla-font"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6538F5] hover:bg-[#8055F7] text-white text-xs font-bold shadow-xs transition-all bangla-font"
             >
               <span>দৈনিক অনুশীলনে যান</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -271,19 +271,19 @@ function PackagesContent() {
             return (
               <div
                 key={pkg.id}
-                className={`relative bg-white dark:bg-slate-900 rounded-3xl border flex flex-col justify-between transition-all ${
+                className={`relative bg-white rounded-3xl border flex flex-col justify-between transition-all ${
                   pkg.isPopular
-                    ? 'border-blue-600 dark:border-blue-500 shadow-md ring-2 ring-blue-500/10'
-                    : 'border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300'
+                    ? 'border-[#6538F5] shadow-md ring-2 ring-[#6538F5]/10'
+                    : 'border-[#E3E8F2] shadow-xs hover:border-slate-300'
                 } p-6`}
               >
                 {/* Popular or Current Badge */}
                 {isCurrentPlan ? (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold shadow-xs bangla-font">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#059669] text-white text-[11px] font-bold shadow-xs bangla-font">
                     আপনার বর্তমান প্ল্যান
                   </div>
                 ) : pkg.isPopular ? (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-blue-600 text-white text-[11px] font-bold shadow-xs bangla-font">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#6538F5] text-white text-[11px] font-bold shadow-xs bangla-font">
                     সর্বাধিক জনপ্রিয়
                   </div>
                 ) : null}

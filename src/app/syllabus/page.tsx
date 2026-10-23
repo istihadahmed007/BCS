@@ -65,8 +65,8 @@ export default function SyllabusPage() {
           onClick={() => setActiveTab('general')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'general'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+              ? 'bg-[#6538F5] text-white shadow-xs'
+              : 'bg-white text-[#66748B] border border-[#E3E8F2] hover:text-[#17233F]'
           }`}
         >
           <BookOpen className="h-4 w-4" />
@@ -78,8 +78,8 @@ export default function SyllabusPage() {
           onClick={() => setActiveTab('shared')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'shared'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+              ? 'bg-[#6538F5] text-white shadow-xs'
+              : 'bg-white text-[#66748B] border border-[#E3E8F2] hover:text-[#17233F]'
           }`}
         >
           <Layers className="h-4 w-4" />
@@ -91,8 +91,8 @@ export default function SyllabusPage() {
           onClick={() => setActiveTab('medical')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'medical'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+              ? 'bg-[#059669] text-white shadow-xs'
+              : 'bg-white text-[#66748B] border border-[#E3E8F2] hover:text-[#17233F]'
           }`}
         >
           <Stethoscope className="h-4 w-4" />
@@ -104,8 +104,8 @@ export default function SyllabusPage() {
           onClick={() => setActiveTab('dental')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'dental'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+              ? 'bg-[#059669] text-white shadow-xs'
+              : 'bg-white text-[#66748B] border border-[#E3E8F2] hover:text-[#17233F]'
           }`}
         >
           <GraduationCap className="h-4 w-4" />
