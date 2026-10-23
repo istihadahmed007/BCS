@@ -612,7 +612,8 @@ export class SourceIngestionService {
     sourceHealth: { totalSources: number; synced: number; failed: number };
     latestSyncDate: string;
   } {
-    const totalApproved = RUNTIME_QUESTIONS.filter((q) => q.reviewStatus === 'approved').length;
+    const allApprovedQuestions = this.getApprovedQuestions();
+    const totalApproved = allApprovedQuestions.length;
     const totalUnderReview = INGESTION_ITEMS_STORE.filter(
       (i) => i.status !== 'approved' && i.status !== 'rejected'
     ).length;
@@ -623,8 +624,7 @@ export class SourceIngestionService {
     const bySubject: Record<string, number> = {};
     const byOrigin: Record<string, number> = {};
 
-    for (const q of RUNTIME_QUESTIONS) {
-      if (q.reviewStatus !== 'approved') continue;
+    for (const q of allApprovedQuestions) {
       byTrack[q.examTrackId] = (byTrack[q.examTrackId] || 0) + 1;
       byStream[q.professionalStream] = (byStream[q.professionalStream] || 0) + 1;
       bySubject[q.subjectCode] = (bySubject[q.subjectCode] || 0) + 1;
@@ -635,7 +635,7 @@ export class SourceIngestionService {
     const failedSources = SOURCES_STORE.filter((s) => s.lastSyncStatus === 'failed').length;
 
     return {
-      totalIngested: RUNTIME_QUESTIONS.length + INGESTION_ITEMS_STORE.length,
+      totalIngested: allApprovedQuestions.length + INGESTION_ITEMS_STORE.length,
       totalApproved,
       totalUnderReview,
       totalRejected,

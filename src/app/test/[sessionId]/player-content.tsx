@@ -24,6 +24,23 @@ import {
 } from 'lucide-react';
 import { CandidateResponse, TestSession, TestSessionQuestion } from '@/types';
 
+const SUBJECT_NAME_MAP: Record<string, { bn: string; en: string }> = {
+  BANGLA: { bn: 'বাংলা ভাষা ও সাহিত্য', en: 'Bangla Language & Literature' },
+  ENGLISH: { bn: 'ইংরেজি ভাষা ও সাহিত্য', en: 'English Language & Literature' },
+  BD_AFFAIRS: { bn: 'বাংলাদেশ বিষয়াবলী', en: 'Bangladesh Affairs' },
+  INT_AFFAIRS: { bn: 'আন্তর্জাতিক বিষয়াবলী', en: 'International Affairs' },
+  MATH: { bn: 'গাণিতিক যুক্তি', en: 'Mathematical Reasoning' },
+  MENTAL_ABILITY: { bn: 'মানসিক দক্ষতা', en: 'Mental Ability' },
+  G_SCIENCE: { bn: 'সাধারণ বিজ্ঞান', en: 'General Science' },
+  G_COMPUTER: { bn: 'কম্পিউটার ও তথ্যপ্রযুক্তি', en: 'Computer & IT' },
+  G_GEOGRAPHY: { bn: 'ভূগোল ও পরিবেশ', en: 'Geography & Environment' },
+  G_ETHICS: { bn: 'নৈতিকতা ও সুশাসন', en: 'Ethics & Good Governance' },
+  MED_SCI_1: { bn: 'মেডিক্যাল সায়েন্স ১ম পত্র (Basic Medical Science)', en: 'Medical Science Part I' },
+  MED_SCI_2: { bn: 'মেডিক্যাল সায়েন্স ২য় পত্র (Clinical Medical Science)', en: 'Medical Science Part II' },
+  DENTAL_SCI_1: { bn: 'ডেন্টাল সায়েন্স ১ম পত্র (Basic Dental Science)', en: 'Dental Science Part I' },
+  DENTAL_SCI_2: { bn: 'ডেন্টাল সায়েন্স ২য় পত্র (Clinical Dental Science)', en: 'Dental Science Part II' },
+};
+
 export default function TestPlayerContent({
   params,
 }: {
@@ -356,7 +373,7 @@ export default function TestPlayerContent({
                     {currentIndex + 1}
                   </span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    {currentQuestion.subjectCode}
+                    {SUBJECT_NAME_MAP[currentQuestion.subjectCode]?.bn || currentQuestion.subjectCode}
                   </span>
                 </div>
 
@@ -662,37 +679,136 @@ export default function TestPlayerContent({
             </div>
           </div>
 
+          {/* Section-Wise Breakdown (General vs Professional) */}
+          {session.sectionBreakdown && (
+            <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <Target className="h-4 w-4 text-emerald-600" />
+                  <span>অংশভিত্তিক ফলাফল (Section-Wise Score Breakdown)</span>
+                </h3>
+                <span className="text-xs text-slate-500 bangla-font">
+                  সাধারণ ও প্রফেশনাল অংশের স্বতন্ত্র ফলাফল
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* General Part */}
+                <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-900 dark:text-blue-300">
+                      সাধারণ অংশ (General Part — 100 Marks)
+                    </span>
+                    <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-blue-600 text-white font-mono">
+                      নেট মার্ক: {session.sectionBreakdown.general.marks.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                      <span className="text-[10px] text-slate-400 block">মোট প্রশ্ন</span>
+                      <span className="font-bold text-slate-700 dark:text-slate-300 font-mono">
+                        {session.sectionBreakdown.general.total}
+                      </span>
+                    </div>
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                      <span className="text-[10px] text-emerald-600 block">সঠিক (+১)</span>
+                      <span className="font-bold text-emerald-600 font-mono">
+                        {session.sectionBreakdown.general.correct}
+                      </span>
+                    </div>
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                      <span className="text-[10px] text-rose-500 block">ভুল (-০.৫)</span>
+                      <span className="font-bold text-rose-500 font-mono">
+                        {session.sectionBreakdown.general.wrong}
+                      </span>
+                    </div>
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                      <span className="text-[10px] text-slate-400 block">অনুত্তরিত</span>
+                      <span className="font-bold text-slate-500 font-mono">
+                        {session.sectionBreakdown.general.unanswered}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Part */}
+                <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
+                      প্রফেশনাল অংশ (Professional Part — 100 Marks)
+                    </span>
+                    <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-mono">
+                      নেট মার্ক: {session.sectionBreakdown.professional.marks.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                      <span className="text-[10px] text-slate-400 block">মোট প্রশ্ন</span>
+                      <span className="font-bold text-slate-700 dark:text-slate-300 font-mono">
+                        {session.sectionBreakdown.professional.total}
+                      </span>
+                    </div>
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                      <span className="text-[10px] text-emerald-600 block">সঠিক (+১)</span>
+                      <span className="font-bold text-emerald-600 font-mono">
+                        {session.sectionBreakdown.professional.correct}
+                      </span>
+                    </div>
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                      <span className="text-[10px] text-rose-500 block">ভুল (-০.৫)</span>
+                      <span className="font-bold text-rose-500 font-mono">
+                        {session.sectionBreakdown.professional.wrong}
+                      </span>
+                    </div>
+                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                      <span className="text-[10px] text-slate-400 block">অনুত্তরিত</span>
+                      <span className="font-bold text-slate-500 font-mono">
+                        {session.sectionBreakdown.professional.unanswered}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Subject Breakdown Table */}
           {session.subjectBreakdown && (
             <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <h3 className="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-                Subject-Wise Performance Distribution
+                বিষয়ভিত্তিক স্কোর ও বিশ্লেষণ (Subject-Wise Performance Distribution)
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 uppercase font-bold">
                     <tr>
-                      <th className="py-2.5 px-3 rounded-l-lg">Subject</th>
-                      <th className="py-2.5 px-3">Total Items</th>
-                      <th className="py-2.5 px-3">Correct</th>
-                      <th className="py-2.5 px-3">Wrong</th>
-                      <th className="py-2.5 px-3 rounded-r-lg">Net Marks</th>
+                      <th className="py-2.5 px-3 rounded-l-lg">বিষয় (Subject)</th>
+                      <th className="py-2.5 px-3">মোট প্রশ্ন</th>
+                      <th className="py-2.5 px-3">সঠিক (+১)</th>
+                      <th className="py-2.5 px-3">ভুল (-০.৫)</th>
+                      <th className="py-2.5 px-3 rounded-r-lg">অর্জিত মার্ক</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {Object.entries(session.subjectBreakdown).map(([code, data]) => (
-                      <tr key={code}>
-                        <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200">
-                          {code}
-                        </td>
-                        <td className="py-2.5 px-3">{data.total}</td>
-                        <td className="py-2.5 px-3 text-emerald-600 font-bold">{data.correct}</td>
-                        <td className="py-2.5 px-3 text-rose-500 font-bold">{data.wrong}</td>
-                        <td className="py-2.5 px-3 font-mono font-bold">
-                          {data.marks.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
+                    {Object.entries(session.subjectBreakdown).map(([code, data]) => {
+                      const meta = SUBJECT_NAME_MAP[code];
+                      return (
+                        <tr key={code} className="hover:bg-slate-50/50 dark:hover:bg-slate-850/50">
+                          <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200">
+                            <span className="block font-bold">{meta?.bn || code}</span>
+                            <span className="text-[10px] text-slate-400 font-mono font-normal">
+                              {meta?.en || code}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 font-mono">{data.total}</td>
+                          <td className="py-2.5 px-3 text-emerald-600 font-bold font-mono">{data.correct}</td>
+                          <td className="py-2.5 px-3 text-rose-500 font-bold font-mono">{data.wrong}</td>
+                          <td className="py-2.5 px-3 font-mono font-bold">
+                            {data.marks.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -744,7 +860,7 @@ export default function TestPlayerContent({
                       {idx + 1}
                     </span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
-                      {q.subjectCode}
+                      {SUBJECT_NAME_MAP[q.subjectCode]?.bn || q.subjectCode}
                     </span>
                   </div>
 

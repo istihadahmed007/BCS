@@ -53,6 +53,17 @@ if (fs.existsSync(ecosystemSrc)) {
   fs.copyFileSync(ecosystemSrc, ecosystemDest);
 }
 
+// Copy question bank and dataset to standalone runtime environment
+const dataSrc = path.join(rootDir, 'src', 'data');
+const dataDestSrc = path.join(standaloneDir, 'src', 'data');
+const dataDestRoot = path.join(standaloneDir, 'data');
+
+if (fs.existsSync(dataSrc)) {
+  console.log('Copying src/data -> .next/standalone/src/data & .next/standalone/data');
+  copyDir(dataSrc, dataDestSrc);
+  copyDir(dataSrc, dataDestRoot);
+}
+
 // Generate deploy-hostinger.zip
 const zipDest = path.join(rootDir, 'deploy-hostinger.zip');
 try {

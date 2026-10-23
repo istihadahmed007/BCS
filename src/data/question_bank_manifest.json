@@ -1,6 +1,6 @@
 {
-  "totalQuestions": 20000,
-  "totalBatches": 81,
+  "totalQuestions": 20200,
+  "totalBatches": 85,
   "subjectStats": {
     "Bangla": 3598,
     "English": 3598,
@@ -11,7 +11,11 @@
     "Mathematics": 1600,
     "Mental Ability": 808,
     "Geography and Environment": 563,
-    "Ethics, Values and Good Governance": 242
+    "Ethics, Values and Good Governance": 242,
+    "Medical Science Part I": 50,
+    "Medical Science Part II": 50,
+    "Dental Science Part I": 50,
+    "Dental Science Part II": 50
   },
   "difficultyStats": {
     "easy": 5157,

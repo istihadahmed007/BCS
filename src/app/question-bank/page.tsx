@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   ArrowRight,
@@ -20,13 +21,16 @@ import {
   Flame,
   HelpCircle,
   Library,
+  Play,
   RotateCcw,
   Search,
   Sparkles,
+  Stethoscope,
   Target,
   Trophy,
   XCircle,
 } from 'lucide-react';
+import { ExamTrackId, ProfessionalStreamId } from '@/types';
 
 interface QuestionBankItem {
   id: string;
@@ -150,6 +154,34 @@ const SUBJECT_METADATA: Record<
     border: 'border-sky-200 dark:border-sky-800',
     iconBg: 'from-sky-500 to-teal-600',
   },
+  'Medical Science Part I': {
+    nameBn: 'মেডিক্যাল সায়েন্স ১ম পত্র (Basic Medical Science)',
+    color: 'text-teal-600 dark:text-teal-400',
+    badgeBg: 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800',
+    iconBg: 'from-teal-500 to-emerald-600',
+  },
+  'Medical Science Part II': {
+    nameBn: 'মেডিক্যাল সায়েন্স ২য় পত্র (Clinical Medical Science)',
+    color: 'text-cyan-600 dark:text-cyan-400',
+    badgeBg: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300',
+    border: 'border-cyan-200 dark:border-cyan-800',
+    iconBg: 'from-cyan-500 to-blue-600',
+  },
+  'Dental Science Part I': {
+    nameBn: 'ডেন্টাল সায়েন্স ১ম পত্র (Basic Dental Science)',
+    color: 'text-indigo-600 dark:text-indigo-400',
+    badgeBg: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300',
+    border: 'border-indigo-200 dark:border-indigo-800',
+    iconBg: 'from-indigo-500 to-purple-600',
+  },
+  'Dental Science Part II': {
+    nameBn: 'ডেন্টাল সায়েন্স ২য় পত্র (Clinical Dental Science)',
+    color: 'text-violet-600 dark:text-violet-400',
+    badgeBg: 'bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300',
+    border: 'border-violet-200 dark:border-violet-800',
+    iconBg: 'from-violet-500 to-pink-600',
+  },
 };
 
 function getDhakaDateString(date: Date = new Date()): string {
@@ -222,6 +254,72 @@ function getVisiblePages(currentPage: number, totalPages: number): (number | 'el
 }
 
 export default function QuestionBankExplorerPage() {
+  const router = useRouter();
+
+  // Track and Stream Enrollment State
+  const [track, setTrack] = useState<ExamTrackId>('special_bcs_health_51_2026');
+  const [stream, setStream] = useState<ProfessionalStreamId>('assistant_surgeon');
+  const [isLaunchingTest, setIsLaunchingTest] = useState<boolean>(false);
+
+  // Initialize track and stream from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('bcs_enrollment');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.trackId) setTrack(parsed.trackId);
+        if (parsed.stream) setStream(parsed.stream);
+      }
+    } catch {}
+  }, []);
+
+  const handleStreamChange = (newTrack: ExamTrackId, newStream: ProfessionalStreamId) => {
+    setTrack(newTrack);
+    setStream(newStream);
+    setSelectedSubject('all');
+    setSelectedBatch('');
+    setCurrentPage(1);
+    setJumpPageInput('1');
+    try {
+      localStorage.setItem(
+        'bcs_enrollment',
+        JSON.stringify({ trackId: newTrack, stream: newStream, dailyMinutes: 120 })
+      );
+    } catch {}
+  };
+
+  const handleLaunchTest = async (
+    testType: 'full_mock' | 'subject_test',
+    title: string,
+    durationMinutes: number
+  ) => {
+    setIsLaunchingTest(true);
+    try {
+      const res = await fetch('/api/test/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'candidate-user-1',
+          examTrackId: track,
+          professionalStream: track === 'general_bcs' ? 'general' : stream,
+          testType,
+          title,
+          durationMinutes,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.data?.id) {
+        router.push(`/test/${json.data.id}`);
+      } else {
+        alert(json.error || 'Failed to start test session');
+      }
+    } catch (err: any) {
+      alert('Error starting test: ' + err.message);
+    } finally {
+      setIsLaunchingTest(false);
+    }
+  };
+
   // Questions Bank Repository State
   const [questions, setQuestions] = useState<QuestionBankItem[]>([]);
   const [manifest, setManifest] = useState<ManifestSummary | null>(null);
@@ -323,6 +421,8 @@ export default function QuestionBankExplorerPage() {
         if (selectedDifficulty !== 'all') params.set('difficulty', selectedDifficulty);
         if (selectedBatch) params.set('batch', selectedBatch);
         if (appliedSearch) params.set('search', appliedSearch);
+        params.set('track', track);
+        params.set('stream', stream);
 
         const res = await fetch(`/api/questions?${params.toString()}`);
         const json = await res.json();
@@ -355,7 +455,7 @@ export default function QuestionBankExplorerPage() {
     return () => {
       isCancelled = true;
     };
-  }, [currentPage, pageSize, selectedSubject, selectedDifficulty, selectedBatch, appliedSearch]);
+  }, [currentPage, pageSize, selectedSubject, selectedDifficulty, selectedBatch, appliedSearch, track, stream]);
 
   // Sync jump input with currentPage
   useEffect(() => {
@@ -578,49 +678,424 @@ export default function QuestionBankExplorerPage() {
   const currentDailyQ = dailyQuestions[activeDailyIndex];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-8">
+      {/* ========================================================================= */}
+      {/* 1. CANDIDATE STREAM & TRACK SWITCHER                                      */}
+      {/* ========================================================================= */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <Stethoscope className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                ক্যান্ডিডেট স্ট্রিম নির্বাচন করুন (Candidate Stream)
+              </span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                ৫১তম বিশেষ বিসিএস
+              </span>
+            </div>
+            <p className="text-xs text-slate-700 dark:text-slate-300 font-medium bangla-font mt-0.5">
+              আপনার পদ অনুসারে প্রফেশনাল ১০০ মার্ক (মেডিকেল/ডেন্টাল) ও পূর্ণাঙ্গ ২০০ নম্বরের মডেল টেস্ট ফিল্টার হবে।
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleStreamChange('special_bcs_health_51_2026', 'assistant_surgeon')}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+              track === 'special_bcs_health_51_2026' && stream === 'assistant_surgeon'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 ring-2 ring-emerald-500'
+                : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <span>🩺</span>
+            <span>সহকারী সার্জন (MBBS)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleStreamChange('special_bcs_health_51_2026', 'assistant_dental_surgeon')}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+              track === 'special_bcs_health_51_2026' && stream === 'assistant_dental_surgeon'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 ring-2 ring-emerald-500'
+                : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <span>🦷</span>
+            <span>সহকারী ডেন্টাল সার্জন (BDS)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleStreamChange('general_bcs', 'general')}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+              track === 'general_bcs'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 ring-2 ring-blue-500'
+                : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <span>📘</span>
+            <span>সাধারণ বিসিএস (General)</span>
+          </button>
+        </div>
+      </div>
+
       {/* Hero Header */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 lg:p-9 shadow-lg shadow-blue-500/20">
         <div className="relative z-10 space-y-4 max-w-4xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/30 border border-blue-300/30 text-blue-100 text-xs font-semibold backdrop-blur-xs">
             <Sparkles className="h-4 w-4 text-amber-300" />
-            <span>BPSC Syllabus Aligned • 20,000 Questions Repository</span>
+            <span>BPSC Official Syllabus • ২০,২০০টি সংরক্ষিত প্রশ্নভাণ্ডার ও রিয়েল মডেল টেস্ট</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-            BCS Question Bank{' '}
-            <span className="text-blue-100">
-              (২০,০০০ প্রশ্নভাণ্ডার)
-            </span>
+            BCS Question Bank & Examination Center
           </h1>
 
           <p className="text-sm sm:text-base text-blue-100/90 font-normal leading-relaxed bangla-font max-w-3xl">
-            বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর ১০টি সাধারণ বিষয়ের ওপর তৈরি ২০,০০০ সংরক্ষিত প্রশ্ন (৮১টি ব্যাচে বিন্যস্ত: ব্যাচ ১–২ এ ১০০-১৫০টি ও ব্যাচ ৩–৮১ এ ২৫০টি প্রশ্ন)। প্রতিটি প্রশ্নের সাথে বাংলা ও ইংরেজি প্রশ্ন, সঠিক উত্তর এবং বিশদ রেফারেন্সযুক্ত ব্যাখ্যা।
+            বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর সার্কুলার অনুযায়ী সাধারণ অংশ (১০০ মার্ক) এবং প্রফেশনাল পার্ট (মেডিকেল ও ডেন্টাল সায়েন্স ১০০ মার্ক)-এর সমন্বয়ে গঠিত স্বয়ংসম্পূর্ণ বিসিএস প্রস্তুতি প্ল্যাটফর্ম। প্রতিটি প্রশ্নের বিশদ বাংলা ও ইংরেজি ব্যাখ্যাসহ নির্ভুল অনুশীলন।
           </p>
 
           {/* Quick KPI Stat Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
               <div className="text-2xl sm:text-3xl font-extrabold text-white">
-                {manifest ? manifest.totalQuestions.toLocaleString() : '20,000'}
+                {manifest ? manifest.totalQuestions.toLocaleString() : '20,200'}
               </div>
-              <div className="text-xs text-blue-100">মোট প্রশ্ন (৮১ ব্যাচ)</div>
+              <div className="text-xs text-blue-100">মোট প্রশ্ন (৮৫ ব্যাচ)</div>
             </div>
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">১০টি বিষয়</div>
-              <div className="text-xs text-blue-200">পূর্ণাঙ্গ সিলেবাস কাভারেজ</div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">১৪টি বিষয়</div>
+              <div className="text-xs text-blue-200">সাধারণ + মেডিকেল + ডেন্টাল</div>
             </div>
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">৮১ ব্যাচ</div>
-              <div className="text-xs text-blue-200">ডাটাবেজ ব্যাচ ভলিউম</div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-blue-100">৮৫ ব্যাচ</div>
+              <div className="text-xs text-blue-200">ডাটাবেজ ভলিউম</div>
             </div>
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/15">
               <div className="text-2xl sm:text-3xl font-extrabold text-amber-300">১০০%</div>
-              <div className="text-xs text-blue-100">সিলেবাস প্রশ্নভাণ্ডার</div>
+              <div className="text-xs text-blue-100">বিপিএসসি সিলেবাস কাভারেজ</div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 2. THREE CORE QUESTION-BANK ENTRY POINTS                                 */}
+      {/* ========================================================================= */}
+      <section aria-labelledby="qb-entry-points-heading" className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 id="qb-entry-points-heading" className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              তিনটি প্রধান প্রস্তুতি এন্ট্রি পয়েন্ট (Three Question-Bank Entry Points)
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 bangla-font mt-0.5">
+              সাধারণ বিষয় ১০০ মার্ক, প্রফেশনাল স্পেশাল ১০০ মার্ক অথবা ২০০ নম্বরের পূর্ণাঙ্গ মডেল টেস্ট নির্বাচন করুন।
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 w-fit">
+            সিলেবাস-ভিত্তিক সুনির্দিষ্ট বিভাজন
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Card A: General Part — 100 Marks */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-bold border border-blue-200 dark:border-blue-800">
+                  আবশ্যিক সাধারণ অংশ
+                </span>
+                <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
+                  ১০০ নম্বর
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                  General Part — 100 Marks
+                </h3>
+                <p className="text-xs text-slate-500 bangla-font mt-1 leading-relaxed">
+                  সকল বিসিএস প্রার্থীর জন্য আবশ্যিক ৬টি বিষয়ের ১০০ নম্বরের প্রশ্নভাণ্ডার ও পূর্ণাঙ্গ অনুশীলন।
+                </p>
+              </div>
+
+              {/* 6 Subject quotas */}
+              <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400">বাংলা ভাষা ও সাহিত্য</span>
+                  <span className="font-bold text-slate-900 dark:text-white font-mono">২০</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400">ইংরেজি ভাষা ও সাহিত্য</span>
+                  <span className="font-bold text-slate-900 dark:text-white font-mono">২০</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400">বাংলাদেশ বিষয়াবলী</span>
+                  <span className="font-bold text-slate-900 dark:text-white font-mono">২০</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400">আন্তর্জাতিক বিষয়াবলী</span>
+                  <span className="font-bold text-slate-900 dark:text-white font-mono">২০</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400">গাণিতিক যুক্তি</span>
+                  <span className="font-bold text-slate-900 dark:text-white font-mono">১০</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-600 dark:text-slate-400">মানসিক দক্ষতা</span>
+                  <span className="font-bold text-slate-900 dark:text-white font-mono">১০</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <button
+                type="button"
+                onClick={() => handleLaunchTest('subject_test', 'General Part (100 Marks) Official Model Test', 60)}
+                disabled={isLaunchingTest}
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm transition-all disabled:opacity-50"
+              >
+                <Play className="h-3.5 w-3.5" />
+                <span>১০০ নম্বরের সাধারণ মডেল টেস্ট দিন (৬০ মিনিট)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedSubject('all');
+                  document.getElementById('question-explorer')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Library className="h-3.5 w-3.5 text-blue-500" />
+                <span>সাধারণ প্রশ্নভাণ্ডার ব্রাউজ করুন</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card B: Professional Part — 100 Marks */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                  {stream === 'assistant_surgeon'
+                    ? 'মেডিকেল সায়েন্স (MBBS)'
+                    : stream === 'assistant_dental_surgeon'
+                    ? 'ডেন্টাল সায়েন্স (BDS)'
+                    : 'সাধারণ ক্যাডার'}
+                </span>
+                <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
+                  ১০০ নম্বর
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                  {stream === 'assistant_surgeon'
+                    ? 'Medical Science — 100 Marks'
+                    : stream === 'assistant_dental_surgeon'
+                    ? 'Dental Science — 100 Marks'
+                    : 'Professional Specialty Section'}
+                </h3>
+                <p className="text-xs text-slate-500 bangla-font mt-1 leading-relaxed">
+                  {stream === 'assistant_surgeon'
+                    ? '৫১তম বিশেষ বিসিএস সহকারী সার্জন (স্বাস্থ্য) অফিসিয়াল সিলেবাস অনুযায়ী ১০০ নম্বরের প্রফেশনাল পার্ট।'
+                    : stream === 'assistant_dental_surgeon'
+                    ? '৫১তম বিশেষ বিসিএস সহকারী ডেন্টাল সার্জন অফিসিয়াল সিলেবাস অনুযায়ী ১০০ নম্বরের ডেন্টাল পার্ট।'
+                    : 'সাধারণ বিসিএস প্রার্থীরা ১০টি সাধারণ বিষয়ের পূর্ণাঙ্গ ২০০ নম্বরের পেপারে অংশ নেন।'}
+                </p>
+              </div>
+
+              {/* Stream Breakdown */}
+              {stream === 'assistant_surgeon' && (
+                <div className="space-y-2 pt-1 text-xs">
+                  <div className="p-3 rounded-xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800">
+                    <div className="flex justify-between items-center font-bold text-teal-900 dark:text-teal-300">
+                      <span>মেডিক্যাল সায়েন্স ১ম পত্র (Part I)</span>
+                      <span className="font-mono">৫০ নম্বর</span>
+                    </div>
+                    <p className="text-[11px] text-teal-700 dark:text-teal-400 mt-1">
+                      Anatomy, Physiology & Biochem, Pathology & Microbio, Pharmacology, Community & Forensic Med
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800">
+                    <div className="flex justify-between items-center font-bold text-cyan-900 dark:text-cyan-300">
+                      <span>মেডিক্যাল সায়েন্স ২য় পত্র (Part II)</span>
+                      <span className="font-mono">৫০ নম্বর</span>
+                    </div>
+                    <p className="text-[11px] text-cyan-700 dark:text-cyan-400 mt-1">
+                      Internal Medicine & Allied, General Surgery & Allied, Obs & Gynae, Pediatrics
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {stream === 'assistant_dental_surgeon' && (
+                <div className="space-y-2 pt-1 text-xs">
+                  <div className="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
+                    <div className="flex justify-between items-center font-bold text-indigo-900 dark:text-indigo-300">
+                      <span>ডেন্টাল সায়েন্স ১ম পত্র (Part I)</span>
+                      <span className="font-mono">৫০ নম্বর</span>
+                    </div>
+                    <p className="text-[11px] text-indigo-700 dark:text-indigo-400 mt-1">
+                      Dental Anatomy, Histology, Materials, Oral Pathology & Microbiology, Basic Sciences
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-violet-50/70 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800">
+                    <div className="flex justify-between items-center font-bold text-violet-900 dark:text-violet-300">
+                      <span>ডেন্টাল সায়েন্স ২য় পত্র (Part II)</span>
+                      <span className="font-mono">৫০ নম্বর</span>
+                    </div>
+                    <p className="text-[11px] text-violet-700 dark:text-violet-400 mt-1">
+                      Oral Surgery & Anesthesia, Conservative Dentistry & Endodontics, Orthodontics, Periodontology
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {track === 'general_bcs' && (
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 leading-relaxed bangla-font">
+                  সাধারণ বিসিএসের সিলেবাসে কোনো মেডিক্যাল বা ডেন্টাল অংশ থাকে না। এতে বিজ্ঞান, কম্পিউটার, ভূগোল ও সুশাসনসহ মোট ১০টি সাধারণ বিষয় অন্তর্ভুক্ত থাকে।
+                </div>
+              )}
+            </div>
+
+            <div className="pt-6 mt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              {track !== 'general_bcs' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleLaunchTest(
+                        'subject_test',
+                        stream === 'assistant_surgeon'
+                          ? 'Medical Science (100 Marks) Official Model Test'
+                          : 'Dental Science (100 Marks) Official Model Test',
+                        60
+                      )
+                    }
+                    disabled={isLaunchingTest}
+                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition-all disabled:opacity-50"
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    <span>
+                      ১০০ নম্বরের {stream === 'assistant_surgeon' ? 'মেডিকেল' : 'ডেন্টাল'} মডেল টেস্ট দিন (৬০ মিনিট)
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSubject(
+                        stream === 'assistant_surgeon' ? 'Medical Science Part I' : 'Dental Science Part I'
+                      );
+                      document.getElementById('question-explorer')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <Stethoscope className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>
+                      {stream === 'assistant_surgeon' ? 'মেডিকেল' : 'ডেন্টাল'} প্রশ্নভাণ্ডার ব্রাউজ করুন
+                    </span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedSubject('Science');
+                    document.getElementById('question-explorer')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 text-white font-bold text-xs"
+                >
+                  <span>সাধারণ বিজ্ঞান ও প্রযুক্তি ব্রাউজ করুন</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Card C: Full Mock Test — 200 Marks */}
+          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white border-2 border-emerald-500/50 rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+              BPSC সার্কুলার সিমুলেশন
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                  পূর্ণাঙ্গ মডেল টেস্ট
+                </span>
+                <span className="text-xs font-mono font-bold text-emerald-400">২০০ নম্বর</span>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-extrabold text-white">
+                  Full Mock Test — 200 Marks
+                </h3>
+                <p className="text-xs text-slate-300 bangla-font mt-1 leading-relaxed">
+                  ১০০ নম্বর সাধারণ + ১০০ নম্বর প্রফেশনাল পার্টের সমন্বয়ে অফিসিয়াল পরীক্ষার হুবহু পূর্ণাঙ্গ মডেল টেস্ট।
+                </p>
+              </div>
+
+              {/* Exam rules strip */}
+              <div className="space-y-2 pt-1 text-xs">
+                <div className="flex justify-between items-center py-1.5 border-b border-white/10">
+                  <span className="text-slate-400">মোট প্রশ্ন:</span>
+                  <span className="font-bold text-white">২০০টি MCQ (১০০ সাধারণ + ১০০ প্রফেশনাল)</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/10">
+                  <span className="text-slate-400">পরীক্ষার সময়:</span>
+                  <span className="font-bold text-amber-300 font-mono">১২০ মিনিট (২ ঘণ্টা)</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/10">
+                  <span className="text-slate-400">সঠিক / ভুল উত্তর:</span>
+                  <span className="font-bold text-emerald-400 font-mono">+১.০০ / -০.৫০ মার্ক</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/10">
+                  <span className="text-slate-400">প্রফেশনাল ধারা:</span>
+                  <span className="font-semibold text-white">
+                    {stream === 'assistant_surgeon'
+                      ? 'মেডিকেল সায়েন্স (MBBS)'
+                      : stream === 'assistant_dental_surgeon'
+                      ? 'ডেন্টাল সায়েন্স (BDS)'
+                      : 'সাধারণ বিসিএস'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-4 border-t border-white/10 space-y-2">
+              <button
+                type="button"
+                onClick={() =>
+                  handleLaunchTest(
+                    'full_mock',
+                    track === 'special_bcs_health_51_2026'
+                      ? `51st Special BCS Health Full Mock Test (200 Marks - ${
+                          stream === 'assistant_surgeon' ? 'Assistant Surgeon' : 'Dental Surgeon'
+                        })`
+                      : 'General BCS Full Mock Test (200 Marks)',
+                    120
+                  )
+                }
+                disabled={isLaunchingTest}
+                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              >
+                <Target className="h-4 w-4" />
+                <span>পূর্ণাঙ্গ ১২০ মিনিটের মক টেস্ট শুরু করুন</span>
+              </button>
+              <div className="text-center">
+                <span className="text-[11px] text-slate-400">
+                  নেগেটিভ মার্কিং (-০.৫০) সার্ভার প্রান্তে স্বয়ংক্রিয়ভাবে কার্যকর হবে
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ========================================================================= */}
       {/* 2. DAILY CHALLENGE SECTION FOR STUDENTS                                  */}
@@ -1104,14 +1579,16 @@ export default function QuestionBankExplorerPage() {
         {/* ========================================================================= */}
 
         {/* Subject Filter Pills */}
-        <div className="space-y-3">
+        <div id="question-explorer" className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
               <Library className="h-4 w-4 text-emerald-600" />
-              <span>বিষয়ভিত্তিক ব্রাউজ করুন (Subjects)</span>
+              <span>
+                বিষয়ভিত্তিক ব্রাউজ করুন ({stream === 'assistant_surgeon' ? 'সাধারণ + মেডিকেল সায়েন্স' : stream === 'assistant_dental_surgeon' ? 'সাধারণ + ডেন্টাল সায়েন্স' : '১০টি সাধারণ বিষয়'})
+              </span>
             </span>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              {totalQuestions.toLocaleString()} টি প্রশ্ন পাওয়া গেছে
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
+              {totalQuestions.toLocaleString()} টি প্রশ্ন ফিল্টার হয়েছে
             </span>
           </div>
 
@@ -1125,7 +1602,7 @@ export default function QuestionBankExplorerPage() {
                   : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
-              <span>সকল বিষয় (All)</span>
+              <span>সকল অনুমোদিত বিষয় (All)</span>
               <span
                 className={`px-1.5 py-0.5 rounded-full text-[10px] ${
                   selectedSubject === 'all'
@@ -1133,38 +1610,56 @@ export default function QuestionBankExplorerPage() {
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                 }`}
               >
-                {manifest ? manifest.totalQuestions.toLocaleString() : '20,000'}
+                {totalQuestions.toLocaleString()}
               </span>
             </button>
 
             {manifest &&
-              Object.entries(manifest.subjectStats).map(([subj, count]) => {
-                const meta = SUBJECT_METADATA[subj];
-                const isSelected = selectedSubject === subj;
-                return (
-                  <button
-                    key={subj}
-                    type="button"
-                    onClick={() => handleSelectSubject(subj)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                      isSelected
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <span>{meta?.nameBn || subj}</span>
-                    <span
-                      className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+              Object.entries(manifest.subjectStats)
+                .filter(([subj]) => {
+                  if (stream === 'assistant_surgeon') {
+                    return subj !== 'Dental Science Part I' && subj !== 'Dental Science Part II';
+                  }
+                  if (stream === 'assistant_dental_surgeon') {
+                    return subj !== 'Medical Science Part I' && subj !== 'Medical Science Part II';
+                  }
+                  if (track === 'general_bcs' || stream === 'general') {
+                    return (
+                      subj !== 'Medical Science Part I' &&
+                      subj !== 'Medical Science Part II' &&
+                      subj !== 'Dental Science Part I' &&
+                      subj !== 'Dental Science Part II'
+                    );
+                  }
+                  return true;
+                })
+                .map(([subj, count]) => {
+                  const meta = SUBJECT_METADATA[subj];
+                  const isSelected = selectedSubject === subj;
+                  return (
+                    <button
+                      key={subj}
+                      type="button"
+                      onClick={() => handleSelectSubject(subj)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                         isSelected
-                          ? 'bg-emerald-700 text-emerald-100'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
-                      {count.toLocaleString()}
-                    </span>
-                  </button>
-                );
-              })}
+                      <span>{meta?.nameBn || subj}</span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                          isSelected
+                            ? 'bg-emerald-700 text-emerald-100'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        }`}
+                      >
+                        {count.toLocaleString()}
+                      </span>
+                    </button>
+                  );
+                })}
           </div>
         </div>
 
@@ -1175,7 +1670,7 @@ export default function QuestionBankExplorerPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="প্রশ্ন, টপিক বা ব্যাকরণ/ব্যাখ্যার শব্দ লিখে সার্চ করুন (বাংলা ও English)..."
+                placeholder="প্রশ্ন, বিষয় বা মেডিক্যাল/ডেন্টাল টপিকের নাম লিখে সার্চ করুন (বাংলা ও English)..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl text-sm border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -1219,21 +1714,35 @@ export default function QuestionBankExplorerPage() {
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-500 font-medium">ব্যাচ (Batch 1–81):</span>
+                <span className="text-slate-500 font-medium">ব্যাচ নির্বাচন:</span>
                 <select
                   value={selectedBatch}
                   onChange={(e) => handleSelectBatch(e.target.value)}
                   className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
-                  <option value="">সকল ব্যাচ (All 81 Batches • ২০,০০০ প্রশ্ন)</option>
-                  {Array.from({ length: 81 }, (_, i) => i + 1).map((b) => {
-                    const count = b === 1 ? 100 : b === 2 ? 150 : 250;
-                    return (
-                      <option key={b} value={b.toString()}>
-                        ব্যাচ {b.toString().padStart(3, '0')} ({toBnDigits(count)}টি প্রশ্ন)
-                      </option>
-                    );
-                  })}
+                  <option value="">সকল ব্যাচ (All Batches)</option>
+                  {stream === 'assistant_surgeon' && (
+                    <optgroup label="🩺 প্রফেশনাল অংশ (Medical Science)">
+                      <option value="82">ব্যাচ ০৮২: মেডিক্যাল সায়েন্স ১ম পত্র (৫০টি প্রশ্ন)</option>
+                      <option value="83">ব্যাচ ০৮৩: মেডিক্যাল সায়েন্স ২য় পত্র (৫০টি প্রশ্ন)</option>
+                    </optgroup>
+                  )}
+                  {stream === 'assistant_dental_surgeon' && (
+                    <optgroup label="🦷 প্রফেশনাল অংশ (Dental Science)">
+                      <option value="84">ব্যাচ ০৮৪: ডেন্টাল সায়েন্স ১ম পত্র (৫০টি প্রশ্ন)</option>
+                      <option value="85">ব্যাচ ০৮৫: ডেন্টাল সায়েন্স ২য় পত্র (৫০টি প্রশ্ন)</option>
+                    </optgroup>
+                  )}
+                  <optgroup label="📘 সাধারণ অংশ (General Batches 1–81)">
+                    {Array.from({ length: 81 }, (_, i) => i + 1).map((b) => {
+                      const count = b === 1 ? 100 : b === 2 ? 150 : 250;
+                      return (
+                        <option key={b} value={b.toString()}>
+                          ব্যাচ {b.toString().padStart(3, '0')} ({toBnDigits(count)}টি প্রশ্ন)
+                        </option>
+                      );
+                    })}
+                  </optgroup>
                 </select>
               </div>
 
@@ -1619,10 +2128,10 @@ export default function QuestionBankExplorerPage() {
         <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 sm:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
           <div className="space-y-2">
             <h3 className="text-xl sm:text-2xl font-extrabold bangla-font">
-              এই ২০,০০০ প্রশ্ন নিয়ে এখনই মক টেস্ট দিন!
+              এই ২০,২০০টি প্রশ্ন নিয়ে এখনই পূর্ণাঙ্গ মক টেস্ট দিন!
             </h3>
             <p className="text-xs sm:text-sm text-emerald-100 bangla-font max-w-xl">
-              টাইমড পরীক্ষা ও নেগেティブ মার্কিং (-০.৫০)-এর সাথে আপনার রিয়েল প্রস্তুতি যাচাই করুন।
+              টাইমড পরীক্ষা ও নেগেティブ মার্কিং (-০.৫০)-এর সাথে আপনার রিয়েল প্রস্তুতি যাচাই করুন। সাধারণ ও প্রফেশনাল বিষয়ের সমন্বিত পরীক্ষা।
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -1636,7 +2145,7 @@ export default function QuestionBankExplorerPage() {
               href="/test"
               className="px-5 py-3 rounded-xl bg-emerald-950/40 border border-white/20 text-white font-bold text-sm hover:bg-emerald-950/60 transition-colors"
             >
-              ফুল মক টেস্ট দিন
+              ফুল মক টেস্ট হাব
             </Link>
           </div>
         </div>

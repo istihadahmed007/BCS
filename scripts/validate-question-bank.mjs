@@ -18,6 +18,10 @@ const VALID_SUBJECTS = [
   'Mental Ability',
   'Geography and Environment',
   'Ethics, Values and Good Governance',
+  'Medical Science Part I',
+  'Medical Science Part II',
+  'Dental Science Part I',
+  'Dental Science Part II',
   'Previous BCS Questions',
   'Model Questions'
 ];
@@ -33,7 +37,7 @@ const VALID_QUESTION_TYPES = [
   'vocabulary',
   'scenario'
 ];
-const VALID_RIGHTS = ['licensed', 'public_domain', 'original_from_reference', 'unknown'];
+const VALID_RIGHTS = ['licensed', 'public_domain', 'original_from_reference', 'public_official', 'original', 'unknown'];
 const VALID_VERIFICATION = ['verified', 'needs_review'];
 
 function normalizeText(text) {

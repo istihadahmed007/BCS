@@ -2,6 +2,7 @@ import {
   CandidateResponse,
   ExamTrackId,
   ProfessionalStreamId,
+  Question,
   TestSession,
   TestSessionQuestion,
   TestStatus,
@@ -34,15 +35,19 @@ export class AssessmentEngine {
     const candidateQuestions = allApproved.filter((q) => {
       if (q.reviewStatus !== 'approved') return false;
       if (params.examTrackId === 'general_bcs') {
-        return q.examTrackId === 'general_bcs' || q.professionalStream === 'all';
+        const generalSubjects = ['BANGLA', 'ENGLISH', 'BD_AFFAIRS', 'INT_AFFAIRS', 'MATH', 'MENTAL_ABILITY', 'G_SCIENCE', 'G_COMPUTER', 'G_GEOGRAPHY', 'G_ETHICS'];
+        return generalSubjects.includes(q.subjectCode);
       }
       if (params.examTrackId === 'special_bcs_health_51_2026') {
-        if (q.examTrackId === 'special_bcs_health_51_2026') {
-          return q.professionalStream === 'all' || q.professionalStream === stream;
-        }
-        // Include shared general subjects from question bank
         const sharedSubjects = ['BANGLA', 'ENGLISH', 'BD_AFFAIRS', 'INT_AFFAIRS', 'MATH', 'MENTAL_ABILITY'];
-        return sharedSubjects.includes(q.subjectCode);
+        if (sharedSubjects.includes(q.subjectCode)) return true;
+        if (stream === 'assistant_surgeon') {
+          return q.subjectCode === 'MED_SCI_1' || q.subjectCode === 'MED_SCI_2';
+        }
+        if (stream === 'assistant_dental_surgeon') {
+          return q.subjectCode === 'DENTAL_SCI_1' || q.subjectCode === 'DENTAL_SCI_2';
+        }
+        return false;
       }
       return false;
     });
@@ -51,25 +56,99 @@ export class AssessmentEngine {
       throw new Error(`No approved questions found for track ${params.examTrackId} and stream ${stream}`);
     }
 
-    // Determine test length and duration
-    let questionLimit = candidateQuestions.length;
+    let selectedQuestions: Question[] = [];
     let durationSec = config.durationSeconds;
 
-    if (params.testType === 'diagnostic') {
-      questionLimit = Math.min(candidateQuestions.length, 10);
-      durationSec = 600; // 10 minutes
-    } else if (params.testType === 'topic_quiz') {
-      questionLimit = Math.min(candidateQuestions.length, 5);
-      durationSec = 300; // 5 minutes
-    } else if (params.testType === 'full_mock') {
-      questionLimit = Math.min(candidateQuestions.length, config.totalQuestions);
-    } else if (params.durationMinutes) {
-      durationSec = params.durationMinutes * 60;
-    }
+    if (params.testType === 'full_mock' && params.examTrackId === 'special_bcs_health_51_2026') {
+      durationSec = 7200; // 120 minutes per official BPSC circular
 
-    // Randomize order for an authentic test experience
-    const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
-    const selectedQuestions = shuffled.slice(0, questionLimit);
+      // Exactly 100 General Questions by official syllabus quotas
+      const generalQuotas: Record<string, number> = {
+        BANGLA: 20,
+        ENGLISH: 20,
+        BD_AFFAIRS: 20,
+        INT_AFFAIRS: 20,
+        MATH: 10,
+        MENTAL_ABILITY: 10,
+      };
+
+      const selectedGeneral: Question[] = [];
+      for (const [code, count] of Object.entries(generalQuotas)) {
+        const pool = candidateQuestions.filter((q) => q.subjectCode === code);
+        const shuffled = [...pool].sort(() => Math.random() - 0.5);
+        selectedGeneral.push(...shuffled.slice(0, count));
+      }
+
+      // Exactly 100 Professional Questions from candidate's stream
+      const selectedProfessional: Question[] = [];
+      if (stream === 'assistant_surgeon') {
+        const p1Pool = candidateQuestions
+          .filter((q) => q.subjectCode === 'MED_SCI_1')
+          .sort(() => Math.random() - 0.5);
+        const p2Pool = candidateQuestions
+          .filter((q) => q.subjectCode === 'MED_SCI_2')
+          .sort(() => Math.random() - 0.5);
+        selectedProfessional.push(...p1Pool.slice(0, 50));
+        selectedProfessional.push(...p2Pool.slice(0, 50));
+      } else if (stream === 'assistant_dental_surgeon') {
+        const d1Pool = candidateQuestions
+          .filter((q) => q.subjectCode === 'DENTAL_SCI_1')
+          .sort(() => Math.random() - 0.5);
+        const d2Pool = candidateQuestions
+          .filter((q) => q.subjectCode === 'DENTAL_SCI_2')
+          .sort(() => Math.random() - 0.5);
+        selectedProfessional.push(...d1Pool.slice(0, 50));
+        selectedProfessional.push(...d2Pool.slice(0, 50));
+      }
+
+      selectedQuestions = [...selectedGeneral, ...selectedProfessional];
+    } else if (params.testType === 'subject_test') {
+      durationSec = params.durationMinutes ? params.durationMinutes * 60 : 3600; // 60 minutes
+      const titleLower = (params.title || '').toLowerCase();
+      const isGeneral = titleLower.includes('general') || stream === 'general';
+      const isPro = titleLower.includes('medical') || titleLower.includes('dental') || titleLower.includes('professional');
+
+      if (isGeneral) {
+        const generalQuotas: Record<string, number> = {
+          BANGLA: 20,
+          ENGLISH: 20,
+          BD_AFFAIRS: 20,
+          INT_AFFAIRS: 20,
+          MATH: 10,
+          MENTAL_ABILITY: 10,
+        };
+        for (const [code, count] of Object.entries(generalQuotas)) {
+          const pool = candidateQuestions.filter((q) => q.subjectCode === code);
+          const shuffled = [...pool].sort(() => Math.random() - 0.5);
+          selectedQuestions.push(...shuffled.slice(0, count));
+        }
+      } else if (isPro) {
+        if (stream === 'assistant_surgeon') {
+          const p1 = candidateQuestions.filter((q) => q.subjectCode === 'MED_SCI_1').sort(() => Math.random() - 0.5);
+          const p2 = candidateQuestions.filter((q) => q.subjectCode === 'MED_SCI_2').sort(() => Math.random() - 0.5);
+          selectedQuestions.push(...p1.slice(0, 50), ...p2.slice(0, 50));
+        } else {
+          const d1 = candidateQuestions.filter((q) => q.subjectCode === 'DENTAL_SCI_1').sort(() => Math.random() - 0.5);
+          const d2 = candidateQuestions.filter((q) => q.subjectCode === 'DENTAL_SCI_2').sort(() => Math.random() - 0.5);
+          selectedQuestions.push(...d1.slice(0, 50), ...d2.slice(0, 50));
+        }
+      } else {
+        const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+        selectedQuestions = shuffled.slice(0, 100);
+      }
+    } else if (params.testType === 'diagnostic') {
+      durationSec = 600; // 10 minutes
+      const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+      selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, 10));
+    } else if (params.testType === 'topic_quiz') {
+      durationSec = 300; // 5 minutes
+      const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+      selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, 5));
+    } else {
+      if (params.durationMinutes) durationSec = params.durationMinutes * 60;
+      const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+      selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, config.totalQuestions));
+    }
 
     // Freeze questions into immutable session snapshot
     const sessionQuestions: TestSessionQuestion[] = selectedQuestions.map((q, idx) => ({
@@ -254,6 +333,34 @@ export class AssessmentEngine {
     const maxPossibleScore = session.questions.reduce((sum, q) => sum + q.marks, 0);
     const percentage = maxPossibleScore > 0 ? Number(((finalScore / maxPossibleScore) * 100).toFixed(2)) : 0;
 
+    // Compute Section-Wise Breakdown (General vs Professional)
+    const proCodes = ['MED_SCI_1', 'MED_SCI_2', 'DENTAL_SCI_1', 'DENTAL_SCI_2'];
+    const sectionBreakdown = {
+      general: { total: 0, correct: 0, wrong: 0, unanswered: 0, marks: 0 },
+      professional: { total: 0, correct: 0, wrong: 0, unanswered: 0, marks: 0 },
+    };
+
+    for (const [code, data] of Object.entries(subjectBreakdown)) {
+      if (proCodes.includes(code)) {
+        sectionBreakdown.professional.total += data.total;
+        sectionBreakdown.professional.correct += data.correct;
+        sectionBreakdown.professional.wrong += data.wrong;
+        sectionBreakdown.professional.marks += data.marks;
+      } else {
+        sectionBreakdown.general.total += data.total;
+        sectionBreakdown.general.correct += data.correct;
+        sectionBreakdown.general.wrong += data.wrong;
+        sectionBreakdown.general.marks += data.marks;
+      }
+    }
+    sectionBreakdown.general.unanswered =
+      sectionBreakdown.general.total - (sectionBreakdown.general.correct + sectionBreakdown.general.wrong);
+    sectionBreakdown.professional.unanswered =
+      sectionBreakdown.professional.total -
+      (sectionBreakdown.professional.correct + sectionBreakdown.professional.wrong);
+    sectionBreakdown.general.marks = Number(sectionBreakdown.general.marks.toFixed(2));
+    sectionBreakdown.professional.marks = Number(sectionBreakdown.professional.marks.toFixed(2));
+
     session.status = isLate ? 'expired' : 'completed';
     session.submittedAt = now.toISOString();
     session.correctCount = correctCount;
@@ -262,6 +369,7 @@ export class AssessmentEngine {
     session.finalScore = finalScore;
     session.percentage = percentage;
     session.subjectBreakdown = subjectBreakdown;
+    session.sectionBreakdown = sectionBreakdown;
     session.idempotencyKey = idempotencyKey;
 
     SESSIONS_STORE.set(sessionId, session);

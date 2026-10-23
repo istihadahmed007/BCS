@@ -211,6 +211,10 @@ export interface TestSession {
   questions: TestSessionQuestion[];
   responses: Record<string, CandidateResponse>;
   subjectBreakdown?: Record<string, { total: number; correct: number; wrong: number; marks: number }>;
+  sectionBreakdown?: {
+    general: { total: number; correct: number; wrong: number; unanswered: number; marks: number };
+    professional: { total: number; correct: number; wrong: number; unanswered: number; marks: number };
+  };
 }
 
 export interface StudyTask {
