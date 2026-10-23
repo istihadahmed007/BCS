@@ -35,6 +35,7 @@ import {
   ProfessionalStreamId,
 } from '@/types';
 import { GENERAL_BCS_SUBJECTS, SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
+import PremiumLockScreen from '@/components/portal/PremiumLockScreen';
 
 function formatBengaliDate(date: Date = new Date()): string {
   try {
@@ -92,6 +93,7 @@ export default function DailyStudyPage() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [lockNotice, setLockNotice] = useState<{ message: string; requiredTier?: any } | null>(null);
 
   // Timer state for current session
   const [secondsElapsed, setSecondsElapsed] = useState<number>(0);
@@ -124,6 +126,7 @@ export default function DailyStudyPage() {
   const handleStartPractice = async () => {
     setIsLoading(true);
     setErrorMsg(null);
+    setLockNotice(null);
     try {
       let activeUid = 'student_current';
       try {
@@ -149,6 +152,13 @@ export default function DailyStudyPage() {
 
       const json = await res.json();
       if (!res.ok || !json.success) {
+        if (json.code === 'LOCKED_PREMIUM_CONTENT') {
+          setLockNotice({
+            message: json.error || 'এই কনটেন্টটি প্রিমিয়াম প্যাকেজের অন্তর্ভুক্ত।',
+            requiredTier: json.requiredTier || 'standard',
+          });
+          return;
+        }
         throw new Error(json.error || 'Failed to initialize daily session');
       }
 
@@ -714,7 +724,15 @@ export default function DailyStudyPage() {
         </div>
       </div>
 
-      {errorMsg && (
+      {lockNotice && (
+        <PremiumLockScreen
+          title="এই কনটেন্টটি প্রিমিয়াম প্যাকেজের অন্তর্ভুক্ত"
+          description={lockNotice.message}
+          requiredTier={lockNotice.requiredTier}
+        />
+      )}
+
+      {errorMsg && !lockNotice && (
         <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs sm:text-sm flex items-center gap-2.5">
           <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
           <span>{errorMsg}</span>

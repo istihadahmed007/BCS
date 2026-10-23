@@ -37,6 +37,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       active: pathname === '/admin/question-bank/imports',
     },
     {
+      href: '/admin/packages',
+      label: 'Packages & Pricing',
+      icon: Database,
+      active: pathname === '/admin/packages',
+    },
+    {
+      href: '/admin/orders',
+      label: 'Orders & Payments',
+      icon: ShieldCheck,
+      active: pathname === '/admin/orders',
+    },
+    {
+      href: '/admin/users',
+      label: 'Users & Subscriptions',
+      icon: ShieldAlert,
+      active: pathname === '/admin/users',
+    },
+    {
+      href: '/admin/question-access',
+      label: 'Free vs Premium Access',
+      icon: FileCheck2,
+      active: pathname === '/admin/question-access',
+    },
+    {
       href: '/admin/question-bank/review',
       label: 'Review Queue',
       icon: FileCheck2,

@@ -15,7 +15,11 @@ import {
   Clock,
   LogOut,
   X,
+  CreditCard,
+  LogIn,
+  ShieldCheck,
 } from 'lucide-react';
+import GoogleLoginModal from '@/components/auth/GoogleLoginModal';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -30,10 +34,42 @@ export default function Header({
 }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // User auth state
+  const [user, setUser] = useState<{ id: string; email: string; fullName: string; role: string; avatarUrl?: string } | null>(null);
+  const [subscription, setSubscription] = useState<{ packageName: string; tier: string; remainingDays: number } | null>(null);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchSession();
+  }, []);
+
+  const fetchSession = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.authenticated) {
+        setUser(data.user);
+        setSubscription(data.subscription);
+      }
+    } catch (e) {}
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setUser(null);
+      setSubscription(null);
+      setShowProfileMenu(false);
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // Close menus on click outside
   useEffect(() => {
@@ -74,228 +110,245 @@ export default function Header({
   ];
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-colors">
-      {/* Left: Mobile Toggle & Page Title */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        <button
-          type="button"
-          onClick={onToggleSidebar}
-          className="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-          aria-label="Toggle navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
-        <div>
-          <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <span>Online Exam Portal</span>
-          </h1>
-          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:block">
-            Smart Exams, Better Future • বাংলাদেশ সিভিল সার্ভিস প্রস্তুতি
-          </p>
-        </div>
-      </div>
-
-      {/* Center: Search Field */}
-      <div className="hidden md:flex items-center flex-1 max-w-md mx-6">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (searchQuery.trim()) {
-              window.location.href = `/question-bank?search=${encodeURIComponent(searchQuery.trim())}`;
-            }
-          }}
-          className="relative w-full"
-        >
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search topics, questions, subjects..."
-            className="w-full pl-4 pr-10 py-2 rounded-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            aria-label="Search questions and topics"
-          />
-          <button
-            type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors"
-            aria-label="Submit search"
-          >
-            <Search className="h-4 w-4" />
-          </button>
-        </form>
-      </div>
-
-      {/* Right: Actions, Notifications & Profile */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Track Badge (Desktop) */}
-        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold">
-          <GraduationCap className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          <span>
-            {selectedTrack === 'special_bcs_health_51_2026'
-              ? '৫১তম বিশেষ বিসিএস (স্বাস্থ্য)'
-              : '৪৬তম বিসিএস প্রিলিমিনারি'}
-          </span>
-        </div>
-
-        {/* Notifications Icon & Popover */}
-        <div className="relative" ref={notifRef}>
+    <>
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-colors">
+        {/* Left: Mobile Toggle & Page Title */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             type="button"
-            onClick={() => {
-              setShowNotifications(!showNotifications);
-              setShowProfileMenu(false);
-            }}
-            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-            aria-label="View notifications"
-            aria-expanded={showNotifications}
+            onClick={onToggleSidebar}
+            className="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            aria-label="Toggle navigation menu"
           >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
-              3
-            </span>
+            <Menu className="h-5 w-5" />
           </button>
 
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-3 z-50">
-              <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-900 dark:text-white">
-                  বিজ্ঞপ্তি ও নোটিশ (Notifications)
-                </span>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 dark:bg-blue-950/80 px-2 py-0.5 rounded-full">
-                  ৩টি নতুন
-                </span>
-              </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white bangla-font">
-                        {n.title}
-                      </h4>
-                      <span className="h-2 w-2 rounded-full bg-blue-600 shrink-0 mt-1" />
+          <div>
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+              <span>Online Exam Portal</span>
+            </h1>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:block">
+              Smart Exams, Better Future • বাংলাদেশ সিভিল সার্ভিস প্রস্তুতি
+            </p>
+          </div>
+        </div>
+
+        {/* Center: Search Field */}
+        <div className="hidden md:flex items-center flex-1 max-w-md mx-6">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchQuery.trim()) {
+                window.location.href = `/question-bank?search=${encodeURIComponent(searchQuery.trim())}`;
+              }
+            }}
+            className="relative w-full"
+          >
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search topics, questions, subjects..."
+              className="w-full pl-4 pr-10 py-2 rounded-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              aria-label="Search questions and topics"
+            />
+            <button
+              type="submit"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors"
+              aria-label="Submit search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          </form>
+        </div>
+
+        {/* Right: Actions, Notifications & Profile */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Active Package Pill */}
+          <Link
+            href="/packages"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 transition-colors bangla-font"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+            <span>{subscription?.packageName || 'প্যাকেজ ও প্ল্যান'}</span>
+          </Link>
+
+          {/* Notifications Icon & Popover */}
+          <div className="relative" ref={notifRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                setShowProfileMenu(false);
+              }}
+              className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              aria-label="View notifications"
+              aria-expanded={showNotifications}
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
+                3
+              </span>
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-3 z-50">
+                <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white bangla-font">
+                    বিজ্ঞপ্তি ও নোটিশ (Notifications)
+                  </span>
+                  <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 dark:bg-blue-950/80 px-2 py-0.5 rounded-full">
+                    ৩টি নতুন
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto">
+                  {notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white bangla-font">
+                          {n.title}
+                        </h4>
+                        <span className="h-2 w-2 rounded-full bg-blue-600 shrink-0 mt-1" />
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 bangla-font line-clamp-2">
+                        {n.desc}
+                      </p>
+                      <span className="text-[10px] text-slate-400 mt-1.5 block">
+                        {n.time}
+                      </span>
                     </div>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 bangla-font line-clamp-2">
-                      {n.desc}
-                    </p>
-                    <span className="text-[10px] text-slate-400 mt-1.5 block">
-                      {n.time}
-                    </span>
+                  ))}
+                </div>
+                <div className="px-4 pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setShowNotifications(false)}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 bangla-font"
+                  >
+                    সব নোটিশ দেখুন (View All)
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User Sign In / Profile */}
+          {user ? (
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfileMenu(!showProfileMenu);
+                  setShowNotifications(false);
+                }}
+                className="flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                aria-label="Student profile menu"
+                aria-expanded={showProfileMenu}
+              >
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.fullName}
+                    className="h-8 w-8 rounded-full border border-blue-500 object-cover"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                    {user.fullName.charAt(0).toUpperCase()}
                   </div>
-                ))}
-              </div>
-              <div className="px-4 pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setShowNotifications(false)}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-700"
-                >
-                  সব নোটিশ দেখুন (View All)
-                </Link>
-              </div>
+                )}
+                <div className="text-left hidden md:block">
+                  <span className="block text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                    {user.fullName}
+                  </span>
+                  <span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                    {subscription?.packageName || 'Student'}
+                  </span>
+                </div>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </button>
+
+              {/* Profile Dropdown */}
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">
+                      {user.fullName}
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono truncate">
+                      {user.email}
+                    </p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-2 py-0.5 rounded-full bangla-font">
+                        {subscription?.packageName || 'Free Preview'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="py-1 text-xs font-medium">
+                    <Link
+                      href="/packages"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 bangla-font font-bold text-blue-600 dark:text-blue-400"
+                    >
+                      <CreditCard className="h-4 w-4 text-blue-600" />
+                      <span>প্যাকেজ ও সাবস্ক্রিপশন</span>
+                    </Link>
+                    <Link
+                      href="/onboarding"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 bangla-font"
+                    >
+                      <User className="h-4 w-4 text-slate-400" />
+                      <span>প্রোফাইল ও ট্র্যাক সেটিংস</span>
+                    </Link>
+                    <Link
+                      href="/mistake-notebook"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 bangla-font"
+                    >
+                      <Clock className="h-4 w-4 text-slate-400" />
+                      <span>ভুল খাতা (Mistake Notebook)</span>
+                    </Link>
+                  </div>
+
+                  <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>লগআউট (Log Out)</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setLoginModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors bangla-font"
+            >
+              <LogIn className="h-4 w-4" />
+              <span>সাইন-ইন করুন</span>
+            </button>
           )}
         </div>
+      </header>
 
-        {/* Message / Study Streak */}
-        <Link
-          href="/study/today"
-          className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-          title="Daily Study Session"
-        >
-          <Mail className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-4 w-4 bg-amber-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
-            2
-          </span>
-        </Link>
-
-        {/* Student Profile Pill */}
-        <div className="relative" ref={profileRef}>
-          <button
-            type="button"
-            onClick={() => {
-              setShowProfileMenu(!showProfileMenu);
-              setShowNotifications(false);
-            }}
-            className="flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-            aria-label="Student profile menu"
-            aria-expanded={showProfileMenu}
-          >
-            {/* Neutral Avatar */}
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-              <User className="h-4 w-4" />
-            </div>
-            <div className="text-left hidden md:block">
-              <span className="block text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                Student
-              </span>
-              <span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                BCS Aspirant
-              </span>
-            </div>
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-          </button>
-
-          {/* Profile Dropdown */}
-          {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50">
-              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">
-                  Student Profile (শিক্ষার্থী)
-                </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Status: Active Study Session
-                </p>
-                <span className="inline-block mt-1 text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-2 py-0.5 rounded-full">
-                  {selectedTrack === 'special_bcs_health_51_2026'
-                    ? 'Special BCS Health'
-                    : 'General BCS (10 Subjects)'}
-                </span>
-              </div>
-
-              <div className="py-1 text-xs font-medium">
-                <Link
-                  href="/onboarding"
-                  onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <User className="h-4 w-4 text-slate-400" />
-                  <span>প্রোফাইল ও ট্র্যাক সেটিংস</span>
-                </Link>
-                <Link
-                  href="/syllabus"
-                  onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <BookOpen className="h-4 w-4 text-slate-400" />
-                  <span>সিলেবাস ট্র্যাকার (Syllabus)</span>
-                </Link>
-                <Link
-                  href="/mistake-notebook"
-                  onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <Clock className="h-4 w-4 text-slate-400" />
-                  <span>ভুল খাতা (Mistake Notebook)</span>
-                </Link>
-              </div>
-
-              <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
-                <Link
-                  href="/onboarding"
-                  onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>ট্র্যাক পরিবর্তন / Reset Session</span>
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
+      {/* Google Login Modal */}
+      <GoogleLoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onSuccess={() => {
+          setLoginModalOpen(false);
+          fetchSession();
+        }}
+      />
+    </>
   );
 }

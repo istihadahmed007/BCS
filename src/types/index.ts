@@ -163,7 +163,10 @@ export interface Question {
   revisionNumber: number;
   sourceEvidence?: QuestionSourceLink[];
   verificationState?: 'unverified' | 'source_attached' | 'verified' | 'needs_review';
+  accessTier?: 'free_preview' | 'premium' | 'package_restricted';
 }
+
+export * from './subscription';
 
 export interface TestSessionQuestion {
   questionId: string;

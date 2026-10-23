@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Sparkles,
   X,
+  CreditCard,
   Stethoscope,
 } from 'lucide-react';
 
@@ -50,6 +51,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       nameBn: 'মডেল টেস্ট',
       href: '/test',
       icon: Target,
+    },
+    {
+      name: 'Packages & Pricing',
+      nameBn: 'প্যাকেজ ও সাবস্ক্রিপশন',
+      href: '/packages',
+      icon: CreditCard,
     },
     {
       name: 'Syllabus',
