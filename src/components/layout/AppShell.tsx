@@ -34,6 +34,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return <PortalShell>{children}</PortalShell>;
   }
 
+  // Premium Landing Page has its own floating translucent navigation & reference aesthetic
+  if (pathname === '/') {
+    return <>{children}</>;
+  }
+
   // Public Landing / Onboarding / Admin Shell
   return (
     <div className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans selection:bg-blue-600 selection:text-white">
