@@ -40,6 +40,7 @@ export interface QuestionBankFilter {
   batch?: string;
   track?: ExamTrackId;
   stream?: ProfessionalStreamId;
+  reviewStatus?: string;
 }
 
 // In-memory global singleton cache for Next.js hot reload and serverless safety
@@ -234,6 +235,7 @@ export class QuestionBankService {
       batch,
       track,
       stream,
+      reviewStatus,
     } = filter;
 
     const safeLimit = Math.min(Math.max(1, limit), 100);
@@ -307,6 +309,24 @@ export class QuestionBankService {
           (q.topic && q.topic.toLowerCase().includes(targetTopic)) ||
           (q.subtopic && q.subtopic.toLowerCase().includes(targetTopic))
       );
+    }
+
+    // Filter by Review Status
+    if (reviewStatus && reviewStatus.toLowerCase() !== 'all') {
+      const targetStatus = reviewStatus.toLowerCase().trim();
+      filtered = filtered.filter((q) => {
+        const vStatus = (q.verification_status || 'verified').toLowerCase();
+        if (targetStatus === 'approved' || targetStatus === 'verified') {
+          return vStatus === 'verified' || vStatus === 'approved';
+        }
+        if (targetStatus === 'under_review' || targetStatus === 'pending_review' || targetStatus === 'review') {
+          return vStatus === 'pending_review' || vStatus === 'under_review' || vStatus === 'source_attached';
+        }
+        if (targetStatus === 'draft' || targetStatus === 'unverified') {
+          return vStatus === 'draft' || vStatus === 'unverified';
+        }
+        return vStatus.includes(targetStatus);
+      });
     }
 
     // Keyword Search (case-insensitive across Bengali and English text)

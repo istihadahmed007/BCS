@@ -9,12 +9,12 @@ export async function POST(request: NextRequest) {
       jobType = 'file_import',
       fileName,
       fileFormat = 'json',
-      items = [],
     } = body;
+    const items = body.items || body.rawItems || [];
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'A non-empty "items" array of questions is required' },
+        { success: false, error: 'A non-empty "items" or "rawItems" array of questions is required' },
         { status: 400 }
       );
     }
@@ -29,7 +29,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: result,
+      data: {
+        ...result,
+        jobId: result.job.id,
+        extractedCount: result.stagedItemsCount,
+      },
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });

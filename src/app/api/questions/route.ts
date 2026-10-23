@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const batch = searchParams.get('batch') || undefined;
     const track = (searchParams.get('track') as any) || undefined;
     const stream = (searchParams.get('stream') as any) || undefined;
+    const reviewStatus = searchParams.get('review_status') || searchParams.get('reviewStatus') || undefined;
 
     const result = QuestionBankService.queryQuestions({
       page,
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
       batch,
       track,
       stream,
+      reviewStatus,
     });
 
     const manifest = QuestionBankService.getManifest();

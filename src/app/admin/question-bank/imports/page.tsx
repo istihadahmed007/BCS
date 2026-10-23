@@ -20,36 +20,53 @@ import {
 import { IngestionJob, SourceRegistryItem } from '@/types';
 
 export default function AdminQuestionImportsPage() {
+  const JSON_TEMPLATE = JSON.stringify(
+    [
+      {
+        stemBn: 'হিউমেরাসের মধ্যবর্তী অংশ ফ্র্যাকচার হলে কোন স্নায়ু ক্ষতিগ্রস্ত হয়ে রিস্ট ড্রপ ঘটে?',
+        stemEn: 'Fracture of the mid-shaft of the humerus causes injury to which nerve resulting in wrist drop?',
+        subjectCode: 'medical_science_1',
+        topicCode: 'MED1-01',
+        examTrackId: 'special_bcs_health_51_2026',
+        professionalStream: 'assistant_surgeon',
+        options: [
+          { id: 'A', textBn: 'রেডিয়াল নার্ভ (Radial nerve)', textEn: 'Radial nerve' },
+          { id: 'B', textBn: 'আলনার নার্ভ (Ulnar nerve)', textEn: 'Ulnar nerve' },
+          { id: 'C', textBn: 'মিডিয়ান নার্ভ (Median nerve)', textEn: 'Median nerve' },
+          { id: 'D', textBn: 'অক্সিলারি নার্ভ (Axillary nerve)', textEn: 'Axillary nerve' },
+        ],
+        correctAnswerId: 'A',
+        explanationBn: 'স্পাইরাল গ্রুভের মধ্যে রেডিয়াল নার্ভ অবস্থান করে, তাই মিড-শ্যাফ্ট ফ্র্যাকচারে এটি ইনজুরি হয়।',
+        explanationEn: 'The radial nerve runs in the radial groove of the humerus shaft.',
+        sourceCitation: '39th Special BCS Health & Gray Anatomy',
+        examinationYear: '2026',
+      },
+    ],
+    null,
+    2
+  );
+
+  const CSV_TEMPLATE = `stemBn,stemEn,optionA,optionB,optionC,optionD,correctAnswer,explanationBn,explanationEn,subjectCode,topicCode,stream,sourceCitation,examinationYear
+"হিউমেরাসের মধ্যবর্তী অংশ ফ্র্যাকচারে কোন নার্ভ ক্ষতিগ্রস্ত হয়ে রিস্ট ড্রপ হয়?","Fracture of mid-shaft of humerus damages which nerve causing wrist drop?","রেডিয়াল নার্ভ (Radial nerve)","আলনার নার্ভ (Ulnar nerve)","মিডিয়ান নার্ভ (Median nerve)","অক্সিলারি নার্ভ (Axillary nerve)","A","স্পাইরাল গ্রুভে রেডিয়াল নার্ভ অবস্থান করে।","Radial nerve runs in the radial groove.","medical_science_1","MED1-01","assistant_surgeon","39th Special BCS Health","2026"`;
+
   const [sources, setSources] = useState<SourceRegistryItem[]>([]);
   const [selectedSourceId, setSelectedSourceId] = useState<string>('');
   const [fileFormat, setFileFormat] = useState<'json' | 'csv' | 'pdf' | 'docx'>('json');
   const [fileName, setFileName] = useState<string>('sample_bpsc_questions.json');
-  const [rawPayload, setRawPayload] = useState<string>(
-    JSON.stringify(
-      [
-        {
-          stemBn: 'নিচের কোন ভিটামিন পানিতে দ্রবণীয়?',
-          stemEn: 'Which of the following vitamins is water-soluble?',
-          subjectCode: 'medical_science',
-          topicCode: 'med_biochem_vitamins',
-          examTrackId: 'special_bcs_health_51_2026',
-          professionalStream: 'assistant_surgeon',
-          options: [
-            { id: 'A', textBn: 'ভিটামিন এ (Vitamin A)', textEn: 'Vitamin A' },
-            { id: 'B', textBn: 'ভিটামিন ডি (Vitamin D)', textEn: 'Vitamin D' },
-            { id: 'C', textBn: 'ভিটামিন সি (Vitamin C)', textEn: 'Vitamin C' },
-            { id: 'D', textBn: 'ভিটামিন কে (Vitamin K)', textEn: 'Vitamin K' },
-          ],
-          correctAnswerId: 'C',
-          explanationBn: 'ভিটামিন বি কমপ্লেক্স এবং ভিটামিন সি হলো পানিতে দ্রবণীয় ভিটামিন। এ, ডি, ই এবং কে হলো চর্বিতে দ্রবণীয়।',
-          sourceCitation: 'BPSC 42nd Special BCS Medical Science',
-          examinationYear: '2021',
-        },
-      ],
-      null,
-      2
-    )
-  );
+  const [rawPayload, setRawPayload] = useState<string>(JSON_TEMPLATE);
+
+  const handleFormatChange = (fmt: 'json' | 'csv' | 'pdf' | 'docx') => {
+    setFileFormat(fmt);
+    if (fmt === 'json') {
+      setFileName('special_bcs_questions.json');
+      setRawPayload(JSON_TEMPLATE);
+    } else if (fmt === 'csv') {
+      setFileName('special_bcs_questions.csv');
+      setRawPayload(CSV_TEMPLATE);
+    } else {
+      setFileName(`special_bcs_questions.${fmt}`);
+    }
+  };
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [resultMessage, setResultMessage] = useState<{
@@ -86,6 +103,83 @@ export default function AdminQuestionImportsPage() {
       .catch(console.error);
   }, []);
 
+  const parseCSVToQuestions = (csvText: string): any[] => {
+    const lines = csvText.trim().split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (lines.length < 2) return [];
+
+    const parseRow = (line: string): string[] => {
+      const row: string[] = [];
+      let insideQuotes = false;
+      let entry = '';
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+          row.push(entry.trim());
+          entry = '';
+        } else {
+          entry += char;
+        }
+      }
+      row.push(entry.trim());
+      return row.map((c) => c.replace(/^["']|["']$/g, '').trim());
+    };
+
+    const headers = parseRow(lines[0]).map((h) => h.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+    const questions: any[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseRow(lines[i]);
+      if (cols.length === 0 || !cols.some((c) => c.length > 0)) continue;
+
+      const rowObj: Record<string, string> = {};
+      headers.forEach((h, idx) => {
+        rowObj[h] = cols[idx] || '';
+      });
+
+      const stemBn = rowObj['stem_bn'] || rowObj['stem'] || rowObj['question_bn'] || rowObj['question'] || '';
+      const stemEn = rowObj['stem_en'] || rowObj['question_en'] || '';
+      const optA = rowObj['option_a'] || rowObj['a'] || rowObj['opta'] || '';
+      const optB = rowObj['option_b'] || rowObj['b'] || rowObj['optb'] || '';
+      const optC = rowObj['option_c'] || rowObj['c'] || rowObj['optc'] || '';
+      const optD = rowObj['option_d'] || rowObj['d'] || rowObj['optd'] || '';
+      const rawAnswer = (rowObj['correct_answer'] || rowObj['correct_option'] || rowObj['answer'] || 'A').toUpperCase().trim();
+      const correctAnswerId = ['A', 'B', 'C', 'D'].includes(rawAnswer) ? (rawAnswer as 'A' | 'B' | 'C' | 'D') : 'A';
+      const explanationBn = rowObj['explanation_bn'] || rowObj['explanation'] || '';
+      const explanationEn = rowObj['explanation_en'] || '';
+      const subjectCode = rowObj['subject_code'] || rowObj['subject'] || 'medical_science';
+      const topicCode = rowObj['topic_code'] || rowObj['topic'] || 'med_general';
+      const stream = rowObj['stream'] || rowObj['professional_stream'] || 'assistant_surgeon';
+      const sourceCitation = rowObj['source_citation'] || rowObj['source'] || 'BPSC Examination Paper';
+      const examinationYear = rowObj['examination_year'] || rowObj['year'] || '2026';
+
+      if (stemBn || stemEn) {
+        questions.push({
+          stemBn,
+          stemEn,
+          subjectCode,
+          topicCode,
+          examTrackId: 'special_bcs_health_51_2026',
+          professionalStream: stream,
+          options: [
+            { id: 'A', textBn: optA || 'Option A', textEn: optA },
+            { id: 'B', textBn: optB || 'Option B', textEn: optB },
+            { id: 'C', textBn: optC || 'Option C', textEn: optC },
+            { id: 'D', textBn: optD || 'Option D', textEn: optD },
+          ],
+          correctAnswerId,
+          explanationBn,
+          explanationEn,
+          sourceCitation,
+          examinationYear,
+        });
+      }
+    }
+
+    return questions;
+  };
+
   const handleRunIngestion = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
@@ -96,23 +190,33 @@ export default function AdminQuestionImportsPage() {
       if (fileFormat === 'json') {
         const parsed = JSON.parse(rawPayload);
         parsedItems = Array.isArray(parsed) ? parsed : [parsed];
+      } else if (fileFormat === 'csv') {
+        parsedItems = parseCSVToQuestions(rawPayload);
+        if (parsedItems.length === 0) {
+          throw new Error('CSV parsing produced 0 valid questions. Ensure headers include: stemBn, optionA, optionB, optionC, optionD, correctAnswer');
+        }
       } else {
-        // Simple mock parse for text/CSV/mocked extractions
-        parsedItems = [
-          {
-            stemBn: 'অনুমোদিত নমুনা প্রশ্ন',
-            stemEn: 'Sample Extracted Question',
-            subjectCode: 'general_bengali',
-            options: [
-              { id: 'A', textBn: 'ক' },
-              { id: 'B', textBn: 'খ' },
-              { id: 'C', textBn: 'গ' },
-              { id: 'D', textBn: 'ঘ' },
-            ],
-            correctAnswerId: 'A',
-            explanationBn: 'নমুনা ব্যাখ্যা',
-          },
-        ];
+        throw new Error('Direct parsing for PDF/DOCX requires server-side OCR pipeline. Please upload questions as JSON or CSV.');
+      }
+
+      // Validate required fields across all questions before submission
+      for (let idx = 0; idx < parsedItems.length; idx++) {
+        const q = parsedItems[idx];
+        const stem = q.stemBn || q.stemEn || q.question_bn || q.question_en;
+        if (!stem || stem.trim().length === 0) {
+          throw new Error(`Validation Error in Question #${idx + 1}: Question stem is required.`);
+        }
+        if (!Array.isArray(q.options) || q.options.length < 4) {
+          throw new Error(`Validation Error in Question #${idx + 1}: Exactly 4 answer options (A, B, C, D) are required.`);
+        }
+        const hasMissingText = q.options.some((o: any) => !o.textBn && !o.textEn);
+        if (hasMissingText) {
+          throw new Error(`Validation Error in Question #${idx + 1}: All 4 options must contain text.`);
+        }
+        const answer = q.correctAnswerId || q.correct_option;
+        if (!['A', 'B', 'C', 'D'].includes(answer)) {
+          throw new Error(`Validation Error in Question #${idx + 1}: Correct answer must be one of A, B, C, or D (received "${answer}").`);
+        }
       }
 
       const res = await fetch('/api/ingestion/jobs', {
@@ -124,6 +228,7 @@ export default function AdminQuestionImportsPage() {
           fileName,
           fileFormat,
           rawItems: parsedItems,
+          importedBy: 'Admin Content Manager',
         }),
       });
 
@@ -131,7 +236,7 @@ export default function AdminQuestionImportsPage() {
       if (json.success) {
         setResultMessage({
           success: true,
-          text: `সফলভাবে ${json.data.extractedCount} টি প্রশ্ন এক্সট্র্যাক্ট করা হয়েছে এবং নরম্যালাইজেশনের পর রিভিউ কিউতে প্রেরণ করা হয়েছে!`,
+          text: `সফলভাবে ${json.data.extractedCount} টি প্রশ্ন এক্সট্র্যাক্ট করা হয়েছে এবং ডুপ্লিকেট চেকের পর রিভিউ কিউতে প্রেরণ করা হয়েছে!`,
           itemsExtracted: json.data.extractedCount,
         });
 
@@ -158,7 +263,7 @@ export default function AdminQuestionImportsPage() {
     } catch (err: unknown) {
       setResultMessage({
         success: false,
-        text: err instanceof Error ? err.message : 'Invalid JSON or extraction error',
+        text: err instanceof Error ? err.message : 'Invalid format or extraction error',
       });
     } finally {
       setIsProcessing(false);
@@ -243,7 +348,7 @@ export default function AdminQuestionImportsPage() {
                       <button
                         key={fmt.id}
                         type="button"
-                        onClick={() => setFileFormat(fmt.id as any)}
+                        onClick={() => handleFormatChange(fmt.id as any)}
                         className={`p-2 rounded-xl border text-center font-bold flex flex-col items-center gap-1 transition-all ${
                           fileFormat === fmt.id
                             ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300'

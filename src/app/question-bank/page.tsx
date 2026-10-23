@@ -19,8 +19,11 @@ import {
   Eye,
   EyeOff,
   Flame,
+  Flag,
   HelpCircle,
+  Layers,
   Library,
+  ListFilter,
   Play,
   RotateCcw,
   Search,
@@ -31,6 +34,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { ExamTrackId, ProfessionalStreamId } from '@/types';
+import { SYLLABUS_TOPICS } from '@/data/syllabus';
 
 interface QuestionBankItem {
   id: string;
@@ -329,12 +333,29 @@ export default function QuestionBankExplorerPage() {
   const [pageSize, setPageSize] = useState<number>(20);
 
   // Filters State
+  const [bankArea, setBankArea] = useState<'all' | 'general' | 'professional'>('all');
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
+  const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+  const [selectedReviewStatus, setSelectedReviewStatus] = useState<string>('all');
   const [selectedBatch, setSelectedBatch] = useState<string>('');
   const [searchInput, setSearchInput] = useState<string>('');
   const [appliedSearch, setAppliedSearch] = useState<string>('');
   const [jumpPageInput, setJumpPageInput] = useState<string>('1');
+
+  // Practice Mode State
+  const [practiceMode, setPracticeMode] = useState<'batch' | 'single'>('batch');
+  const [singleFocusIndex, setSingleFocusIndex] = useState<number>(0);
+
+  // Flag Question Error Modal State
+  const [flagModalQuestion, setFlagModalQuestion] = useState<QuestionBankItem | null>(null);
+  const [flagReason, setFlagReason] = useState<string>('wrong_answer');
+  const [flagComment, setFlagComment] = useState<string>('');
+  const [isFlagSubmitting, setIsFlagSubmitting] = useState<boolean>(false);
+  const [flagSuccessMsg, setFlagSuccessMsg] = useState<string | null>(null);
+
+  // Topic-Wise Performance Tracker (Attempted, Correct, Wrong)
+  const [topicStats, setTopicStats] = useState<Record<string, { attempted: number; correct: number; wrong: number }>>({});
 
   // Interactive Question State
   const [userAnswers, setUserAnswers] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
@@ -418,7 +439,9 @@ export default function QuestionBankExplorerPage() {
         params.set('limit', pageSize.toString());
 
         if (selectedSubject !== 'all') params.set('subject', selectedSubject);
+        if (selectedTopic !== 'all') params.set('topic', selectedTopic);
         if (selectedDifficulty !== 'all') params.set('difficulty', selectedDifficulty);
+        if (selectedReviewStatus !== 'all') params.set('review_status', selectedReviewStatus);
         if (selectedBatch) params.set('batch', selectedBatch);
         if (appliedSearch) params.set('search', appliedSearch);
         params.set('track', track);
@@ -455,7 +478,18 @@ export default function QuestionBankExplorerPage() {
     return () => {
       isCancelled = true;
     };
-  }, [currentPage, pageSize, selectedSubject, selectedDifficulty, selectedBatch, appliedSearch, track, stream]);
+  }, [
+    currentPage,
+    pageSize,
+    selectedSubject,
+    selectedTopic,
+    selectedDifficulty,
+    selectedReviewStatus,
+    selectedBatch,
+    appliedSearch,
+    track,
+    stream,
+  ]);
 
   // Sync jump input with currentPage
   useEffect(() => {
@@ -506,11 +540,45 @@ export default function QuestionBankExplorerPage() {
     setJumpPageInput('1');
   };
 
+  // Topic Filter: Resets to page 1
+  const handleSelectTopic = (top: string) => {
+    setSelectedTopic(top);
+    setCurrentPage(1);
+    setJumpPageInput('1');
+  };
+
+  // Review Status Filter: Resets to page 1
+  const handleSelectReviewStatus = (status: string) => {
+    setSelectedReviewStatus(status);
+    setCurrentPage(1);
+    setJumpPageInput('1');
+  };
+
+  // Bank Area Switcher (General vs Professional vs All)
+  const handleSelectBankArea = (area: 'all' | 'general' | 'professional') => {
+    setBankArea(area);
+    setSelectedTopic('all');
+    setCurrentPage(1);
+    setJumpPageInput('1');
+    if (area === 'general') {
+      setSelectedSubject('Bangla');
+    } else if (area === 'professional') {
+      setSelectedSubject(
+        stream === 'assistant_surgeon' ? 'Medical Science Part I' : 'Dental Science Part I'
+      );
+    } else {
+      setSelectedSubject('all');
+    }
+  };
+
   // Reset All Filters: Resets to page 1
   const handleResetFilters = () => {
     setSelectedSubject('all');
+    setSelectedTopic('all');
     setSelectedDifficulty('all');
+    setSelectedReviewStatus('all');
     setSelectedBatch('');
+    setBankArea('all');
     setSearchInput('');
     setAppliedSearch('');
     setCurrentPage(1);
@@ -539,6 +607,58 @@ export default function QuestionBankExplorerPage() {
   const handleSelectOption = (questionId: string, optionId: 'A' | 'B' | 'C' | 'D') => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: optionId }));
     setRevealedAnswers((prev) => ({ ...prev, [questionId]: true }));
+
+    // Track Topic Performance
+    const q = questions.find((item) => item.id === questionId);
+    if (q) {
+      const topicKey = q.topic || q.subject || 'সাধারণ বিষয়';
+      const isCorrect = q.correct_option === optionId;
+      setTopicStats((prev) => {
+        const cur = prev[topicKey] || { attempted: 0, correct: 0, wrong: 0 };
+        return {
+          ...prev,
+          [topicKey]: {
+            attempted: cur.attempted + 1,
+            correct: cur.correct + (isCorrect ? 1 : 0),
+            wrong: cur.wrong + (isCorrect ? 0 : 1),
+          },
+        };
+      });
+    }
+  };
+
+  // Flag Question Error Submission
+  const handleFlagSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!flagModalQuestion) return;
+    setIsFlagSubmitting(true);
+    setFlagSuccessMsg(null);
+    try {
+      const res = await fetch('/api/questions/flag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionId: flagModalQuestion.id,
+          reason: flagReason,
+          comment: flagComment,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setFlagSuccessMsg(json.message || 'Error flagged successfully');
+        setTimeout(() => {
+          setFlagModalQuestion(null);
+          setFlagSuccessMsg(null);
+          setFlagComment('');
+        }, 1800);
+      } else {
+        alert(json.error || 'Failed to submit flag');
+      }
+    } catch (err: any) {
+      alert('Error submitting report: ' + err.message);
+    } finally {
+      setIsFlagSubmitting(false);
+    }
   };
 
   const toggleRevealAnswer = (questionId: string) => {
@@ -742,6 +862,66 @@ export default function QuestionBankExplorerPage() {
             <span>সাধারণ বিসিএস (General)</span>
           </button>
         </div>
+      </div>
+
+      {/* Official Medical & Examination Disclaimer Banner */}
+      <div className="rounded-2xl p-4 bg-amber-500/10 border border-amber-500/30 text-amber-950 dark:text-amber-200 text-xs flex items-start gap-3 shadow-xs">
+        <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-extrabold text-sm text-amber-900 dark:text-amber-300">
+              ⚠️ শিক্ষামূলক ও বিসিএস পরীক্ষা প্রস্তুতি বিজ্ঞপ্তি (Educational Exam Practice Disclaimer)
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-300 font-bold">
+              BPSC 51st Special Syllabus Aligned
+            </span>
+          </div>
+          <p className="leading-relaxed bangla-font text-xs text-amber-800 dark:text-amber-300/90">
+            এই প্রশ্নভাণ্ডারের সকল সাধারণ, মেডিকেল ও ডেন্টাল বিষয়ক প্রশ্নাবলী বাংলাদেশ সরকারি কর্ম কমিশন (BPSC)-এর ৫১তম বিশেষ বিসিএস (স্বাস্থ্য) লিখিত পরীক্ষা ও সাধারণ বিসিএস প্রিলিমিনারি সিলেবাস অনুযায়ী কেবলমাত্র পরীক্ষার অনুশীলন ও আত্মমূল্যায়নের উদ্দেশ্যে প্রণীত। এটি কোনো ক্লিনিক্যাল বা ডায়াগনস্টিক চিকিৎসার নির্দেশিকা নয়।
+          </p>
+        </div>
+      </div>
+
+      {/* Primary Area Switcher: General vs Professional vs Combined */}
+      <div className="bg-slate-100 dark:bg-slate-900/90 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => handleSelectBankArea('all')}
+          className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            bankArea === 'all'
+              ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-300 dark:ring-slate-700'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <Layers className="h-4 w-4 text-indigo-600" />
+          <span>সম্মিলিত প্রশ্নভাণ্ডার (All Bank — ২০,২০০ প্রশ্ন)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleSelectBankArea('general')}
+          className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            bankArea === 'general'
+              ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-500'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <BookOpen className="h-4 w-4" />
+          <span>General Part (সাধারণ বিষয়াবলী — ১০০ নম্বর)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleSelectBankArea('professional')}
+          className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            bankArea === 'professional'
+              ? 'bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-500'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <Stethoscope className="h-4 w-4" />
+          <span>Professional / Medical Part (১০০ নম্বর — {stream === 'assistant_surgeon' ? 'MBBS' : 'BDS'})</span>
+        </button>
       </div>
 
       {/* Hero Header */}
@@ -1699,8 +1879,66 @@ export default function QuestionBankExplorerPage() {
           {/* Secondary Filter Dropdowns */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
             <div className="flex flex-wrap items-center gap-3">
+              {/* Topic Filter Dropdown */}
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-500 font-medium">কঠিনতা (Difficulty):</span>
+                <span className="text-slate-500 font-medium">টপিক (Topic):</span>
+                <select
+                  value={selectedTopic}
+                  onChange={(e) => handleSelectTopic(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 max-w-[210px] truncate"
+                >
+                  <option value="all">সকল টপিক (All Topics)</option>
+                  {SYLLABUS_TOPICS.filter((t) => {
+                    if (selectedSubject === 'all') {
+                      if (stream === 'assistant_surgeon') {
+                        return !t.subjectId.includes('den-sci');
+                      }
+                      if (stream === 'assistant_dental_surgeon') {
+                        return !t.subjectId.includes('med-sci');
+                      }
+                      return true;
+                    }
+                    if (selectedSubject.includes('Medical Science Part I')) return t.subjectId === 'sub-sbcs-med-sci-1';
+                    if (selectedSubject.includes('Medical Science Part II')) return t.subjectId === 'sub-sbcs-med-sci-2';
+                    if (selectedSubject.includes('Dental Science Part I')) return t.subjectId === 'sub-sbcs-den-sci-1';
+                    if (selectedSubject.includes('Dental Science Part II')) return t.subjectId === 'sub-sbcs-den-sci-2';
+                    if (selectedSubject.includes('Bangla')) return t.subjectId === 'sub-sbcs-bangla';
+                    if (selectedSubject.includes('English')) return t.subjectId === 'sub-sbcs-english';
+                    if (selectedSubject.includes('Bangladesh Affairs')) return t.subjectId === 'sub-sbcs-bdaffairs';
+                    if (selectedSubject.includes('International Affairs')) return t.subjectId === 'sub-sbcs-intaffairs';
+                    if (selectedSubject.includes('Mathematics')) return t.subjectId === 'sub-sbcs-math';
+                    if (selectedSubject.includes('Mental Ability')) return t.subjectId === 'sub-sbcs-mental';
+                    if (selectedSubject.includes('Science')) return t.subjectId === 'sub-gbcs-science';
+                    if (selectedSubject.includes('Computer')) return t.subjectId === 'sub-gbcs-computer';
+                    if (selectedSubject.includes('Geography')) return t.subjectId === 'sub-gbcs-geography';
+                    if (selectedSubject.includes('Ethics')) return t.subjectId === 'sub-gbcs-ethics';
+                    return true;
+                  }).map((top) => (
+                    <option key={top.id} value={top.titleEn}>
+                      {top.topicCode}: {top.titleBn}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Review Status Filter */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 font-medium">রিভিউ স্ট্যাটাস:</span>
+                <select
+                  value={selectedReviewStatus}
+                  onChange={(e) => handleSelectReviewStatus(e.target.value)}
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                >
+                  <option value="all">সকল প্রশ্ন (All Status)</option>
+                  <option value="approved">অনুমোদিত ও যাচাইকৃত (Approved)</option>
+                  <option value="under_review">পর্যালোচনাধীন (Under Review)</option>
+                  <option value="draft">খসড়া / ড্রাফট (Draft)</option>
+                </select>
+              </div>
+
+              {/* Difficulty Filter */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 font-medium">কঠিনতা:</span>
                 <select
                   value={selectedDifficulty}
                   onChange={(e) => handleSelectDifficulty(e.target.value)}
@@ -1713,8 +1951,9 @@ export default function QuestionBankExplorerPage() {
                 </select>
               </div>
 
+              {/* Batch Filter */}
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-500 font-medium">ব্যাচ নির্বাচন:</span>
+                <span className="text-slate-500 font-medium">ব্যাচ:</span>
                 <select
                   value={selectedBatch}
                   onChange={(e) => handleSelectBatch(e.target.value)}
@@ -1759,10 +1998,41 @@ export default function QuestionBankExplorerPage() {
                   <option value="100">১০০টি</option>
                 </select>
               </div>
+
+              {/* Practice Mode Toggle */}
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setPracticeMode('batch')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    practiceMode === 'batch'
+                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  তালিকা ভিউ (Batch)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPracticeMode('single');
+                    setSingleFocusIndex(0);
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    practiceMode === 'single'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  একক ফোকাস (Single Drill)
+                </button>
+              </div>
             </div>
 
             {(selectedSubject !== 'all' ||
+              selectedTopic !== 'all' ||
               selectedDifficulty !== 'all' ||
+              selectedReviewStatus !== 'all' ||
               selectedBatch ||
               appliedSearch) && (
               <button
@@ -1812,7 +2082,226 @@ export default function QuestionBankExplorerPage() {
           </div>
         )}
 
-        {!isLoading && !errorMsg && questions.length > 0 && (
+        {/* Topic-Wise Practice Performance Tracker */}
+        {Object.keys(topicStats).length > 0 && (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-500/30 p-4 sm:p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <span className="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                <Target className="h-4 w-4 text-emerald-600" />
+                <span>টপিকভিত্তিক অনুশীলন অগ্রগতি ও ফলাফল (Topic-Wise Practice Tracker)</span>
+              </span>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                রিয়েল-টাইম পারফরম্যান্স ট্র্যাকিং
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Object.entries(topicStats).map(([topicName, stats]) => {
+                const total = stats.attempted;
+                const accuracy = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
+                return (
+                  <div
+                    key={topicName}
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800 text-xs space-y-2"
+                  >
+                    <div className="font-bold text-slate-900 dark:text-white line-clamp-1">
+                      {topicName}
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 text-center text-[11px]">
+                      <div className="p-1 rounded bg-slate-200/60 dark:bg-slate-700/60">
+                        <span className="text-[10px] text-slate-500 block">উত্তর দেওয়া</span>
+                        <span className="font-bold">{stats.attempted}</span>
+                      </div>
+                      <div className="p-1 rounded bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300">
+                        <span className="text-[10px] block">সঠিক</span>
+                        <span className="font-bold">+{stats.correct}</span>
+                      </div>
+                      <div className="p-1 rounded bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300">
+                        <span className="text-[10px] block">ভুল</span>
+                        <span className="font-bold">-{stats.wrong}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                      <span>নির্ভুলতার হার:</span>
+                      <span className={`font-bold ${accuracy >= 70 ? 'text-emerald-600' : accuracy >= 40 ? 'text-amber-600' : 'text-rose-600'}`}>
+                        {accuracy}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Practice Mode: Single Question Focus Drill View */}
+        {!isLoading && !errorMsg && questions.length > 0 && practiceMode === 'single' && (
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-500/40 p-6 sm:p-8 shadow-md space-y-6">
+            {(() => {
+              const safeIndex = Math.min(singleFocusIndex, questions.length - 1);
+              const q = questions[safeIndex];
+              const meta = SUBJECT_METADATA[q.subject];
+              const isRevealed = revealedAnswers[q.id];
+              const selectedOption = userAnswers[q.id];
+              const isBookmarked = bookmarkedIds[q.id];
+
+              return (
+                <div className="space-y-6">
+                  {/* Focus Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full bg-emerald-600 text-white font-bold font-mono">
+                        প্রশ্ন {toBnDigits(safeIndex + 1)} / {toBnDigits(questions.length)}
+                      </span>
+                      <span className={`font-semibold px-2.5 py-1 rounded-md ${meta?.badgeBg || 'bg-slate-100 text-slate-700'}`}>
+                        {meta?.nameBn || q.subject}
+                      </span>
+                      <span className="text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
+                        • {q.topic}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFlagModalQuestion(q)}
+                        className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-600 font-medium flex items-center gap-1"
+                        title="ত্রুটি রিপোর্ট করুন"
+                      >
+                        <Flag className="h-3.5 w-3.5" />
+                        <span>রিপোর্ট</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleBookmark(q.id)}
+                        className={`p-1.5 rounded-lg border transition-colors ${
+                          isBookmarked
+                            ? 'bg-amber-50 text-amber-600 border-amber-300 dark:bg-amber-950 dark:text-amber-400'
+                            : 'text-slate-400 hover:text-slate-600 border-slate-200 dark:border-slate-700'
+                        }`}
+                        title="নোটবুকে সংরক্ষণ করুন"
+                      >
+                        <BookCheck className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Stem */}
+                  <div className="space-y-2">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white bangla-font leading-relaxed">
+                      {q.question_bn}
+                    </h2>
+                    {q.question_en && (
+                      <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                        {q.question_en}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Options */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    {(['A', 'B', 'C', 'D'] as const).map((optKey) => {
+                      const optionText = q.options[optKey];
+                      const isCorrect = q.correct_option === optKey;
+                      const isSelected = selectedOption === optKey;
+
+                      let optStyle = 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:bg-slate-100';
+                      if (isRevealed) {
+                        if (isCorrect) {
+                          optStyle = 'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-500 text-emerald-900 dark:text-emerald-100 font-semibold ring-2 ring-emerald-500';
+                        } else if (isSelected && !isCorrect) {
+                          optStyle = 'bg-rose-50 dark:bg-rose-950/70 border-rose-500 text-rose-900 dark:text-rose-100 line-through';
+                        }
+                      } else if (isSelected) {
+                        optStyle = 'bg-emerald-100 dark:bg-emerald-950 border-emerald-500 text-emerald-900';
+                      }
+
+                      return (
+                        <button
+                          key={optKey}
+                          type="button"
+                          onClick={() => handleSelectOption(q.id, optKey)}
+                          className={`w-full text-left p-4 rounded-2xl border text-sm transition-all flex items-start gap-3 ${optStyle}`}
+                        >
+                          <span
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
+                              isRevealed && isCorrect
+                                ? 'bg-emerald-600 text-white'
+                                : isRevealed && isSelected && !isCorrect
+                                ? 'bg-rose-600 text-white'
+                                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            {optKey}
+                          </span>
+                          <span className="bangla-font leading-relaxed pt-0.5">{optionText}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Explanation panel */}
+                  {isRevealed && (
+                    <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-xs sm:text-sm space-y-2.5">
+                      <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <span>সঠিক উত্তর: ({q.correct_option}) {q.options[q.correct_option]}</span>
+                      </div>
+                      {q.explanation_bn && (
+                        <p className="bangla-font text-slate-700 dark:text-slate-300 leading-relaxed bg-white/70 dark:bg-slate-900/70 p-3 rounded-xl border border-emerald-500/10">
+                          {q.explanation_bn}
+                        </p>
+                      )}
+                      {q.explanation_en && (
+                        <p className="text-slate-600 dark:text-slate-400 italic bg-white/50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-emerald-500/10">
+                          {q.explanation_en}
+                        </p>
+                      )}
+                      <span className="text-[11px] text-slate-400 block pt-1">
+                        উৎস: {q.source_title} {q.source_page_or_section ? `(${q.source_page_or_section})` : ''}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Prev / Next Drill Navigation */}
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      type="button"
+                      disabled={safeIndex === 0}
+                      onClick={() => setSingleFocusIndex((prev) => Math.max(0, prev - 1))}
+                      className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <span>পূর্ববর্তী প্রশ্ন</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleRevealAnswer(q.id)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                    >
+                      {isRevealed ? 'উত্তর লুকান' : 'উত্তর ও ব্যাখ্যা দেখুন'}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={safeIndex === questions.length - 1}
+                      onClick={() => setSingleFocusIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                    >
+                      <span>পরবর্তী প্রশ্ন</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Questions List (Batch View) */}
+        {!isLoading && !errorMsg && questions.length > 0 && practiceMode === 'batch' && (
           <div className="space-y-4">
             {questions.map((q, idx) => {
               const meta = SUBJECT_METADATA[q.subject];
@@ -1845,6 +2334,18 @@ export default function QuestionBankExplorerPage() {
 
                     <div className="flex items-center gap-2">
                       <span
+                        className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
+                          q.verification_status === 'verified' || q.verification_status === 'approved'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        }`}
+                      >
+                        {q.verification_status === 'verified' || q.verification_status === 'approved'
+                          ? 'অনুমোদিত'
+                          : 'পর্যালোচনাধীন'}
+                      </span>
+
+                      <span
                         className={`font-semibold px-2 py-0.5 rounded text-[11px] ${
                           q.difficulty === 'easy'
                             ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
@@ -1859,6 +2360,15 @@ export default function QuestionBankExplorerPage() {
                           ? 'মাঝারি (Medium)'
                           : 'কঠিন (Hard)'}
                       </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setFlagModalQuestion(q)}
+                        className="p-1.5 rounded-lg border text-slate-400 hover:text-rose-600 hover:border-rose-300 dark:border-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                        title="প্রশ্নে কোনো ভুল থাকলে রিপোর্ট করুন"
+                      >
+                        <Flag className="h-4 w-4" />
+                      </button>
 
                       <button
                         type="button"
@@ -2149,6 +2659,98 @@ export default function QuestionBankExplorerPage() {
             </Link>
           </div>
         </div>
+        {/* Flag Question Error Modal */}
+        {flagModalQuestion && (
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="flag-modal-title"
+          >
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
+                  <Flag className="h-5 w-5 shrink-0" />
+                  <h3 id="flag-modal-title" className="font-bold text-base sm:text-lg bangla-font text-slate-900 dark:text-white">
+                    প্রশ্নে ভুল বা অসঙ্গতি রিপোর্ট করুন
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFlagModalQuestion(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  aria-label="বন্ধ করুন"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
+                <div className="text-[11px] font-mono text-slate-400">প্রশ্ন আইডি: {flagModalQuestion.id}</div>
+                <div className="bangla-font font-semibold text-slate-800 dark:text-slate-200 line-clamp-2">
+                  {flagModalQuestion.question_bn}
+                </div>
+              </div>
+
+              {flagSuccessMsg ? (
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs font-semibold flex items-center gap-2.5">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <span>{flagSuccessMsg}</span>
+                </div>
+              ) : (
+                <form onSubmit={handleFlagSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      ভুলের ধরন নির্বাচন করুন:
+                    </label>
+                    <select
+                      value={flagReason}
+                      onChange={(e) => setFlagReason(e.target.value)}
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      <option value="wrong_answer">সঠিক উত্তর চিহ্নিতকরণ ভুল (Wrong Key)</option>
+                      <option value="wrong_explanation">ব্যাখ্যায় ভুল বা বিভ্রান্তিকর তথ্য (Inaccurate Explanation)</option>
+                      <option value="typo_language">বানান, ব্যাকরণ বা অনুবাদের ভুল (Typo / Translation)</option>
+                      <option value="out_of_syllabus">সিলেবাসের বাইরের প্রশ্ন (Out of Syllabus)</option>
+                      <option value="duplicate_question">পুনরাবৃত্ত বা ডুপ্লিকেট প্রশ্ন (Duplicate)</option>
+                      <option value="other">অন্যান্য সমস্যা (Other)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      বিস্তারিত মন্তব্য বা সঠিক তথ্য (ঐচ্ছিক):
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={flagComment}
+                      onChange={(e) => setFlagComment(e.target.value)}
+                      placeholder="সঠিক রেফারেন্স বা পাঠ্যপুস্তকের তথ্য এখানে লিখুন..."
+                      className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setFlagModalQuestion(null)}
+                      className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold"
+                    >
+                      বাতিল
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isFlagSubmitting}
+                      className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      {isFlagSubmitting ? 'জমা হচ্ছে...' : 'রিপোর্ট জমা দিন'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </div>
   );
 }

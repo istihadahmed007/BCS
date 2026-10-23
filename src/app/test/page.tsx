@@ -142,23 +142,205 @@ export default function MockTestHubPage() {
         )}
 
         {/* Test Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Diagnostic Test */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Card 1: Professional Medical / Dental Part (100 Marks) */}
+          <div className="bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+              {selectedStream === 'assistant_surgeon' ? 'MBBS Part' : 'BDS Part'}
+            </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
-                  Recommended First
+                  100 MCQs / 60 Min
                 </span>
-                <Clock className="h-4 w-4 text-slate-400" />
+                <Stethoscope className="h-4 w-4 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                Diagnostic Baseline Test
-              </h3>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Professional Part Model Test
+                </h3>
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {selectedStream === 'assistant_surgeon'
+                    ? 'সহকারী সার্জন (মেডিকেল ১ম ও ২য় পত্র)'
+                    : 'সহকারী ডেন্টাল সার্জন (ডেন্টাল ১ম ও ২য় পত্র)'}
+                </p>
+              </div>
               <p className="text-xs text-slate-500 leading-relaxed bangla-font">
-                ১০ মিনিটের দ্রুত ডায়াগনস্টিক পরীক্ষার মাধ্যমে আপনার বর্তমান প্রস্তুতি ও সিলেবাস কভারেজের প্রারম্ভিক ভিত্তি (Baseline) নির্ধারণ।
+                অফিসিয়াল সিলেবাসের ৫০ নম্বর ১ম পত্র + ৫০ নম্বর ২য় পত্রের সমন্বয়ে ১০০ নম্বরের স্বতন্ত্র প্রফেশনাল মডেল টেস্ট।
               </p>
-              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-2">
+              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between">
+                  <span>Questions:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">100 Professional MCQs</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Duration:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">60 Minutes</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Scoring:</span>
+                  <span className="font-semibold text-emerald-600">+1.0 / -0.50 Mark</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() =>
+                  startTest(
+                    'subject_test',
+                    selectedStream === 'assistant_surgeon'
+                      ? '51st Special BCS Medical Science Professional Model Test (100 Marks)'
+                      : '51st Special BCS Dental Science Professional Model Test (100 Marks)',
+                    60
+                  )
+                }
+                disabled={isLaunching}
+                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              >
+                <Play className="h-3.5 w-3.5" />
+                <span>Begin 100M Professional Test</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: General Part (100 Marks) */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-bold">
+                  100 MCQs / 60 Min
+                </span>
+                <BookOpen className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  General Part Model Test
+                </h3>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
+                  আবশ্যিক সাধারণ ৬টি বিষয়
+                </p>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed bangla-font">
+                বাংলা ২০, ইংরেজি ২০, বাংলাদেশ ২০, আন্তর্জাতিক ২০, গণিত ১০ এবং মানসিক দক্ষতা ১০ নম্বরের ১০০ নম্বরের টেস্ট।
+              </p>
+              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between">
+                  <span>Questions:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">100 General MCQs</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Duration:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">60 Minutes</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Scoring:</span>
+                  <span className="font-semibold text-emerald-600">+1.0 / -0.50 Mark</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() =>
+                  startTest(
+                    'subject_test',
+                    '51st Special BCS Health General Part Model Test (100 Marks)',
+                    60
+                  )
+                }
+                disabled={isLaunching}
+                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              >
+                <Play className="h-3.5 w-3.5" />
+                <span>Begin 100M General Test</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 3: Full-Length Official Mock Exam (200 Marks) */}
+          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white border-2 border-emerald-500/60 rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+              Circular 200 Marks
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                  200 MCQs / 120 Min
+                </span>
+                <Clock className="h-4 w-4 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">
+                  51st Special BCS Full Mock
+                </h3>
+                <p className="text-xs font-semibold text-emerald-300 mt-0.5">
+                  সাধারণ ১০০ + প্রফেশনাল ১০০
+                </p>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed bangla-font">
+                অফিসিয়াল সার্কুলার অনুযায়ী হুবহু ১২০ মিনিটের পরীক্ষা, আলাদা সেকশন ফলাফল এবং -০.৫০ নেগেটিভ মার্কিং।
+              </p>
+              <div className="space-y-1.5 text-xs text-slate-300 pt-1 border-t border-white/10">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Questions:</span>
+                  <span className="font-semibold text-white">200 MCQs (100G + 100P)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Duration:</span>
+                  <span className="font-semibold text-amber-300 font-mono">120 Minutes</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Scoring:</span>
+                  <span className="font-semibold text-emerald-400">+1.0 / -0.50 Mark</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() =>
+                  startTest(
+                    'full_mock',
+                    `51st Special BCS Health Full Mock Test (200 Marks - ${
+                      selectedStream === 'assistant_surgeon' ? 'Assistant Surgeon' : 'Dental Surgeon'
+                    })`,
+                    120
+                  )
+                }
+                disabled={isLaunching}
+                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-md shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              >
+                <Target className="h-3.5 w-3.5" />
+                <span>Begin 120M Full Simulation</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 4: Diagnostic Baseline & Rapid Drills */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs font-bold">
+                  Quick Practice
+                </span>
+                <Clock className="h-4 w-4 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Diagnostic Baseline
+                </h3>
+                <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
+                  ১০ মিনিটের প্রস্তুতি পরীক্ষা
+                </p>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed bangla-font">
+                ১০টি বাছাইকৃত প্রশ্নের মাধ্যমে আপনার বর্তমান প্রস্তুতি ও টপিকভিত্তিক দুর্বলতা যাচাই করুন।
+              </p>
+              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex justify-between">
                   <span>Questions:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">10 High-Yield MCQs</span>
@@ -168,8 +350,8 @@ export default function MockTestHubPage() {
                   <span className="font-semibold text-slate-800 dark:text-slate-200">10 Minutes</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Negative Marking:</span>
-                  <span className="font-semibold text-rose-600 dark:text-rose-400">-0.50 Mark</span>
+                  <span>Scoring:</span>
+                  <span className="font-semibold text-rose-600">-0.50 Penalty</span>
                 </div>
               </div>
             </div>
@@ -179,101 +361,10 @@ export default function MockTestHubPage() {
                 type="button"
                 onClick={() => startTest('diagnostic', 'Diagnostic Readiness Baseline', 10)}
                 disabled={isLaunching}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-xs transition-colors disabled:opacity-50"
               >
                 <Play className="h-3.5 w-3.5" />
                 <span>Launch Diagnostic Test</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Card 2: Full-Length Official Mock Exam */}
-          <div className="bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
-              Full Circular Match
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-400 text-xs font-bold">
-                  200 MCQs / 120 Min
-                </span>
-                <Clock className="h-4 w-4 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                51st Special BCS Full Mock Exam
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed bangla-font">
-                অফিসিয়াল সার্কুলার অনুযায়ী ২০০টি প্রশ্ন, ১২০ মিনিট, সাধারণ বিষয় ১০০ + প্রফেশনাল ১০০ এবং -০.৫০ নেগেটিভ মার্কিং।
-              </p>
-              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-2">
-                <div className="flex justify-between">
-                  <span>Questions:</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">200 Written MCQs</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Duration:</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">120 Minutes (7,200s)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Correct / Wrong:</span>
-                  <span className="font-semibold text-emerald-600">+1.0 / -0.50</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => startTest('full_mock', '51st Special BCS Health Full Mock Test', 120)}
-                disabled={isLaunching}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-              >
-                <Target className="h-3.5 w-3.5" />
-                <span>Begin 120-Minute Full Mock</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Card 3: Rapid Topic Practice Drill */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs font-bold">
-                  Quick Sprint
-                </span>
-                <Clock className="h-4 w-4 text-slate-400" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                Focused Topic Quiz Drill
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed bangla-font">
-                নির্দিষ্ট টপিকের দুর্বলতা কাটাতে স্বল্প সময়ের ৫-১০টি প্রশ্নের দ্রুত সমাধান ও তাৎক্ষণিক ব্যাখ্যা।
-              </p>
-              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-2">
-                <div className="flex justify-between">
-                  <span>Questions:</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">5 High-Yield MCQs</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Duration:</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">5 Minutes</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Outcome:</span>
-                  <span className="font-semibold text-purple-600">Immediate Error Insights</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => startTest('topic_quiz', 'High-Yield Topic Quiz Drill', 5)}
-                disabled={isLaunching}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-semibold text-xs transition-colors disabled:opacity-50"
-              >
-                <BookOpen className="h-3.5 w-3.5 text-purple-600" />
-                <span>Start Rapid Topic Drill</span>
               </button>
             </div>
           </div>
