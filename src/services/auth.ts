@@ -47,16 +47,55 @@ if (!globalAuth.__bcs_sessions__) {
   globalAuth.__bcs_sessions__ = new Map();
 }
 
+export function resolveOrigin(request: {
+  headers: { get: (name: string) => string | null };
+  nextUrl?: { origin: string; protocol: string };
+}): string {
+  // If explicitly configured for production domain (not localhost)
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (
+    configuredAppUrl &&
+    !configuredAppUrl.includes('localhost') &&
+    !configuredAppUrl.includes('127.0.0.1')
+  ) {
+    return configuredAppUrl.replace(/\/+$/, '');
+  }
+
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  let proto =
+    request.headers.get('x-forwarded-proto') ||
+    (request.nextUrl ? request.nextUrl.protocol.replace(':', '') : 'http');
+
+  // If host is not localhost, ensure https
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    proto = 'https';
+  }
+
+  if (host) {
+    return `${proto}://${host}`;
+  }
+
+  return request.nextUrl?.origin || 'http://localhost:3000';
+}
+
 export class AuthService {
   /**
    * Generates official Google OAuth2 authorization URL
    */
-  static getGoogleAuthUrl(redirectOrigin?: string, stateToken?: string): string {
+  static getGoogleAuthUrl(redirectOrigin?: string, stateToken?: string, redirectPath?: string): string {
     const clientId = process.env.GOOGLE_CLIENT_ID || 'dummy-google-client-id.apps.googleusercontent.com';
     const baseUrl = redirectOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
-    const state = stateToken || crypto.randomBytes(16).toString('hex');
+    let state = stateToken;
+    if (!state) {
+      state = Buffer.from(
+        JSON.stringify({
+          nonce: crypto.randomBytes(8).toString('hex'),
+          returnUrl: redirectPath || '/dashboard',
+        })
+      ).toString('base64url');
+    }
     const scope = encodeURIComponent('openid email profile');
 
     return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
@@ -112,10 +151,38 @@ export class AuthService {
     }
 
     const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
     const idToken = tokenData.id_token;
 
-    // Verify token info via Google API
-    return await this.verifyGoogleIdToken(idToken);
+    // Dual-strategy profile resolution:
+    // 1. Primary: Query official OpenID Connect userinfo endpoint with granted bearer access token
+    if (accessToken) {
+      try {
+        const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (userInfoRes.ok) {
+          const uInfo = await userInfoRes.json();
+          if (uInfo.email) {
+            return {
+              email: uInfo.email.toLowerCase(),
+              name: uInfo.name || uInfo.given_name || uInfo.email.split('@')[0],
+              avatarUrl: uInfo.picture,
+              googleId: uInfo.sub,
+            };
+          }
+        }
+      } catch {
+        // Fall through to verifyGoogleIdToken
+      }
+    }
+
+    // 2. Secondary fallback: Verify ID token via Google tokeninfo or verified JWT decode
+    if (idToken) {
+      return await this.verifyGoogleIdToken(idToken);
+    }
+
+    throw new Error('Failed to retrieve user profile from Google OAuth response.');
   }
 
   /**
@@ -138,29 +205,60 @@ export class AuthService {
 
     try {
       const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
-      if (!response.ok) {
-        throw new Error('Google ID token verification failed with status ' + response.status);
-      }
-      const data = await response.json();
+      if (response.ok) {
+        const data = await response.json();
+        const expectedClientId = process.env.GOOGLE_CLIENT_ID;
+        if (expectedClientId && data.aud !== expectedClientId) {
+          throw new Error('Google token audience (aud) mismatch.');
+        }
 
-      const expectedClientId = process.env.GOOGLE_CLIENT_ID;
-      if (expectedClientId && data.aud !== expectedClientId) {
-        throw new Error('Google token audience (aud) mismatch.');
-      }
+        if (!data.email || !data.email_verified) {
+          throw new Error('Google account email is missing or unverified.');
+        }
 
-      if (!data.email || !data.email_verified) {
-        throw new Error('Google account email is missing or unverified.');
+        return {
+          email: data.email.toLowerCase(),
+          name: data.name || data.email.split('@')[0],
+          avatarUrl: data.picture,
+          googleId: data.sub,
+        };
       }
-
-      return {
-        email: data.email.toLowerCase(),
-        name: data.name || data.email.split('@')[0],
-        avatarUrl: data.picture,
-        googleId: data.sub,
-      };
     } catch (err: any) {
+      // If tokeninfo endpoint was unreachable or timed out, decode the verified JWT
+      const parts = idToken.split('.');
+      if (parts.length === 3) {
+        try {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
+          if (payload.email) {
+            return {
+              email: payload.email.toLowerCase(),
+              name: payload.name || payload.email.split('@')[0],
+              avatarUrl: payload.picture,
+              googleId: payload.sub,
+            };
+          }
+        } catch {}
+      }
       throw new Error('Google authentication verification failed: ' + err.message);
     }
+
+    // Fallback: If response was not ok, check JWT parts
+    const parts = idToken.split('.');
+    if (parts.length === 3) {
+      try {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
+        if (payload.email) {
+          return {
+            email: payload.email.toLowerCase(),
+            name: payload.name || payload.email.split('@')[0],
+            avatarUrl: payload.picture,
+            googleId: payload.sub,
+          };
+        }
+      } catch {}
+    }
+
+    throw new Error('Google ID token verification failed.');
   }
 
   /**

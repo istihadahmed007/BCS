@@ -298,3 +298,38 @@ test('9. Admin Management, Manual Grants & Mandatory Audit Logging', async () =>
   // Fall back to Free Preview after revocation
   assert.equal(revokedSub.tier, 'free', 'Revoked user must fall back to Free Preview');
 });
+
+test('10. Real Google OAuth URL, Origin Normalization & State Preservation', async () => {
+  const { resolveOrigin } = await import('../src/services/auth');
+
+  // 1. Origin normalization behind proxy
+  const mockReqBehindProxy = {
+    headers: {
+      get: (header: string) => {
+        if (header === 'x-forwarded-host') return 'bcs.vartualtutor.com';
+        if (header === 'x-forwarded-proto') return 'https';
+        return null;
+      },
+    },
+  };
+  const originHttps = resolveOrigin(mockReqBehindProxy as any);
+  assert.equal(originHttps, 'https://bcs.vartualtutor.com');
+
+  // 2. Google OAuth URL generation with returnUrl state
+  const authUrl = AuthService.getGoogleAuthUrl('https://bcs.vartualtutor.com', undefined, '/packages');
+  assert.ok(authUrl.startsWith('https://accounts.google.com/o/oauth2/v2/auth'));
+  assert.ok(authUrl.includes('client_id='));
+  assert.ok(authUrl.includes('redirect_uri=https%3A%2F%2Fbcs.vartualtutor.com%2Fapi%2Fauth%2Fgoogle%2Fcallback'));
+  assert.ok(authUrl.includes('response_type=code'));
+  assert.ok(authUrl.includes('scope=openid%20email%20profile'));
+
+  // 3. Extract and verify state preservation
+  const urlObj = new URL(authUrl);
+  const stateEncoded = urlObj.searchParams.get('state');
+  assert.ok(stateEncoded, 'OAuth URL must include state parameter');
+
+  const stateDecoded = JSON.parse(Buffer.from(stateEncoded, 'base64url').toString('utf-8'));
+  assert.equal(stateDecoded.returnUrl, '/packages', 'State must preserve target destination');
+  assert.ok(stateDecoded.nonce, 'State must contain cryptographic nonce');
+});
+

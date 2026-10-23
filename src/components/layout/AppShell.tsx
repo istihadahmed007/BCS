@@ -25,6 +25,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith('/study') ||
     pathname.startsWith('/question-bank') ||
     pathname.startsWith('/test') ||
+    pathname.startsWith('/packages') ||
     pathname.startsWith('/syllabus') ||
     pathname.startsWith('/mistake-notebook') ||
     pathname.startsWith('/resources');
@@ -106,6 +107,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <span>Daily Practice</span>
             </Link>
             <Link
+              href="/packages"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-semibold"
+            >
+              <span>প্যাকেজ ও মূল্য</span>
+            </Link>
+            <Link
               href="/test"
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
@@ -122,7 +129,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Quick Action */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-semibold transition-colors"
+            >
+              <span>সাইন-ইন</span>
+            </Link>
             <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
