@@ -320,7 +320,14 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-center">
+          <div className="flex items-center gap-2 self-start md:self-center flex-wrap">
+            <Link
+              href="/question-bank"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F0EBFF] hover:bg-[#E4D9FF] text-[#6538F5] text-xs font-bold shadow-2xs transition-all border border-[#6538F5]/20"
+            >
+              <BookCheck className="h-3.5 w-3.5 text-[#6538F5]" />
+              <span>Question Bank</span>
+            </Link>
             <Link
               href="/study/today"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6538F5] hover:bg-[#8055F7] text-white text-xs font-bold shadow-xs transition-all"
@@ -436,8 +443,38 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 3. ROW OF 4 QUICK-ACTION CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* 3. ROW OF QUICK-ACTION CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
+        {/* Card 1: Question Bank */}
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-5 border border-[#E3E8F2] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group border-l-4 border-l-[#6538F5]">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="h-11 w-11 rounded-2xl bg-[#F0EBFF] text-[#6538F5] flex items-center justify-center">
+                <BookCheck className="h-5 w-5" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#6538F5] bg-[#F0EBFF] px-2.5 py-0.5 rounded-full">
+                20K+ MCQs
+              </span>
+            </div>
+            <div>
+              <h3 className="text-base font-black text-[#17233F] group-hover:text-[#6538F5] transition-colors">
+                Question Bank
+              </h3>
+              <p className="text-xs text-[#66748B] mt-1 leading-snug bangla-font">
+                অধ্যায়ভিত্তিক ও বিশেষ বিসিএস প্রশ্ন ভাণ্ডার
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 mt-auto">
+            <Link
+              href="/question-bank"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#6538F5] hover:bg-[#5326d9] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all"
+            >
+              <span>Explore Bank</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
         {/* Card 1: Daily Practice */}
         <div className="bg-white rounded-2xl sm:rounded-3xl p-5 border border-[#E3E8F2] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
           <div className="space-y-3">

@@ -94,17 +94,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
             <Link
               href="/dashboard"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-colors font-semibold ${
+                pathname === '/dashboard'
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 font-bold border border-blue-200 dark:border-blue-800 shadow-xs'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
               <LayoutDashboard className="h-4 w-4 text-blue-600" />
               <span>Dashboard</span>
             </Link>
             <Link
               href="/question-bank"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 transition-colors font-bold border border-blue-200 dark:border-blue-800 shadow-xs"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-colors font-semibold ${
+                pathname.startsWith('/question-bank')
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 font-bold border border-blue-200 dark:border-blue-800 shadow-xs'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
               <BookCheck className="h-4 w-4 text-blue-600" />
-              <span>Question Bank (২০k)</span>
+              <span>Question Bank</span>
             </Link>
             <Link
               href="/study/today"

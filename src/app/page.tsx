@@ -130,9 +130,10 @@ export default function HomePage() {
             <Link
               href="/question-bank"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-[#6545E8]"
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-[#6545E8]"
             >
-              Question Bank (২০,০০০ প্রশ্ন)
+              <span>Question Bank</span>
+              <span className="text-[10px] font-bold text-[#6545E8] bg-purple-50 px-2 py-0.5 rounded-full">20K+</span>
             </Link>
             <Link
               href="/study/today"

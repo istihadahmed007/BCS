@@ -31,11 +31,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       groupLabel: 'PRIMARY LEARNING & ASSESSMENT',
       items: [
         {
-          name: 'Study MCQs',
-          nameBn: 'অধ্যায়ভিত্তিক প্রশ্ন ব্যাংক',
+          name: 'Question Bank',
+          nameBn: 'প্রশ্ন ব্যাংক',
           href: '/question-bank',
           icon: BookCheck,
-          badge: '20K',
+          badge: '20K+',
         },
         {
           name: 'Daily Challenge',

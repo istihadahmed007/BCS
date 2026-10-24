@@ -126,6 +126,30 @@ export default function StudyQuestionBankPage() {
   // Mobile filters drawer open
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
+  // Parse initial query params from URL on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTrack = urlParams.get('track');
+      const urlStream = urlParams.get('stream');
+      const urlSubject = urlParams.get('subject');
+      const urlSearch = urlParams.get('search');
+
+      if (urlTrack === 'special_bcs_health_51_2026' || urlTrack === 'general_bcs') {
+        setSelectedTrack(urlTrack as ExamTrackId);
+      }
+      if (urlStream === 'assistant_surgeon' || urlStream === 'assistant_dental_surgeon') {
+        setSelectedStream(urlStream as ProfessionalStreamId);
+      }
+      if (urlSubject) {
+        setSelectedSubject(urlSubject);
+      }
+      if (urlSearch) {
+        setSearchQuery(urlSearch);
+      }
+    }
+  }, []);
+
   // 1. Fetch Taxonomy Tree on Track or Stream Change
   useEffect(() => {
     async function loadTaxonomy() {
@@ -328,23 +352,19 @@ export default function StudyQuestionBankPage() {
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-black text-[#17233F] tracking-tight">
-                  Study MCQs & Question Bank
+                  Question Bank
                 </h1>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8F8F0] text-[#059669] text-xs font-bold border border-[#059669]/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
-                  {selectedTrack === 'special_bcs_health_51_2026'
-                    ? selectedStream === 'assistant_surgeon'
-                      ? '১০০টি ভেরিফাইড পেশাগত মেডিকেল প্রশ্ন'
-                      : '১০০টি ভেরিফাইড পেশাগত ডেন্টাল প্রশ্ন'
-                    : '২০,২০০+ ভেরিফাইড প্রশ্ন'}
+                  {totalCount > 0 ? `${totalCount.toLocaleString()}টি ভেরিফাইড প্রশ্ন` : '২০,২০০+ ভেরিফাইড প্রশ্ন'}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#66748B] bangla-font mt-0.5">
                 {selectedTrack === 'special_bcs_health_51_2026'
                   ? selectedStream === 'assistant_surgeon'
-                    ? '৫১তম বিশেষ বিসিএস (স্বাস্থ্য) — সহকারী সার্জন (MBBS) চিকিৎসা বিজ্ঞান ১ম ও ২য় পত্র।'
-                    : '৫১তম বিশেষ বিসিএস (স্বাস্থ্য) — সহকারী ডেন্টাল সার্জন (BDS) ডেন্টাল সায়েন্স ১ম ও ২য় পত্র।'
-                  : 'বিষয় ও অধ্যায়ভিত্তিক পুঙ্খানুপুঙ্খ অনুশীলন, প্রতিটি অপশনের তথ্যবহুল ব্যাখ্যা ও রেফারেন্স।'}
+                    ? '৫১তম বিশেষ বিসিএস (স্বাস্থ্য) — সহকারী সার্জন (MBBS): চিকিৎসা বিজ্ঞান ১ম ও ২য় পত্র এবং সাধারণ বিষয়ের প্রশ্ন সম্ভার।'
+                    : '৫১তম বিশেষ বিসিএস (স্বাস্থ্য) — সহকারী ডেন্টাল সার্জন (BDS): ডেন্টাল সায়েন্স ১ম ও ২য় পত্র এবং সাধারণ বিষয়ের প্রশ্ন সম্ভার।'
+                  : 'Study MCQs & Precision Practice • বিষয় ও অধ্যায়ভিত্তিক পুঙ্খানুপুঙ্খ অনুশীলন, তথ্যবহুল ব্যাখ্যা ও রেফারেন্স।'}
               </p>
             </div>
           </div>
@@ -588,11 +608,16 @@ export default function StudyQuestionBankPage() {
             >
               <option value="all">
                 {selectedTrack === 'special_bcs_health_51_2026'
-                  ? selectedStream === 'assistant_surgeon'
-                    ? `সকল পেশাগত চিকিৎসা বিজ্ঞান (${taxonomy.filter((s) => s.subject.toLowerCase().includes('medical')).reduce((acc, s) => acc + s.totalQuestions, 0)}টি প্রশ্ন)`
-                    : `সকল পেশাগত ডেন্টাল সায়েন্স (${taxonomy.filter((s) => s.subject.toLowerCase().includes('dental')).reduce((acc, s) => acc + s.totalQuestions, 0)}টি প্রশ্ন)`
-                  : `সকল বিষয় (${taxonomy.reduce((acc, s) => acc + s.totalQuestions, 0)})`}
+                  ? `সকল বিষয় — পেশাগত ও সাধারণ (${taxonomy.reduce((acc, s) => acc + s.totalQuestions, 0).toLocaleString()}টি প্রশ্ন)`
+                  : `সকল বিষয় (${taxonomy.reduce((acc, s) => acc + s.totalQuestions, 0).toLocaleString()}টি প্রশ্ন)`}
               </option>
+              {selectedTrack === 'special_bcs_health_51_2026' && (
+                <option value="professional">
+                  {selectedStream === 'assistant_surgeon'
+                    ? `শুধুমাত্র পেশাগত চিকিৎসা বিজ্ঞান (${taxonomy.filter((s) => s.subject.toLowerCase().includes('medical')).reduce((acc, s) => acc + s.totalQuestions, 0)}টি প্রশ্ন)`
+                    : `শুধুমাত্র পেশাগত ডেন্টাল সায়েন্স (${taxonomy.filter((s) => s.subject.toLowerCase().includes('dental')).reduce((acc, s) => acc + s.totalQuestions, 0)}টি প্রশ্ন)`}
+                </option>
+              )}
               {taxonomy.map((s) => (
                 <option key={s.subject} value={s.subject}>
                   {s.subjectBn || s.subject} ({s.totalQuestions})

@@ -244,7 +244,7 @@ export class QuestionBankService {
     let filtered: RawQuestionBankItem[] = all;
 
     // Use Subject Index for O(1) initial candidate pool if single subject specified
-    if (subject && subject.toLowerCase() !== 'all') {
+    if (subject && subject.toLowerCase() !== 'all' && subject.toLowerCase() !== 'professional') {
       const targetSubj = subject.toLowerCase().trim();
       const indexed = globalForQB.__bcs_qb_by_subject__?.get(targetSubj);
       if (indexed) {
@@ -281,21 +281,45 @@ export class QuestionBankService {
       if (stream === 'assistant_surgeon') {
         // Exclude dental science
         filtered = filtered.filter((q) => !dentalSubs.includes(q.subject.toLowerCase()));
-        // If no subject or 'all' or 'professional' requested, strictly default to professional Medical Science
-        if (!subject || subject.toLowerCase() === 'all' || subject.toLowerCase() === 'professional') {
+        if (subject && (subject.toLowerCase() === 'professional' || subject.toLowerCase() === 'medical')) {
           filtered = filtered.filter((q) => medSubs.includes(q.subject.toLowerCase()));
+        } else if (!subject || subject.toLowerCase() === 'all') {
+          // Keep all eligible questions (MBBS professional + 6 shared general subjects: 15,299 questions)
+          // Prioritize professional MBBS questions at the top
+          filtered = [...filtered].sort((a, b) => {
+            const aMed = medSubs.includes(a.subject.toLowerCase()) ? 1 : 0;
+            const bMed = medSubs.includes(b.subject.toLowerCase()) ? 1 : 0;
+            if (aMed !== bMed) return bMed - aMed;
+            return a.id.localeCompare(b.id);
+          });
         }
       } else if (stream === 'assistant_dental_surgeon') {
         // Exclude medical science
         filtered = filtered.filter((q) => !medSubs.includes(q.subject.toLowerCase()));
-        // If no subject or 'all' or 'professional' requested, strictly default to professional Dental Science
-        if (!subject || subject.toLowerCase() === 'all' || subject.toLowerCase() === 'professional') {
+        if (subject && (subject.toLowerCase() === 'professional' || subject.toLowerCase() === 'dental')) {
           filtered = filtered.filter((q) => dentalSubs.includes(q.subject.toLowerCase()));
+        } else if (!subject || subject.toLowerCase() === 'all') {
+          // Keep all eligible questions (BDS professional + 6 shared general subjects: 15,299 questions)
+          // Prioritize professional BDS questions at the top
+          filtered = [...filtered].sort((a, b) => {
+            const aDen = dentalSubs.includes(a.subject.toLowerCase()) ? 1 : 0;
+            const bDen = dentalSubs.includes(b.subject.toLowerCase()) ? 1 : 0;
+            if (aDen !== bDen) return bDen - aDen;
+            return a.id.localeCompare(b.id);
+          });
         }
       } else {
-        // Track special_bcs_health_51_2026 without stream specified: default to all professional health subjects
-        if (!subject || subject.toLowerCase() === 'all' || subject.toLowerCase() === 'professional') {
+        // Track special_bcs_health_51_2026 without stream specified
+        if (subject && subject.toLowerCase() === 'professional') {
           filtered = filtered.filter((q) => proSubs.includes(q.subject.toLowerCase()));
+        } else if (!subject || subject.toLowerCase() === 'all') {
+          // Prioritize all professional health questions first, then shared
+          filtered = [...filtered].sort((a, b) => {
+            const aPro = proSubs.includes(a.subject.toLowerCase()) ? 1 : 0;
+            const bPro = proSubs.includes(b.subject.toLowerCase()) ? 1 : 0;
+            if (aPro !== bPro) return bPro - aPro;
+            return a.id.localeCompare(b.id);
+          });
         }
       }
     }

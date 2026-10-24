@@ -708,11 +708,11 @@ export default function DailyStudyPage() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/question-bank"
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
+            href={`/question-bank?track=${examTrack}&stream=${professionalStream}`}
+            className="px-4 py-2 rounded-xl border border-[#6538F5]/20 bg-[#F0EBFF] hover:bg-[#E4D9FF] text-[#6538F5] text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
           >
-            <BookOpen className="h-3.5 w-3.5 text-blue-600" />
-            <span>প্রশ্ন ব্যাংক (২০k)</span>
+            <BookOpen className="h-3.5 w-3.5 text-[#6538F5]" />
+            <span>Question Bank</span>
           </Link>
           <Link
             href="/mistake-notebook"
