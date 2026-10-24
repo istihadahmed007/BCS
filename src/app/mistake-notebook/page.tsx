@@ -39,7 +39,25 @@ import {
   ProfessionalStreamId,
   Question,
 } from '@/types';
-import { SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
+import { GENERAL_BCS_SUBJECTS, SPECIAL_BCS_HEALTH_SUBJECTS } from '@/data/exam-configs';
+
+// Comprehensive subject list covering General BCS and Special BCS Health
+const ALL_NOTEBOOK_SUBJECTS = [
+  { code: 'BANGLA', nameBn: 'বাংলা ভাষা ও সাহিত্য' },
+  { code: 'ENGLISH', nameBn: 'ইংরেজি ভাষা ও সাহিত্য' },
+  { code: 'BD_AFFAIRS', nameBn: 'বাংলাদেশ বিষয়াবলী' },
+  { code: 'INT_AFFAIRS', nameBn: 'আন্তর্জাতিক বিষয়াবলী' },
+  { code: 'MATH', nameBn: 'গাণিতিক যুক্তি' },
+  { code: 'MENTAL_ABILITY', nameBn: 'মানসিক দক্ষতা' },
+  { code: 'G_SCIENCE', nameBn: 'সাধারণ বিজ্ঞান' },
+  { code: 'G_COMPUTER', nameBn: 'কম্পিউটার ও তথ্যপ্রযুক্তি' },
+  { code: 'G_GEOGRAPHY', nameBn: 'ভূগোল ও পরিবেশ' },
+  { code: 'G_ETHICS', nameBn: 'নৈতিকতা ও সুশাসন' },
+  { code: 'MED_SCI_1', nameBn: 'চিকিৎসা বিজ্ঞান — ১ম পত্র (Basic Medical Science)' },
+  { code: 'MED_SCI_2', nameBn: 'চিকিৎসা বিজ্ঞান — ২য় পত্র (Clinical Medical Science)' },
+  { code: 'DENTAL_SCI_1', nameBn: 'দন্ত চিকিৎসা বিজ্ঞান — ১ম পত্র' },
+  { code: 'DENTAL_SCI_2', nameBn: 'দন্ত চিকিৎসা বিজ্ঞান — ২য় পত্র' },
+];
 
 export default function MistakeNotebookPage() {
   const router = useRouter();
@@ -426,7 +444,7 @@ export default function MistakeNotebookPage() {
               className="text-xs p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium"
             >
               <option value="all">সকল বিষয় (All Subjects)</option>
-              {SPECIAL_BCS_HEALTH_SUBJECTS.map((s) => (
+              {ALL_NOTEBOOK_SUBJECTS.map((s) => (
                 <option key={s.code} value={s.code}>
                   {s.nameBn}
                 </option>
@@ -561,6 +579,7 @@ export default function MistakeNotebookPage() {
                         onClick={() => handleDeleteEntry(entry.id)}
                         className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-rose-50 text-rose-600 text-xs"
                         title="Delete from Notebook"
+                        aria-label="Delete from Notebook"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

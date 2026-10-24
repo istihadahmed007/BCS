@@ -641,7 +641,8 @@ export default function StudyQuestionBankPage() {
                     setSelectedSubject('all');
                     setSelectedTopic('all');
                   }}
-                  className="hover:text-red-500"
+                  className="hover:text-red-500 p-0.5 rounded"
+                  aria-label={`Remove subject filter ${selectedSubject}`}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -653,7 +654,8 @@ export default function StudyQuestionBankPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedTopic('all')}
-                  className="hover:text-red-500"
+                  className="hover:text-red-500 p-0.5 rounded"
+                  aria-label={`Remove topic filter ${selectedTopic}`}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -665,7 +667,8 @@ export default function StudyQuestionBankPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="hover:text-red-500"
+                  className="hover:text-red-500 p-0.5 rounded"
+                  aria-label="Clear search query"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -995,6 +998,7 @@ export default function StudyQuestionBankPage() {
               disabled={currentPage <= 1}
               className="p-2 rounded-xl border border-[#E3E8F2] bg-white text-[#17233F] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#F5F7FC]"
               title="প্রথম পেজ"
+              aria-label="First page"
             >
               <ChevronsLeft className="h-4 w-4" />
             </button>
@@ -1008,6 +1012,7 @@ export default function StudyQuestionBankPage() {
               }}
               disabled={currentPage <= 1}
               className="px-3 py-1.5 rounded-xl border border-[#E3E8F2] bg-white text-xs font-bold text-[#17233F] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#F5F7FC] flex items-center gap-1"
+              aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
               পূর্ববর্তী
@@ -1036,6 +1041,8 @@ export default function StudyQuestionBankPage() {
                         ? 'bg-[#6538F5] text-white shadow-xs'
                         : 'bg-white text-[#66748B] border border-[#E3E8F2] hover:bg-[#F5F7FC]'
                     }`}
+                    aria-label={`Go to page ${pageNum}`}
+                    aria-current={currentPage === pageNum ? 'page' : undefined}
                   >
                     {pageNum}
                   </button>
@@ -1052,6 +1059,7 @@ export default function StudyQuestionBankPage() {
               }}
               disabled={currentPage >= totalPages}
               className="px-3 py-1.5 rounded-xl border border-[#E3E8F2] bg-white text-xs font-bold text-[#17233F] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#F5F7FC] flex items-center gap-1"
+              aria-label="Next page"
             >
               পরবর্তী
               <ChevronRight className="h-4 w-4" />
@@ -1067,6 +1075,7 @@ export default function StudyQuestionBankPage() {
               disabled={currentPage >= totalPages}
               className="p-2 rounded-xl border border-[#E3E8F2] bg-white text-[#17233F] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#F5F7FC]"
               title="সর্বশেষ পেজ"
+              aria-label="Last page"
             >
               <ChevronsRight className="h-4 w-4" />
             </button>
@@ -1089,6 +1098,7 @@ export default function StudyQuestionBankPage() {
                 type="button"
                 onClick={() => setReportingQuestion(null)}
                 className="p-1 rounded-lg text-[#8792A5] hover:text-[#17233F]"
+                aria-label="Close error report dialog"
               >
                 <X className="h-5 w-5" />
               </button>

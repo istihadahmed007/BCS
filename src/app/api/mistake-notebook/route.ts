@@ -52,7 +52,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const userId = body.userId || request.headers.get('x-user-id') || 'student_current';
-    const { questionId, userSelectedOption, testSessionId, errorType, candidateNotes } = body;
+    const { questionId, testSessionId, errorType, candidateNotes } = body;
+    const userSelectedOption = body.userSelectedOption || body.userSelectedOptionId || null;
 
     if (!questionId) {
       return NextResponse.json(

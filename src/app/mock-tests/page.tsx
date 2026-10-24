@@ -336,6 +336,7 @@ export default function MockTestsHubPage() {
                 type="button"
                 onClick={() => setActiveTestModal(null)}
                 className="p-1 rounded-lg text-[#8792A5] hover:text-[#17233F]"
+                aria-label="Close instructions dialog"
               >
                 <X className="h-5 w-5" />
               </button>

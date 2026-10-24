@@ -282,6 +282,7 @@ function PackagesContent() {
             <button
               onClick={() => setPaymentNotice(null)}
               className="p-1 rounded-lg hover:bg-black/5 text-slate-500"
+              aria-label="Close notification"
             >
               <X className="h-4 w-4" />
             </button>
@@ -463,6 +464,7 @@ function PackagesContent() {
             <button
               onClick={() => setCheckoutModalOpen(false)}
               className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              aria-label="Close checkout modal"
             >
               <X className="h-5 w-5" />
             </button>

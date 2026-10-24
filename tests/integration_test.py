@@ -8,7 +8,7 @@ base = 'http://localhost:3000'
 def test_endpoint(name, method, url, **kwargs):
     res = requests.request(method, url, **kwargs)
     print(f'[{res.status_code}] {name} ({method} {url})')
-    assert res.status_code in [200, 201], f'Failed {name}: {res.status_code}'
+    assert res.status_code in [200, 201], f'Failed {name}: {res.status_code} - {res.text}'
     return res
 
 print('=== 1. TESTING FRONTEND ROUTES ===')

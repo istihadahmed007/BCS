@@ -277,13 +277,31 @@ export default function TestPlayerContent({
   };
 
   // Save to Mistake Notebook
-  const handleSaveToMistakeNotebook = (questionId: string) => {
-    const existing = JSON.parse(localStorage.getItem('bcs_mistake_notebook') || '[]');
-    if (!existing.includes(questionId)) {
-      existing.push(questionId);
-      localStorage.setItem('bcs_mistake_notebook', JSON.stringify(existing));
+  const handleSaveToMistakeNotebook = async (questionId: string) => {
+    try {
+      const resp = responses[questionId];
+      await fetch('/api/mistake-notebook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionId,
+          userSelectedOption: resp?.selectedOptionId || null,
+          testSessionId: sessionId,
+          errorType: 'conceptual_misunderstanding',
+          candidateNotes: `মডেল টেস্ট (${session?.title || 'Mock Test'}) এ উত্তর দেওয়া হয়েছিল: ${resp?.selectedOptionId || 'অনুত্তরিত'}।`,
+        }),
+      });
+
+      const existing = JSON.parse(localStorage.getItem('bcs_mistake_notebook') || '[]');
+      if (!existing.includes(questionId)) {
+        existing.push(questionId);
+        localStorage.setItem('bcs_mistake_notebook', JSON.stringify(existing));
+      }
+      setSavedMistakes((prev) => new Set(prev).add(questionId));
+    } catch (e) {
+      console.error('Failed to sync mistake to server:', e);
+      setSavedMistakes((prev) => new Set(prev).add(questionId));
     }
-    setSavedMistakes((prev) => new Set(prev).add(questionId));
   };
 
   // Format timer
@@ -1036,6 +1054,7 @@ export default function TestPlayerContent({
                 type="button"
                 onClick={() => setAiModalQuestion(null)}
                 className="text-xs text-[#8792A5] hover:text-[#17233F]"
+                aria-label="Close AI tutor explanation"
               >
                 Close
               </button>
