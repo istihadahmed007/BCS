@@ -515,6 +515,31 @@ export class AuthService {
   }
 
   /**
+   * Finds or creates a user account from email authentication
+   */
+  static findOrCreateEmailUser(email: string): AuthUser {
+    const existing = this.getUserByEmail(email);
+    if (existing) return existing;
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const isSuperAdmin = this.isSuperAdminEmail(normalizedEmail);
+    const newUser: AuthUser = {
+      id: isSuperAdmin
+        ? `user_super_admin_${normalizedEmail.split('@')[0]}`
+        : 'usr_' + crypto.randomBytes(8).toString('hex'),
+      email: normalizedEmail,
+      fullName: normalizedEmail.split('@')[0],
+      role: isSuperAdmin ? 'super_admin' : 'student',
+      authProvider: 'credentials',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    globalAuth.__bcs_users__!.set(newUser.id, newUser);
+    SubscriptionService.grantFreePreview(newUser.id);
+    return newUser;
+  }
+
+  /**
    * List all users (Admin operation)
    */
   static listUsers(): AuthUser[] {

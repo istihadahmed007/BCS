@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Welcome Back</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-color: #f0f3f8;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #94a3b8;
+      --text-sub: #64748b;
+      --primary-blue: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-active: #1e40af;
+      --input-bg: #f4f7fb;
+      --input-border: #e2e8f0;
+      --input-focus-border: #3b82f6;
+      --error-color: #ef4444;
+      --error-bg: #fef2f2;
+      --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Soft Floating Background Elements */
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--bg-color);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .bg1 {
+      width: 340px;
+      height: 340px;
+      top: -90px;
+      left: -90px;
+      box-shadow: 18px 18px 36px rgba(166, 180, 200, 0.4), -18px -18px 36px rgba(255, 255, 255, 0.9);
+    }
+
+    .bg2 {
+      width: 300px;
+      height: 300px;
+      top: 15%;
+      right: -100px;
+      box-shadow: 16px 16px 32px rgba(166, 180, 200, 0.35), -16px -16px 32px rgba(255, 255, 255, 0.85);
+    }
+
+    .bg3 {
+      width: 360px;
+      height: 360px;
+      bottom: -110px;
+      right: 15%;
+      box-shadow: 20px 20px 40px rgba(166, 180, 200, 0.35), -20px -20px 40px rgba(255, 255, 255, 0.85);
+    }
+
+    .bg4 {
+      width: 180px;
+      height: 180px;
+      bottom: 60px;
+      left: -40px;
+      box-shadow: 12px 12px 24px rgba(166, 180, 200, 0.3), -12px -12px 24px rgba(255, 255, 255, 0.85);
+    }
+
+    /* Login Card Container */
+    .login-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-card {
+      background: var(--card-bg);
+      border-radius: 32px;
+      padding: 38px 32px;
+      box-shadow: 
+        0 24px 48px -12px rgba(15, 23, 42, 0.08),
+        0 4px 16px -2px rgba(15, 23, 42, 0.02),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Header Pod & Icon */
+    .icon-pod {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: #f0f4f9;
+      box-shadow: 
+        inset 3px 3px 6px rgba(166, 180, 200, 0.35),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.95),
+        0 2px 4px rgba(15, 23, 42, 0.02);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+      color: var(--primary-blue);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .icon-pod:hover {
+      transform: scale(1.06);
+    }
+
+    .icon-pod svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Typography */
+    .login-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-align: center;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      margin-left: 2px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .input-icon svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 48px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 14px;
+      padding: 0 42px 0 40px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-main);
+      outline: none;
+      box-shadow: inset 1px 1px 2px rgba(166, 180, 200, 0.15);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .form-input::placeholder {
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .form-input:hover {
+      border-color: #cbd5e1;
+    }
+
+    .form-input:focus {
+      background: #ffffff;
+      border-color: var(--input-focus-border);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+    }
+
+    .input-wrapper:focus-within .input-icon {
+      color: var(--primary-blue);
+    }
+
+    /* Password Toggle Button */
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 6px;
+      border-radius: 8px;
+      outline: none;
+      transition: color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .toggle-password:hover {
+      color: var(--text-main);
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .toggle-password:focus-visible {
+      outline: 2px solid var(--primary-blue);
+      outline-offset: 1px;
+    }
+
+    .toggle-password svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Error States */
+    .form-group.has-error .form-input {
+      border-color: var(--error-color);
+      background-color: var(--error-bg);
+    }
+
+    .form-group.has-error .form-input:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+    }
+
+    .error-text {
+      font-size: 11px;
+      color: var(--error-color);
+      font-weight: 500;
+      margin-top: 5px;
+      margin-left: 4px;
+      display: none;
+    }
+
+    .form-group.has-error .error-text {
+      display: block;
+    }
+
+    /* Remember & Forgot Row */
+    .form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      margin-bottom: 22px;
+      font-size: 12.5px;
+    }
+
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-sub);
+      user-select: none;
+      font-weight: 500;
+    }
+
+    .custom-checkbox {
+      width: 17px;
+      height: 17px;
+      border-radius: 5px;
+      border: 1.5px solid #cbd5e1;
+      background: var(--input-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .checkbox-label input[type="checkbox"]:focus-visible + .custom-checkbox {
+      outline: 2px solid var(--primary-blue);
+      outline-offset: 2px;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .custom-checkbox {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+    }
+
+    .custom-checkbox svg {
+      width: 11px;
+      height: 11px;
+      stroke: #ffffff;
+      stroke-width: 3;
+      fill: none;
+      display: none;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .custom-checkbox svg {
+      display: block;
+    }
+
+    .forgot-link {
+      color: var(--primary-blue);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+      outline: none;
+      border-radius: 4px;
+    }
+
+    .forgot-link:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    .forgot-link:focus-visible {
+      outline: 2px solid var(--primary-blue);
+      outline-offset: 2px;
+    }
+
+    /* Primary Login Button */
+    .btn-login {
+      width: 100%;
+      height: 50px;
+      background: var(--primary-blue);
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      outline: none;
+    }
+
+    .btn-login:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.38);
+      transform: translateY(-1px);
+    }
+
+    .btn-login:active {
+      background: var(--primary-active);
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.24);
+    }
+
+    .btn-login:focus-visible {
+      outline: 3px solid rgba(59, 130, 246, 0.4);
+      outline-offset: 2px;
+    }
+
+    .btn-login:disabled {
+      opacity: 0.75;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-login.is-loading .spinner {
+      display: block;
+    }
+
+    .btn-login.is-loading .btn-text {
+      opacity: 0.8;
+    }
+
+    /* Sign-up Prompt Footer */
+    .signup-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    .plus-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: var(--primary-blue);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .plus-badge:hover {
+      background: #dbeafe;
+      transform: scale(1.08);
+    }
+
+    .signup-link {
+      color: var(--primary-blue);
+      text-decoration: none;
+      font-weight: 600;
+      outline: none;
+      border-radius: 4px;
+    }
+
+    .signup-link:hover {
+      text-decoration: underline;
+    }
+
+    .signup-link:focus-visible {
+      outline: 2px solid var(--primary-blue);
+      outline-offset: 2px;
+    }
+
+    /* General Form Alert */
+    .alert-box {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-box.alert-error {
+      display: flex;
+      background: var(--error-bg);
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-box.alert-success {
+      display: flex;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 480px) {
+      body {
+        padding: 16px;
+      }
+
+      .login-card {
+        padding: 30px 22px;
+        border-radius: 26px;
+      }
+
+      .login-title {
+        font-size: 22px;
+      }
+
+      .form-options {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Decorative Soft Floating Neumorphic Elements -->
+  <div class="bg-circle bg1" aria-hidden="true"></div>
+  <div class="bg-circle bg2" aria-hidden="true"></div>
+  <div class="bg-circle bg3" aria-hidden="true"></div>
+  <div class="bg-circle bg4" aria-hidden="true"></div>
+
+  <!-- Centered Login Card -->
+  <main class="login-wrapper">
+    <div class="login-card">
+      <!-- Blue Lock Icon Pod -->
+      <div class="icon-pod" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+
+      <!-- Welcome Heading & Helper Text -->
+      <h1 class="login-title">Welcome</h1>
+      <p class="login-subtitle">Login to continue your journey</p>
+
+      <!-- Alert Box -->
+      <div id="alertBox" class="alert-box" role="alert">
+        <span id="alertMsg"></span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" novalidate>
+        <!-- Email Field -->
+        <div class="form-group" id="emailGroup">
+          <label class="form-label" for="emailInput">Email address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24">
+                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+              </svg>
+            </span>
+            <input
+              type="email"
+              id="emailInput"
+              class="form-input"
+              placeholder="name@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <span class="error-text" id="emailError">Please enter a valid email address</span>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group" id="passwordGroup">
+          <label class="form-label" for="passwordInput">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <input
+              type="password"
+              id="passwordInput"
+              class="form-input"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+              minlength="6"
+            />
+            <button
+              type="button"
+              id="togglePassword"
+              class="toggle-password"
+              aria-label="Toggle password visibility"
+            >
+              <svg id="eyeIcon" viewBox="0 0 24 24">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <span class="error-text" id="passwordError">Password must be at least 6 characters</span>
+        </div>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="form-options">
+          <label class="checkbox-label" for="rememberMe">
+            <input type="checkbox" id="rememberMe" />
+            <span class="custom-checkbox">
+              <svg viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            Remember me
+          </label>
+          <a href="#forgot" class="forgot-link" id="forgotLink">Forgot password?</a>
+        </div>
+
+        <!-- Prominent Blue Login Button -->
+        <button type="submit" class="btn-login" id="loginBtn">
+          <div class="spinner" id="btnSpinner" aria-hidden="true"></div>
+          <span class="btn-text" id="btnText">Login</span>
+        </button>
+      </form>
+
+      <!-- Sign Up Prompt -->
+      <div class="signup-footer">
+        <span>Don't have an account?</span>
+        <a href="#signup" class="plus-badge" title="Sign up" aria-label="Sign up">+</a>
+        <a href="#signup" class="signup-link">Sign up</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const emailGroup = document.getElementById('emailGroup');
+    const passwordGroup = document.getElementById('passwordGroup');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = document.getElementById('btnText');
+    const alertBox = document.getElementById('alertBox');
+    const alertMsg = document.getElementById('alertMsg');
+    const forgotLink = document.getElementById('forgotLink');
+
+    // Show/Hide Password Toggle
+    togglePassword.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      togglePassword.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+      
+      if (isPassword) {
+        eyeIcon.innerHTML = `
+          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+          <line x1="2" y1="2" x2="22" y2="22"></line>
+        `;
+      } else {
+        eyeIcon.innerHTML = `
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+      }
+    });
+
+    // Validation Functions
+    function validateEmail(val) {
+      if (!val.trim()) return 'Email address is required';
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!re.test(val.trim())) return 'Please enter a valid email address';
+      return null;
+    }
+
+    function validatePassword(val) {
+      if (!val) return 'Password is required';
+      if (val.length < 6) return 'Password must be at least 6 characters';
+      return null;
+    }
+
+    // Input Events
+    emailInput.addEventListener('blur', () => {
+      const err = validateEmail(emailInput.value);
+      if (err) {
+        emailGroup.classList.add('has-error');
+        emailError.textContent = err;
+      } else {
+        emailGroup.classList.remove('has-error');
+      }
+    });
+
+    emailInput.addEventListener('input', () => {
+      if (emailGroup.classList.contains('has-error')) {
+        const err = validateEmail(emailInput.value);
+        if (!err) emailGroup.classList.remove('has-error');
+      }
+    });
+
+    passwordInput.addEventListener('blur', () => {
+      const err = validatePassword(passwordInput.value);
+      if (err) {
+        passwordGroup.classList.add('has-error');
+        passwordError.textContent = err;
+      } else {
+        passwordGroup.classList.remove('has-error');
+      }
+    });
+
+    passwordInput.addEventListener('input', () => {
+      if (passwordGroup.classList.contains('has-error')) {
+        const err = validatePassword(passwordInput.value);
+        if (!err) passwordGroup.classList.remove('has-error');
+      }
+    });
+
+    // Forgot password alert simulation
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const currentEmail = emailInput.value.trim();
+      if (currentEmail && !validateEmail(currentEmail)) {
+        showAlert(`Password reset instructions sent to ${currentEmail}`, 'success');
+      } else {
+        showAlert('Please enter your email above to receive a reset link', 'error');
+        emailInput.focus();
+      }
+    });
+
+    function showAlert(msg, type) {
+      alertBox.className = 'alert-box alert-' + type;
+      alertMsg.textContent = msg;
+      alertBox.style.display = 'flex';
+      setTimeout(() => {
+        alertBox.style.display = 'none';
+      }, 5000);
+    }
+
+    // Form Submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const emailErr = validateEmail(emailInput.value);
+      const passErr = validatePassword(passwordInput.value);
+
+      if (emailErr) {
+        emailGroup.classList.add('has-error');
+        emailError.textContent = emailErr;
+      } else {
+        emailGroup.classList.remove('has-error');
+      }
+
+      if (passErr) {
+        passwordGroup.classList.add('has-error');
+        passwordError.textContent = passErr;
+      } else {
+        passwordGroup.classList.remove('has-error');
+      }
+
+      if (emailErr || passErr) return;
+
+      // Start Loading Animation
+      loginBtn.classList.add('is-loading');
+      loginBtn.disabled = true;
+      btnText.textContent = 'Logging in...';
+
+      // Send to server API if available, else graceful simulation
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailInput.value.trim(),
+            password: passwordInput.value,
+            rememberMe: document.getElementById('rememberMe').checked,
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          btnText.textContent = 'Success!';
+          showAlert('Login successful! Redirecting to dashboard...', 'success');
+          setTimeout(() => {
+            window.location.href = data.redirectUrl || '/dashboard';
+          }, 800);
+          return;
+        } else {
+          throw new Error(data.error || 'Invalid credentials');
+        }
+      } catch (err) {
+        showAlert(err.message || 'Login failed. Please check your credentials.', 'error');
+        loginBtn.classList.remove('is-loading');
+        loginBtn.disabled = false;
+        btnText.textContent = 'Login';
+      }
+    });
+  </script>
+</body>
+</html>
