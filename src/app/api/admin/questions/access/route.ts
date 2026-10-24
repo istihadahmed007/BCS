@@ -8,11 +8,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionCookie = request.cookies.get('bcs_session')?.value;
-    const session = AuthService.verifySessionToken(sessionCookie);
-
-    if (!session || (session.role !== 'super_admin' && session.role !== 'exam_manager')) {
-      return NextResponse.json({ success: false, error: 'Forbidden: Admin access required.' }, { status: 403 });
+    const auth = AuthService.checkSuperAdmin(request);
+    if (!auth.success) {
+      return NextResponse.json(
+        { success: false, code: auth.code, error: auth.error },
+        { status: auth.status }
+      );
     }
 
     const manifest = QuestionBankService.getManifest();
@@ -37,12 +38,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionCookie = request.cookies.get('bcs_session')?.value;
-    const session = AuthService.verifySessionToken(sessionCookie);
-
-    if (!session || (session.role !== 'super_admin' && session.role !== 'exam_manager')) {
-      return NextResponse.json({ success: false, error: 'Forbidden: Admin access required.' }, { status: 403 });
+    const auth = AuthService.checkSuperAdmin(request);
+    if (!auth.success) {
+      return NextResponse.json(
+        { success: false, code: auth.code, error: auth.error },
+        { status: auth.status }
+      );
     }
+    const session = auth.session;
 
     const body = await request.json();
     const { questionIds, accessTier, reason = 'Admin bulk access classification update' } = body;

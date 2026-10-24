@@ -3,13 +3,14 @@
 import React, { Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, Mail, Eye, EyeOff, Check, AlertCircle, Plus, X } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Check, AlertCircle, Plus, X, ShieldAlert } from 'lucide-react';
 import GoogleLoginModal from '@/components/auth/GoogleLoginModal';
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const errorParam = searchParams.get('error');
+  const reasonParam = searchParams.get('reason');
   const redirect = searchParams.get('redirect') || '/dashboard';
 
   // Form states
@@ -187,6 +188,22 @@ function LoginFormContent() {
             <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Welcome</h1>
             <p className="text-xs text-slate-400 font-medium mt-1">Login to continue your journey</p>
           </div>
+
+          {/* Single Concurrent Device / Superseded Session Notification */}
+          {reasonParam === 'session_superseded' && (
+            <div
+              role="alert"
+              className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200/90 text-amber-900 text-xs flex items-start gap-2.5 animate-fadeIn shadow-xs"
+            >
+              <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+              <div className="flex-1 leading-relaxed">
+                <strong className="block font-semibold text-amber-950 text-[13px] mb-0.5">
+                  Signed Out: Account Active on Another Device
+                </strong>
+                Your session has ended because this account signed in on another device. Each account is limited to one active device at a time. Please log in again to continue on this device.
+              </div>
+            </div>
+          )}
 
           {/* General or OAuth Error Alert */}
           {(errors.general || errorParam) && (

@@ -1,7 +1,7 @@
 'use client';
-
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
   CheckCircle2,
@@ -17,6 +17,38 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function verifyAdminAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+
+        if (data.superseded || data.code === 'SESSION_SUPERSEDED') {
+          router.push(`/login?reason=session_superseded&redirect=${encodeURIComponent(pathname)}`);
+          return;
+        }
+
+        if (!data.authenticated || !data.user) {
+          router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+          return;
+        }
+
+        if (data.user.role !== 'super_admin') {
+          router.push(`/access-denied?from=${encodeURIComponent(pathname)}`);
+          return;
+        }
+
+        setIsAuthorized(true);
+      } catch {
+        router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      }
+    }
+
+    verifyAdminAuth();
+  }, [pathname, router]);
 
   const navItems = [
     {

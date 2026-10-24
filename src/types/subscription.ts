@@ -90,6 +90,8 @@ export interface AuthUser {
   role: UserRole;
   authProvider: 'google' | 'credentials' | 'anonymous';
   googleId?: string;
+  passwordHash?: string;
+  passwordSalt?: string;
   createdAt: string;
   updatedAt: string;
 }

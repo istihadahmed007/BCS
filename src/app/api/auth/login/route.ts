@@ -39,12 +39,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Find or register user
-    const user = AuthService.findOrCreateEmailUser(email.trim());
+    // 2. Authoritative server-side password authentication & RBAC verification
+    const authResult = AuthService.authenticateWithPassword(email.trim(), password);
+    if (!authResult.success) {
+      const status =
+        authResult.code === 'UNAUTHORIZED_ADMIN' || authResult.code === 'WRONG_PASSWORD'
+          ? 401
+          : 400;
+      return NextResponse.json(
+        { success: false, error: authResult.error, code: authResult.code },
+        { status }
+      );
+    }
+    const user = authResult.user;
 
     // 3. Create Session Token (30 days if rememberMe, else 7 days)
+    // Enforces SINGLE ACTIVE DEVICE: invalidates any prior session for this account
     const durationDays = rememberMe ? 30 : 7;
     const sessionToken = AuthService.createSession(user, durationDays);
+
+    // Sanitize redirect target to prevent open redirect attacks
+    let safeRedirect = '/dashboard';
+    if (typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')) {
+      safeRedirect = redirect;
+    }
 
     // 4. Return success response with HttpOnly session cookie
     const response = NextResponse.json({
@@ -56,7 +74,7 @@ export async function POST(request: NextRequest) {
         fullName: user.fullName,
         role: user.role,
       },
-      redirectUrl: redirect.startsWith('/') ? redirect : '/dashboard',
+      redirectUrl: safeRedirect,
     });
 
     const isProduction = process.env.NODE_ENV === 'production' || origin.startsWith('https://');

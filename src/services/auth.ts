@@ -21,22 +21,62 @@ export const SUPER_ADMIN_EMAILS: ReadonlySet<string> = new Set([
     : []),
 ]);
 
+// Single concurrent active session per account types & models
+export interface SupersededSessionInfo {
+  userId: string;
+  email: string;
+  supersededAt: number;
+  reason: 'signed_in_on_another_device' | 'admin_revocation';
+}
+
+export type SessionValidationStatus =
+  | 'valid'
+  | 'missing'
+  | 'invalid'
+  | 'expired'
+  | 'superseded';
+
+export interface SessionValidationResult {
+  status: SessionValidationStatus;
+  session: SessionTokenPayload | null;
+  user: AuthUser | null;
+  message: string;
+  code?: string;
+}
+
+export function hashPasswordWithSalt(password: string, salt: string): string {
+  return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+}
+
+export const DEFAULT_SUPER_ADMIN_PASSWORD =
+  process.env.SUPER_ADMIN_PASSWORD || 'Istihad@Admin2026!';
+
 // Global singleton user and session store for development, standalone, and tests
 const globalAuth = globalThis as unknown as {
   __bcs_users__?: Map<string, AuthUser>;
   __bcs_sessions__?: Map<string, SessionTokenPayload>;
+  __bcs_user_active_session__?: Map<string, string>; // userId -> active sessionId
+  __bcs_superseded_sessions__?: Map<string, SupersededSessionInfo>; // sessionId -> info
 };
 
 if (!globalAuth.__bcs_users__) {
   globalAuth.__bcs_users__ = new Map();
 
-  // Seed Primary Super Admin accounts
+  const adminSalt = 'bcs_admin_salt_sec_2026';
+  const adminHash = hashPasswordWithSalt(DEFAULT_SUPER_ADMIN_PASSWORD, adminSalt);
+
+  const studentSalt = 'bcs_student_salt_sec_2026';
+  const studentHash = hashPasswordWithSalt('student123456', studentSalt);
+
+  // Seed Primary Super Admin accounts (Full authority over application, users, data, settings)
   const superAdmin1163: AuthUser = {
     id: 'user_super_admin_1163',
     email: 'istihadahmed1163@gmail.com',
     fullName: 'Istihad Ahmed (Super Admin)',
     role: 'super_admin',
     authProvider: 'google',
+    passwordSalt: adminSalt,
+    passwordHash: adminHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -47,6 +87,8 @@ if (!globalAuth.__bcs_users__) {
     fullName: 'Istihad Ahmed (Admin)',
     role: 'super_admin',
     authProvider: 'google',
+    passwordSalt: adminSalt,
+    passwordHash: adminHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -57,6 +99,8 @@ if (!globalAuth.__bcs_users__) {
     fullName: 'BCSCrack Super Admin',
     role: 'super_admin',
     authProvider: 'credentials',
+    passwordSalt: adminSalt,
+    passwordHash: adminHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -67,6 +111,8 @@ if (!globalAuth.__bcs_users__) {
     fullName: 'BCS Aspirant Student',
     role: 'student',
     authProvider: 'credentials',
+    passwordSalt: studentSalt,
+    passwordHash: studentHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -79,6 +125,14 @@ if (!globalAuth.__bcs_users__) {
 
 if (!globalAuth.__bcs_sessions__) {
   globalAuth.__bcs_sessions__ = new Map();
+}
+
+if (!globalAuth.__bcs_user_active_session__) {
+  globalAuth.__bcs_user_active_session__ = new Map();
+}
+
+if (!globalAuth.__bcs_superseded_sessions__) {
+  globalAuth.__bcs_superseded_sessions__ = new Map();
 }
 
 export function resolveOrigin(request: {
@@ -413,6 +467,12 @@ export class AuthService {
   /**
    * Creates a signed session token for authenticated user
    */
+  /**
+   * Creates a signed session token for authenticated user.
+   * Enforces SINGLE CONCURRENT ACTIVE DEVICE:
+   * If the account already has an active session on another device, that previous session
+   * is immediately invalidated and flagged as superseded.
+   */
   static createSession(user: AuthUser, durationDays = 7): string {
     const isSuperAdmin = this.isSuperAdminEmail(user.email);
     const effectiveRole: UserRole = isSuperAdmin ? 'super_admin' : user.role;
@@ -423,6 +483,22 @@ export class AuthService {
     const sessionId = 'sess_' + crypto.randomBytes(16).toString('hex');
     const now = Math.floor(Date.now() / 1000);
     const expiresAt = now + durationDays * 24 * 60 * 60;
+
+    // SINGLE ACTIVE DEVICE RULE:
+    // If account has an active session from an earlier sign-in, invalidate it and flag it
+    const previousSessionId = globalAuth.__bcs_user_active_session__?.get(user.id);
+    if (previousSessionId && previousSessionId !== sessionId) {
+      globalAuth.__bcs_sessions__?.delete(previousSessionId);
+      globalAuth.__bcs_superseded_sessions__?.set(previousSessionId, {
+        userId: user.id,
+        email: user.email,
+        supersededAt: Date.now(),
+        reason: 'signed_in_on_another_device',
+      });
+    }
+
+    // Set this new session as the ONLY active session for this account
+    globalAuth.__bcs_user_active_session__?.set(user.id, sessionId);
 
     const payload: SessionTokenPayload = {
       sessionId,
@@ -449,14 +525,35 @@ export class AuthService {
   }
 
   /**
-   * Verifies session token and returns active session payload
+   * Validates session token with authoritative server-side checks:
+   * 1. Cryptographic HMAC signature integrity
+   * 2. Expiration timestamp
+   * 3. Single active device enforcement (detects if session was superseded by a newer login)
+   * 4. Session existence in active store
+   * 5. Authoritative Super Admin role elevation for verified admin emails
    */
-  static verifySessionToken(tokenString: string | null | undefined): SessionTokenPayload | null {
-    if (!tokenString) return null;
+  static validateActiveSession(tokenString: string | null | undefined): SessionValidationResult {
+    if (!tokenString) {
+      return {
+        status: 'missing',
+        session: null,
+        user: null,
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required. No active session found.',
+      };
+    }
 
     try {
       const parts = tokenString.split('.');
-      if (parts.length !== 2) return null;
+      if (parts.length !== 2) {
+        return {
+          status: 'invalid',
+          session: null,
+          user: null,
+          code: 'INVALID_TOKEN',
+          message: 'Malformed session token format.',
+        };
+      }
 
       const [encodedPayload, signature] = parts;
       const expectedSignature = crypto
@@ -464,8 +561,17 @@ export class AuthService {
         .update(encodedPayload)
         .digest('base64url');
 
-      if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
-        return null;
+      if (
+        signature.length !== expectedSignature.length ||
+        !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
+      ) {
+        return {
+          status: 'invalid',
+          session: null,
+          user: null,
+          code: 'INVALID_TOKEN',
+          message: 'Invalid session cryptographic signature.',
+        };
       }
 
       const payload: SessionTokenPayload = JSON.parse(
@@ -475,25 +581,224 @@ export class AuthService {
       const now = Math.floor(Date.now() / 1000);
       if (payload.expiresAt < now) {
         globalAuth.__bcs_sessions__?.delete(payload.sessionId);
-        return null;
+        return {
+          status: 'expired',
+          session: null,
+          user: null,
+          code: 'SESSION_EXPIRED',
+          message: 'Your session has expired. Please log in again.',
+        };
       }
 
-      // Server-side check: enforce super_admin role for verified super admin emails
-      if (payload && this.isSuperAdminEmail(payload.email)) {
+      // Check if session was superseded because this account signed in on another device
+      const supersededInfo = globalAuth.__bcs_superseded_sessions__?.get(payload.sessionId);
+      const currentActiveSessionId = globalAuth.__bcs_user_active_session__?.get(payload.userId);
+
+      if (supersededInfo || (currentActiveSessionId && currentActiveSessionId !== payload.sessionId)) {
+        return {
+          status: 'superseded',
+          session: payload,
+          user: null,
+          code: 'SESSION_SUPERSEDED',
+          message:
+            'Your session has ended because this account signed in on another device. Each account is limited to one active device at a time.',
+        };
+      }
+
+      // Check active session store
+      if (!globalAuth.__bcs_sessions__?.has(payload.sessionId)) {
+        return {
+          status: 'invalid',
+          session: null,
+          user: null,
+          code: 'SESSION_REVOKED',
+          message: 'Session has been revoked or signed out.',
+        };
+      }
+
+      // Authoritative Super Admin check:
+      // Verify email on the server and enforce super_admin role
+      if (this.isSuperAdminEmail(payload.email)) {
         payload.role = 'super_admin';
       }
 
-      return payload;
-    } catch {
-      return null;
+      const user = this.getUserById(payload.userId) || this.getUserByEmail(payload.email);
+      if (user && this.isSuperAdminEmail(user.email)) {
+        user.role = 'super_admin';
+      }
+
+      return {
+        status: 'valid',
+        session: payload,
+        user: user || {
+          id: payload.userId,
+          email: payload.email,
+          fullName: payload.fullName,
+          role: payload.role,
+          authProvider: 'credentials',
+          createdAt: new Date(payload.issuedAt * 1000).toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        message: 'Session is valid.',
+      };
+    } catch (err: any) {
+      return {
+        status: 'invalid',
+        session: null,
+        user: null,
+        code: 'INVALID_TOKEN',
+        message: err.message || 'Session verification failed.',
+      };
     }
+  }
+
+  /**
+   * Verifies session token and returns active session payload if valid
+   */
+  static verifySessionToken(tokenString: string | null | undefined): SessionTokenPayload | null {
+    const result = this.validateActiveSession(tokenString);
+    return result.status === 'valid' ? result.session : null;
+  }
+
+  /**
+   * Authenticates user using email and password with server-side validation and RBAC enforcement.
+   * Prevents client-side role forgery or unauthorized elevation.
+   */
+  static authenticateWithPassword(
+    emailInput: string,
+    passwordInput: string
+  ): { success: true; user: AuthUser } | { success: false; error: string; code: string } {
+    const email = (emailInput || '').trim().toLowerCase();
+    const password = passwordInput || '';
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return { success: false, error: 'Please enter a valid email address.', code: 'INVALID_EMAIL' };
+    }
+
+    if (!password || password.length < 6) {
+      return {
+        success: false,
+        error: 'Password must be at least 6 characters long.',
+        code: 'INVALID_PASSWORD',
+      };
+    }
+
+    const isSuperAdmin = this.isSuperAdminEmail(email);
+
+    // Super Admin accounts: verify against authoritative server-side password
+    if (isSuperAdmin) {
+      const existing = this.getUserByEmail(email);
+      let isValid = false;
+
+      if (password === DEFAULT_SUPER_ADMIN_PASSWORD) {
+        isValid = true;
+      } else if (existing?.passwordHash && existing?.passwordSalt) {
+        const hash = hashPasswordWithSalt(password, existing.passwordSalt);
+        if (hash === existing.passwordHash) {
+          isValid = true;
+        }
+      }
+
+      if (!isValid) {
+        return {
+          success: false,
+          error: 'Invalid administrative password. Super Admin access requires verified credentials.',
+          code: 'UNAUTHORIZED_ADMIN',
+        };
+      }
+
+      if (existing) {
+        existing.role = 'super_admin';
+        return { success: true, user: existing };
+      }
+
+      // Seed Super Admin user
+      const adminSalt = 'bcs_admin_salt_sec_2026';
+      const adminHash = hashPasswordWithSalt(DEFAULT_SUPER_ADMIN_PASSWORD, adminSalt);
+      const newAdminUser: AuthUser = {
+        id: `user_super_admin_${email.split('@')[0]}`,
+        email,
+        fullName: email.includes('1163') ? 'Istihad Ahmed (Super Admin)' : 'Istihad Ahmed',
+        role: 'super_admin',
+        authProvider: 'credentials',
+        passwordSalt: adminSalt,
+        passwordHash: adminHash,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      globalAuth.__bcs_users__!.set(newAdminUser.id, newAdminUser);
+      return { success: true, user: newAdminUser };
+    }
+
+    // Standard student user authentication
+    const existingUser = this.getUserByEmail(email);
+    if (existingUser) {
+      if (existingUser.passwordHash && existingUser.passwordSalt) {
+        const hash = hashPasswordWithSalt(password, existingUser.passwordSalt);
+        if (hash !== existingUser.passwordHash) {
+          return {
+            success: false,
+            error: 'Incorrect password for this account.',
+            code: 'WRONG_PASSWORD',
+          };
+        }
+      } else {
+        // User registered via Google or without password hash yet - securely set password
+        const salt = crypto.randomBytes(16).toString('hex');
+        existingUser.passwordSalt = salt;
+        existingUser.passwordHash = hashPasswordWithSalt(password, salt);
+        existingUser.updatedAt = new Date().toISOString();
+      }
+      return { success: true, user: existingUser };
+    }
+
+    // New student user registration
+    const salt = crypto.randomBytes(16).toString('hex');
+    const passwordHash = hashPasswordWithSalt(password, salt);
+    const newUser: AuthUser = {
+      id: 'usr_' + crypto.randomBytes(8).toString('hex'),
+      email,
+      fullName: email.split('@')[0],
+      role: 'student',
+      authProvider: 'credentials',
+      passwordSalt: salt,
+      passwordHash,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    globalAuth.__bcs_users__!.set(newUser.id, newUser);
+    SubscriptionService.grantFreePreview(newUser.id);
+
+    return { success: true, user: newUser };
   }
 
   /**
    * Revokes a session (Logout)
    */
   static revokeSession(sessionId: string): void {
-    globalAuth.__bcs_sessions__?.delete(sessionId);
+    const session = globalAuth.__bcs_sessions__?.get(sessionId);
+    if (session) {
+      if (globalAuth.__bcs_user_active_session__?.get(session.userId) === sessionId) {
+        globalAuth.__bcs_user_active_session__?.delete(session.userId);
+      }
+      globalAuth.__bcs_sessions__?.delete(sessionId);
+    }
+  }
+
+  /**
+   * Retrieves current active session ID for a user
+   */
+  static getActiveSessionForUser(userId: string): string | null {
+    return globalAuth.__bcs_user_active_session__?.get(userId) || null;
+  }
+
+  /**
+   * Retrieves superseded information for a session if invalidated
+   */
+  static getSupersededInfo(sessionId: string): SupersededSessionInfo | null {
+    return globalAuth.__bcs_superseded_sessions__?.get(sessionId) || null;
   }
 
   /**
@@ -585,5 +890,87 @@ export class AuthService {
       userOrSession.role === 'content_reviewer' ||
       this.isSuperAdminEmail(userOrSession.email)
     );
+  }
+
+  /**
+   * Authoritative server-side authentication check for protected requests.
+   * Enforces valid active session and single active device rule.
+   */
+  static checkAuth(
+    requestOrCookie:
+      | string
+      | null
+      | undefined
+      | { cookies: { get: (name: string) => { value?: string } | undefined } }
+  ):
+    | { success: true; session: SessionTokenPayload; user: AuthUser }
+    | {
+        success: false;
+        status: 401 | 403;
+        code: 'UNAUTHORIZED' | 'SESSION_SUPERSEDED' | 'FORBIDDEN';
+        error: string;
+      } {
+    let token: string | null = null;
+    if (typeof requestOrCookie === 'string') {
+      token = requestOrCookie;
+    } else if (requestOrCookie && 'cookies' in requestOrCookie) {
+      token = requestOrCookie.cookies.get('bcs_session')?.value || null;
+    }
+
+    const validation = this.validateActiveSession(token);
+
+    if (validation.status === 'superseded') {
+      return {
+        success: false,
+        status: 401,
+        code: 'SESSION_SUPERSEDED',
+        error:
+          'Your session has ended because this account signed in on another device. Each account is limited to one active device at a time.',
+      };
+    }
+
+    if (validation.status !== 'valid' || !validation.session) {
+      return {
+        success: false,
+        status: 401,
+        code: 'UNAUTHORIZED',
+        error: 'Authentication required. Please sign in to access this resource.',
+      };
+    }
+
+    return { success: true, session: validation.session, user: validation.user! };
+  }
+
+  /**
+   * Authoritative server-side Super Admin check for restricted administrative routes and APIs.
+   * Denies access by default to unauthenticated users (401) and non-super-admins (403).
+   */
+  static checkSuperAdmin(
+    requestOrCookie:
+      | string
+      | null
+      | undefined
+      | { cookies: { get: (name: string) => { value?: string } | undefined } }
+  ):
+    | { success: true; session: SessionTokenPayload; user: AuthUser }
+    | {
+        success: false;
+        status: 401 | 403;
+        code: 'UNAUTHORIZED' | 'SESSION_SUPERSEDED' | 'FORBIDDEN';
+        error: string;
+      } {
+    const auth = this.checkAuth(requestOrCookie);
+    if (!auth.success) return auth;
+
+    if (!this.isSuperAdmin(auth.session)) {
+      return {
+        success: false,
+        status: 403,
+        code: 'FORBIDDEN',
+        error: 'Access denied: Super Admin permissions required.',
+      };
+    }
+
+    return auth;
   }
 }

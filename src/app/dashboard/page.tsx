@@ -170,10 +170,18 @@ export default function DashboardPage() {
         }
       } catch (e) {}
 
-      // 3. Fetch subscription & package status
+      // 3. Fetch session & subscription status with active device check
       try {
         const subRes = await fetch('/api/auth/me');
         const subData = await subRes.json();
+        if (subData.superseded || subData.code === 'SESSION_SUPERSEDED') {
+          window.location.href = '/login?reason=session_superseded&redirect=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+        if (!subData.authenticated) {
+          window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
         if (subData.subscription) {
           setSubscriptionInfo({
             ...subData.subscription,
