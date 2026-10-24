@@ -18,6 +18,10 @@ import {
   ChevronDown,
   X,
   Stethoscope,
+  QrCode,
+  ExternalLink,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { PackagePlan, PaymentGatewayType, UserSubscription } from '@/types';
 import GoogleLoginModal from '@/components/auth/GoogleLoginModal';
@@ -34,8 +38,12 @@ function PackagesContent() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<PackagePlan | null>(null);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [paymentGateway, setPaymentGateway] = useState<PaymentGatewayType>('sslcommerz');
+  const [paymentGateway, setPaymentGateway] = useState<PaymentGatewayType>('paymently');
   const [phone, setPhone] = useState('');
+  const [trxId, setTrxId] = useState('');
+  const [showQrCode, setShowQrCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [isConfirmingTrx, setIsConfirmingTrx] = useState(false);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
@@ -177,11 +185,77 @@ function PackagesContent() {
         }
       }
 
-      // In real production gateway: redirect user to SSLCommerz / aamarPay checkout URL
+      // In real production gateway: redirect user to payment gateway checkout URL
       window.location.href = initData.initiation.redirectUrl;
     } catch (err: any) {
       setCheckoutError(err.message || 'পেমেন্ট প্রক্রিয়া শুরু করা যায়নি।');
       setIsProcessingOrder(false);
+    }
+  };
+
+  const handleCopyPaymentlyLink = async () => {
+    try {
+      await navigator.clipboard.writeText('https://vartualtutor.paymently.io/paymentlink/default/BDT');
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      // Fallback
+    }
+  };
+
+  const handleConfirmPaymentlyTrxId = async () => {
+    if (!selectedPackage || !currentUser) return;
+    if (!trxId || trxId.trim().length < 4) {
+      setCheckoutError('অনুগ্রহ করে সঠিক bKash/Nagad ট্রানজেকশন আইডি (TrxID) লিখুন।');
+      return;
+    }
+
+    setIsConfirmingTrx(true);
+    setCheckoutError(null);
+
+    try {
+      // 1. Create order
+      const orderRes = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          packageId: selectedPackage.id,
+          paymentGateway: 'paymently',
+          metadata: { phone, trxId: trxId.trim() },
+        }),
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderData.success) {
+        throw new Error(orderData.error || 'অর্ডার তৈরিতে সমস্যা হয়েছে।');
+      }
+
+      // 2. Confirm TrxID
+      const confirmRes = await fetch('/api/payments/paymently/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: orderData.order.id,
+          trxId: trxId.trim(),
+          senderPhone: phone,
+        }),
+      });
+
+      const confirmData = await confirmRes.json();
+      if (!confirmData.success) {
+        throw new Error(confirmData.error || 'TrxID যাচাইকরণে সমস্যা হয়েছে।');
+      }
+
+      setCheckoutModalOpen(false);
+      setPaymentNotice({
+        type: 'success',
+        message: `পেমেন্ট সফলভাবে যাচাই হয়েছে! ${selectedPackage.nameBn || selectedPackage.name} প্যাকেজটি সক্রিয় হয়েছে। (TrxID: ${trxId.trim()})`,
+      });
+      loadData();
+    } catch (err: any) {
+      setCheckoutError(err.message || 'পেমেন্ট নিশ্চিতকরণ সম্পন্ন হয়নি।');
+    } finally {
+      setIsConfirmingTrx(false);
     }
   };
 
@@ -430,33 +504,145 @@ function PackagesContent() {
               <label className="text-xs font-bold text-slate-900 dark:text-white bangla-font block">
                 পেমেন্ট গেটওয়ে নির্বাচন করুন:
               </label>
-              <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                {/* 1. Paymently (Primary / Featured) */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentGateway('paymently')}
+                  className={`p-3 rounded-xl border text-left transition-all relative ${
+                    paymentGateway === 'paymently'
+                      ? 'border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 font-bold shadow-xs'
+                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <span className="absolute -top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                    ইনস্ট্যান্ট
+                  </span>
+                  <div className="font-bold flex items-center gap-1.5">
+                    <span>Paymently</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 bangla-font leading-tight">
+                    বিকাশ, নগদ, রকেট ও বাংলা QR
+                  </div>
+                </button>
+
+                {/* 2. SSLCommerz */}
                 <button
                   type="button"
                   onClick={() => setPaymentGateway('sslcommerz')}
-                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                  className={`p-3 rounded-xl border text-left transition-all ${
                     paymentGateway === 'sslcommerz'
                       ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                   }`}
                 >
                   <div className="font-semibold">SSLCommerz</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 bangla-font">বিকাশ, নগদ, রকেট, কার্ড</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 bangla-font leading-tight">
+                    কার্ড ও ইন্টারনেট ব্যাংকিং
+                  </div>
                 </button>
+
+                {/* 3. aamarPay */}
                 <button
                   type="button"
                   onClick={() => setPaymentGateway('aamarpay')}
-                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                  className={`p-3 rounded-xl border text-left transition-all ${
                     paymentGateway === 'aamarpay'
                       ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                   }`}
                 >
                   <div className="font-semibold">aamarPay</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 bangla-font">মোবাইল ব্যাংকিং ও নেট ব্যাংকিং</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 bangla-font leading-tight">
+                    মোবাইল ও নেট ব্যাংকিং
+                  </div>
                 </button>
               </div>
             </div>
+
+            {/* Paymently Interactive Details (When Selected) */}
+            {paymentGateway === 'paymently' && (
+              <div className="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-3 text-xs">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-emerald-900 dark:text-emerald-200 bangla-font flex items-center gap-1.5">
+                    <Sparkles className="h-4 w-4 text-emerald-600" />
+                    Paymently অফিসিয়াল পেমেন্ট লিংক:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopyPaymentlyLink}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:underline"
+                  >
+                    {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span>{copiedLink ? 'কপি হয়েছে' : 'লিংক কপি করুন'}</span>
+                  </button>
+                </div>
+
+                <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900 flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-mono text-slate-600 dark:text-slate-300 truncate">
+                    https://vartualtutor.paymently.io/paymentlink/default/BDT
+                  </span>
+                  <a
+                    href="https://vartualtutor.paymently.io/paymentlink/default/BDT"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    <span>যান</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+
+                {/* QR Code Toggle & Display */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowQrCode((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:text-emerald-950 transition-colors bangla-font"
+                  >
+                    <QrCode className="h-4 w-4 text-emerald-600" />
+                    <span>{showQrCode ? 'QR কোড লুকান' : 'বাংলা QR কোড স্ক্যান করে পেমেন্ট করুন'}</span>
+                  </button>
+
+                  {showQrCode && (
+                    <div className="mt-2.5 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center text-center space-y-2">
+                      <img
+                        src="/images/paymently-qr.png"
+                        alt="Paymently Bangla QR Code"
+                        className="w-44 h-44 object-contain rounded-lg border border-slate-100 dark:border-slate-800 shadow-xs"
+                      />
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 bangla-font">
+                        যেকোনো ব্যাংক বা বিকাশ/নগদ অ্যাপের <span className="font-bold text-slate-700 dark:text-slate-300">বাংলা QR</span> অপশন দিয়ে স্ক্যান করুন
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Direct TrxID Confirmation Input */}
+                <div className="pt-1 border-t border-emerald-200/60 dark:border-emerald-800/40 space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 bangla-font block">
+                    পেমেন্ট শেষে bKash/Nagad TrxID থাকলে লিখুন (ইনস্ট্যান্ট অ্যাক্টিভেশন):
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value.toUpperCase())}
+                      placeholder="যেমন: BLA9382JK2"
+                      className="flex-1 px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleConfirmPaymentlyTrxId}
+                      disabled={isConfirmingTrx || !trxId.trim()}
+                      className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs bangla-font transition-all shrink-0"
+                    >
+                      {isConfirmingTrx ? 'যাচাই হচ্ছে...' : 'TrxID নিশ্চিত করুন'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Mobile Number for SMS confirmation */}
             <div className="space-y-1.5">
@@ -478,7 +664,7 @@ function PackagesContent() {
                 type="button"
                 onClick={handleProceedToPayment}
                 disabled={isProcessingOrder}
-                className="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-xs shadow-blue-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60 bangla-font"
+                className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-xs shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60 bangla-font"
               >
                 {isProcessingOrder ? (
                   <>
@@ -487,7 +673,7 @@ function PackagesContent() {
                   </>
                 ) : (
                   <>
-                    <span>৳{selectedPackage.priceBDT} পরিশোধ করুন</span>
+                    <span>{paymentGateway === 'paymently' ? 'Paymently-তে সরাসরি পেমেন্ট করুন' : 'পেমেন্ট গেটওয়েতে যান'} (৳{selectedPackage.priceBDT})</span>
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}

@@ -606,14 +606,23 @@ export default function HomePage() {
             <Link href="/study/today" className="hover:text-[#6545E8] transition-colors">
               Daily Practice
             </Link>
+            <Link href="/mistake-notebook" className="hover:text-[#6545E8] transition-colors">
+              Mistake Notebook
+            </Link>
+            <Link href="/mock-tests" className="hover:text-[#6545E8] transition-colors">
+              Mock Tests
+            </Link>
+            <Link href="/previous-year-questions" className="hover:text-[#6545E8] transition-colors">
+              Previous Years
+            </Link>
             <Link href="/packages" className="hover:text-[#6545E8] transition-colors">
               Packages
             </Link>
-            <Link href="/test" className="hover:text-[#6545E8] transition-colors">
-              Mock Tests
-            </Link>
             <Link href="/syllabus" className="hover:text-[#6545E8] transition-colors">
               Syllabus
+            </Link>
+            <Link href="/admin/sources" className="hover:text-[#6545E8] transition-colors">
+              Source Registry
             </Link>
             <Link href="/dashboard" className="hover:text-[#6545E8] transition-colors">
               Portal

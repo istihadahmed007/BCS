@@ -1,11 +1,9 @@
 import {
-  CandidateResponse,
   ExamTrackId,
   ProfessionalStreamId,
   Question,
   TestSession,
   TestSessionQuestion,
-  TestStatus,
   TestType,
 } from '@/types';
 import { ExamConfigService } from './exam-config';
@@ -102,13 +100,45 @@ export class AssessmentEngine {
       }
 
       selectedQuestions = [...selectedGeneral, ...selectedProfessional];
-    } else if (params.testType === 'subject_test') {
-      durationSec = params.durationMinutes ? params.durationMinutes * 60 : 3600; // 60 minutes
-      const titleLower = (params.title || '').toLowerCase();
-      const isGeneral = titleLower.includes('general') || stream === 'general';
-      const isPro = titleLower.includes('medical') || titleLower.includes('dental') || titleLower.includes('professional');
+    } else if (params.testType === 'full_mock' && params.examTrackId === 'general_bcs') {
+      durationSec = 7200; // 120 minutes (200 marks)
 
-      if (isGeneral) {
+      // Official BPSC 200-mark Preliminary Subject Breakdown
+      const generalBCSQuotas: Record<string, number> = {
+        BANGLA: 35,
+        ENGLISH: 35,
+        BD_AFFAIRS: 30,
+        INT_AFFAIRS: 20,
+        G_GEOGRAPHY: 10,
+        G_SCIENCE: 15,
+        G_COMPUTER: 15,
+        MATH: 15,
+        MENTAL_ABILITY: 15,
+        G_ETHICS: 10,
+      };
+
+      for (const [code, count] of Object.entries(generalBCSQuotas)) {
+        const pool = candidateQuestions.filter((q) => q.subjectCode === code);
+        const shuffled = [...pool].sort(() => Math.random() - 0.5);
+        selectedQuestions.push(...shuffled.slice(0, count));
+      }
+
+      // Fallback if some pools are smaller than quota
+      if (selectedQuestions.length < 200) {
+        const remaining = candidateQuestions.filter((q) => !selectedQuestions.some((s) => s.id === q.id));
+        const shuffledRem = [...remaining].sort(() => Math.random() - 0.5);
+        selectedQuestions.push(...shuffledRem.slice(0, 200 - selectedQuestions.length));
+      }
+    } else if (params.testType === 'subject_test') {
+      durationSec = params.durationMinutes ? params.durationMinutes * 60 : 3600;
+      const titleLower = (params.title || '').toLowerCase();
+      const isGeneralPart = titleLower.includes('general part') || (titleLower.includes('general') && titleLower.includes('100'));
+      const isProPart =
+        titleLower.includes('professional') ||
+        (titleLower.includes('medical science') && !titleLower.includes('part i') && !titleLower.includes('part ii') && !titleLower.includes('১ম') && !titleLower.includes('২য়')) ||
+        (titleLower.includes('dental science') && !titleLower.includes('part i') && !titleLower.includes('part ii') && !titleLower.includes('১ম') && !titleLower.includes('২য়'));
+
+      if (isGeneralPart) {
         const generalQuotas: Record<string, number> = {
           BANGLA: 20,
           ENGLISH: 20,
@@ -122,28 +152,86 @@ export class AssessmentEngine {
           const shuffled = [...pool].sort(() => Math.random() - 0.5);
           selectedQuestions.push(...shuffled.slice(0, count));
         }
-      } else if (isPro) {
+      } else if (isProPart) {
         if (stream === 'assistant_surgeon') {
           const p1 = candidateQuestions.filter((q) => q.subjectCode === 'MED_SCI_1').sort(() => Math.random() - 0.5);
           const p2 = candidateQuestions.filter((q) => q.subjectCode === 'MED_SCI_2').sort(() => Math.random() - 0.5);
           selectedQuestions.push(...p1.slice(0, 50), ...p2.slice(0, 50));
-        } else {
+        } else if (stream === 'assistant_dental_surgeon') {
           const d1 = candidateQuestions.filter((q) => q.subjectCode === 'DENTAL_SCI_1').sort(() => Math.random() - 0.5);
           const d2 = candidateQuestions.filter((q) => q.subjectCode === 'DENTAL_SCI_2').sort(() => Math.random() - 0.5);
           selectedQuestions.push(...d1.slice(0, 50), ...d2.slice(0, 50));
         }
       } else {
-        const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
-        selectedQuestions = shuffled.slice(0, 100);
+        // Subject detection from title or code
+        const subjectKeywords: Record<string, string> = {
+          'medical science part i': 'MED_SCI_1',
+          'মেডিকেল সায়েন্স ১ম': 'MED_SCI_1',
+          'medical science part ii': 'MED_SCI_2',
+          'মেডিকেল সায়েন্স ২য়': 'MED_SCI_2',
+          'dental science part i': 'DENTAL_SCI_1',
+          'ডেন্টাল সায়েন্স ১ম': 'DENTAL_SCI_1',
+          'dental science part ii': 'DENTAL_SCI_2',
+          'ডেন্টাল সায়েন্স ২য়': 'DENTAL_SCI_2',
+          bangla: 'BANGLA',
+          বাংলা: 'BANGLA',
+          english: 'ENGLISH',
+          ইংরেজি: 'ENGLISH',
+          'bd affairs': 'BD_AFFAIRS',
+          'bangladesh affairs': 'BD_AFFAIRS',
+          বাংলাদেশ: 'BD_AFFAIRS',
+          'international affairs': 'INT_AFFAIRS',
+          আন্তর্জাতিক: 'INT_AFFAIRS',
+          mathematics: 'MATH',
+          math: 'MATH',
+          গণিত: 'MATH',
+          'mental ability': 'MENTAL_ABILITY',
+          মানসিক: 'MENTAL_ABILITY',
+          science: 'G_SCIENCE',
+          বিজ্ঞান: 'G_SCIENCE',
+          computer: 'G_COMPUTER',
+          কম্পিউটার: 'G_COMPUTER',
+          geography: 'G_GEOGRAPHY',
+          ভূগোল: 'G_GEOGRAPHY',
+          ethics: 'G_ETHICS',
+          নৈতিকতা: 'G_ETHICS',
+        };
+
+        let detectedCode: string | null = null;
+        for (const [kw, code] of Object.entries(subjectKeywords)) {
+          if (titleLower.includes(kw)) {
+            detectedCode = code;
+            break;
+          }
+        }
+
+        if (detectedCode) {
+          const pool = candidateQuestions.filter((q) => q.subjectCode === detectedCode);
+          const shuffled = [...pool].sort(() => Math.random() - 0.5);
+          const targetCount = params.durationMinutes ? Math.min(pool.length, params.durationMinutes) : Math.min(pool.length, 35);
+          selectedQuestions = shuffled.slice(0, targetCount);
+        } else {
+          const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+          selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, 35));
+        }
       }
     } else if (params.testType === 'diagnostic') {
       durationSec = 600; // 10 minutes
       const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
       selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, 10));
     } else if (params.testType === 'topic_quiz') {
-      durationSec = 300; // 5 minutes
+      durationSec = params.durationMinutes ? params.durationMinutes * 60 : 1200; // 20 minutes
       const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
-      selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, 5));
+      selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, 20));
+    } else if (params.testType === 'mixed_practice') {
+      durationSec = params.durationMinutes ? params.durationMinutes * 60 : 1800; // 30 minutes
+      const qCount = params.durationMinutes === 25 ? 30 : params.durationMinutes === 45 ? 50 : 100;
+      const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+      selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, qCount));
+    } else if (params.testType === 'previous_year') {
+      durationSec = params.durationMinutes ? params.durationMinutes * 60 : 7200; // 120 minutes
+      const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);
+      selectedQuestions = shuffled.slice(0, Math.min(candidateQuestions.length, 200));
     } else {
       if (params.durationMinutes) durationSec = params.durationMinutes * 60;
       const shuffled = [...candidateQuestions].sort(() => Math.random() - 0.5);

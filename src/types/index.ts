@@ -31,7 +31,44 @@ export type WeaknessLabel =
   | 'unassessed'
   | 'mastered';
 
-export type TestType = 'full_mock' | 'subject_test' | 'topic_quiz' | 'diagnostic';
+export type TestType =
+  | 'full_mock'
+  | 'subject_test'
+  | 'topic_quiz'
+  | 'diagnostic'
+  | 'mixed_practice'
+  | 'previous_year';
+
+export type MockTestCategory =
+  | 'full_length'
+  | 'subject_wise'
+  | 'topic_wise'
+  | 'mixed_practice'
+  | 'previous_year'
+  | 'special_bcs_health';
+
+export interface MockTestDefinition {
+  id: string;
+  title: string;
+  titleBn: string;
+  description: string;
+  category: MockTestCategory;
+  examTrackId: ExamTrackId;
+  professionalStream: ProfessionalStreamId | 'all';
+  totalQuestions: number;
+  durationMinutes: number;
+  totalMarks: number;
+  correctMark: number;
+  wrongPenalty: number;
+  unansweredMark: number;
+  subjectCode?: string;
+  topicId?: string;
+  examYear?: string;
+  isOfficialPattern?: boolean;
+  publicationStatus: 'published' | 'draft' | 'archived';
+  attemptLimit?: number;
+  enrolledCount?: number;
+}
 
 export type TestStatus = 'in_progress' | 'completed' | 'expired' | 'abandoned';
 
@@ -162,7 +199,7 @@ export interface Question {
   duplicateHash?: string;
   revisionNumber: number;
   sourceEvidence?: QuestionSourceLink[];
-  verificationState?: 'unverified' | 'source_attached' | 'verified' | 'needs_review';
+  verificationState?: 'unverified' | 'source_attached' | 'verified' | 'needs_review' | 'reported_for_correction';
   accessTier?: 'free_preview' | 'premium' | 'package_restricted';
 }
 

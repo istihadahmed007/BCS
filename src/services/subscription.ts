@@ -584,6 +584,10 @@ export class SubscriptionService {
     return globalSub.__bcs_orders__!.get(orderId) || null;
   }
 
+  static getOrderById(orderId: string): Order | null {
+    return this.getOrder(orderId);
+  }
+
   /**
    * List orders for a specific user
    */

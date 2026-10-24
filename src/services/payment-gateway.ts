@@ -32,6 +32,8 @@ export class PaymentGatewayService {
     const baseUrl = appBaseUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     switch (order.paymentGateway) {
+      case 'paymently':
+        return await this.initiatePaymently(order, customer, baseUrl);
       case 'sslcommerz':
         return await this.initiateSSLCommerz(order, customer, baseUrl);
       case 'aamarpay':
@@ -266,6 +268,67 @@ export class PaymentGatewayService {
       gatewayTransactionId: payload.pg_txnid || payload.bank_txn || 'AAMARPAY_' + Date.now(),
       amountBDT: amount,
       currency: payload.currency || 'BDT',
+      status: isSuccess ? 'verified' : 'failed',
+      rawResponse: payload,
+    };
+  }
+
+  /**
+   * Paymently Payment Gateway Initiation
+   * Official Direct Link: https://vartualtutor.paymently.io/paymentlink/default/BDT
+   * Supports bKash, Nagad, Rocket, Cards, and Bangla QR
+   */
+  private static async initiatePaymently(
+    order: Order,
+    customer: { name: string; email: string; phone?: string },
+    baseUrl: string
+  ): Promise<PaymentInitiationResult> {
+    const defaultLink =
+      process.env.PAYMENTLY_DEFAULT_LINK ||
+      'https://vartualtutor.paymently.io/paymentlink/default/BDT';
+
+    const redirectUrl = `${defaultLink}?order_id=${encodeURIComponent(
+      order.id
+    )}&amount=${encodeURIComponent(order.amountBDT.toString())}&email=${encodeURIComponent(
+      customer.email
+    )}&name=${encodeURIComponent(customer.name || '')}`;
+
+    return {
+      gateway: 'paymently',
+      redirectUrl,
+      orderId: order.id,
+      amountBDT: order.amountBDT,
+      mode: 'live',
+    };
+  }
+
+  /**
+   * Paymently Server-Side Transaction Verification / Webhook
+   */
+  static async verifyPaymently(payload: Record<string, any>): Promise<PaymentVerificationResult> {
+    const tranId = payload.tran_id || payload.order_id || payload.orderId;
+    const amount = parseFloat(payload.amount || payload.total_amount || '0');
+    const isSuccess =
+      payload.status === 'success' ||
+      payload.status === 'paid' ||
+      payload.status === 'VALID' ||
+      payload.status === 'COMPLETED' ||
+      payload.status === 'approved' ||
+      Boolean(payload.trxId || payload.transactionId);
+
+    const gatewayTrxId =
+      payload.trxId ||
+      payload.transactionId ||
+      payload.payment_id ||
+      payload.gatewayTransactionId ||
+      'PAYMENTLY_' + Date.now();
+
+    return {
+      success: isSuccess,
+      orderId: tranId || 'UNKNOWN',
+      gatewayTransactionId: gatewayTrxId,
+      amountBDT: amount,
+      currency: 'BDT',
       status: isSuccess ? 'verified' : 'failed',
       rawResponse: payload,
     };

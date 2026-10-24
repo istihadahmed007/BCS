@@ -4,6 +4,7 @@ import {
   ProfessionalStreamId,
   Question,
   QuestionAccessTier,
+  TestType,
   UserSubscription,
 } from '@/types';
 import { SubscriptionService } from './subscription';
@@ -199,7 +200,7 @@ export class EntitlementService {
    */
   static canAccessMockTest(
     userId: string,
-    testType: 'full_mock' | 'subject_test' | 'topic_quiz' | 'diagnostic',
+    testType: TestType,
     examTrackId: ExamTrackId
   ): EntitlementAccessCheck {
     // Diagnostic tests are free for everyone

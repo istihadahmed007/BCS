@@ -24,6 +24,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/study') ||
     pathname.startsWith('/question-bank') ||
+    pathname.startsWith('/previous-year-questions') ||
+    pathname.startsWith('/mock-tests') ||
     pathname.startsWith('/test') ||
     pathname.startsWith('/packages') ||
     pathname.startsWith('/syllabus') ||

@@ -50,7 +50,7 @@ export interface UserSubscription {
 
 export type OrderStatus = 'pending' | 'paid' | 'failed' | 'cancelled';
 
-export type PaymentGatewayType = 'sslcommerz' | 'aamarpay' | 'sandbox';
+export type PaymentGatewayType = 'sslcommerz' | 'aamarpay' | 'paymently' | 'sandbox';
 
 export interface Order {
   id: string; // e.g. ORD-20261023-XXXX

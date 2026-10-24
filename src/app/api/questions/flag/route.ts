@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
 
     FLAGGED_REPORTS_STORE.push(report);
 
+    // Update in-memory question record verification status
+    try {
+      const { QuestionBankService } = await import('@/services/question-bank');
+      QuestionBankService.reportQuestion(questionId, reason, comment);
+    } catch (e) {
+      // Ignore if unavailable
+    }
+
     return NextResponse.json({
       success: true,
       message: 'প্রশ্নটির ত্রুটি বা অসঙ্গতি পর্যালোচনার জন্য জমা দেওয়া হয়েছে। ধন্যবাদ!',

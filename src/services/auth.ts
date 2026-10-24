@@ -10,6 +10,17 @@ const SESSION_SECRET =
 
 const COOKIE_NAME = 'bcs_session';
 
+// Server-side Authoritative Super Admin Registry
+// Users authenticated through Google with these verified emails receive full super_admin access
+export const SUPER_ADMIN_EMAILS: ReadonlySet<string> = new Set([
+  'istihadahmed1163@gmail.com',
+  'istihadahmed007@gmail.com',
+  'admin@bcs.vartualtutor.com',
+  ...(process.env.SUPER_ADMIN_EMAILS
+    ? process.env.SUPER_ADMIN_EMAILS.toLowerCase().split(',').map((e) => e.trim()).filter(Boolean)
+    : []),
+]);
+
 // Global singleton user and session store for development, standalone, and tests
 const globalAuth = globalThis as unknown as {
   __bcs_users__?: Map<string, AuthUser>;
@@ -18,8 +29,29 @@ const globalAuth = globalThis as unknown as {
 
 if (!globalAuth.__bcs_users__) {
   globalAuth.__bcs_users__ = new Map();
-  // Seed initial Admin & Test Student accounts
-  const superAdmin: AuthUser = {
+
+  // Seed Primary Super Admin accounts
+  const superAdmin1163: AuthUser = {
+    id: 'user_super_admin_1163',
+    email: 'istihadahmed1163@gmail.com',
+    fullName: 'Istihad Ahmed (Super Admin)',
+    role: 'super_admin',
+    authProvider: 'google',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const superAdmin007: AuthUser = {
+    id: 'user_super_admin_007',
+    email: 'istihadahmed007@gmail.com',
+    fullName: 'Istihad Ahmed (Admin)',
+    role: 'super_admin',
+    authProvider: 'google',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const superAdminSystem: AuthUser = {
     id: 'user_admin_001',
     email: 'admin@bcs.vartualtutor.com',
     fullName: 'BCSCrack Super Admin',
@@ -39,7 +71,9 @@ if (!globalAuth.__bcs_users__) {
     updatedAt: new Date().toISOString(),
   };
 
-  globalAuth.__bcs_users__.set(superAdmin.id, superAdmin);
+  globalAuth.__bcs_users__.set(superAdmin1163.id, superAdmin1163);
+  globalAuth.__bcs_users__.set(superAdmin007.id, superAdmin007);
+  globalAuth.__bcs_users__.set(superAdminSystem.id, superAdminSystem);
   globalAuth.__bcs_users__.set(studentCurrent.id, studentCurrent);
 }
 
@@ -61,10 +95,15 @@ export function resolveOrigin(request: {
     return configuredAppUrl.replace(/\/+$/, '');
   }
 
-  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  let host = request.headers.get('x-forwarded-host') || request.headers.get('host');
   let proto =
     request.headers.get('x-forwarded-proto') ||
     (request.nextUrl ? request.nextUrl.protocol.replace(':', '') : 'http');
+
+  // Normalize local IP 127.0.0.1 or 0.0.0.0 to localhost to prevent Google OAuth redirect_uri_mismatch
+  if (host && (host.startsWith('127.0.0.1') || host.startsWith('0.0.0.0'))) {
+    host = host.replace(/^(127\.0\.0\.1|0\.0\.0\.0)/, 'localhost');
+  }
 
   // If host is not localhost, ensure https
   if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
@@ -72,10 +111,11 @@ export function resolveOrigin(request: {
   }
 
   if (host) {
-    return `${proto}://${host}`;
+    return `${proto}://${host}`.replace(/\/+$/, '');
   }
 
-  return request.nextUrl?.origin || 'http://localhost:3000';
+  const origin = request.nextUrl?.origin || 'http://localhost:3000';
+  return origin.replace(/^(http:\/\/)127\.0\.0\.1/, '$1localhost').replace(/\/+$/, '');
 }
 
 // Safe runtime fallback credentials when environment variables are not loaded in container
@@ -106,6 +146,24 @@ export function getEffectiveGoogleCredentials(): { clientId: string; clientSecre
 
 export class AuthService {
   /**
+   * Resolves canonical, sanitized redirect_uri matching Google Cloud Console exactly.
+   * Strips trailing slashes, prevents double slashes, and checks optional GOOGLE_REDIRECT_URI.
+   */
+  static getEffectiveRedirectUri(redirectOrigin?: string, customCallbackPath?: string): string {
+    if (process.env.GOOGLE_REDIRECT_URI) {
+      return process.env.GOOGLE_REDIRECT_URI.trim().replace(/\/+$/, '');
+    }
+
+    const baseUrl = (redirectOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+      .trim()
+      .replace(/\/+$/, '');
+
+    const callbackPath = customCallbackPath || '/api/auth/google/callback';
+    const cleanPath = callbackPath.startsWith('/') ? callbackPath : `/${callbackPath}`;
+    return `${baseUrl}${cleanPath}`.replace(/\/+$/, '');
+  }
+
+  /**
    * Generates official Google OAuth2 authorization URL
    */
   static getGoogleAuthUrl(redirectOrigin?: string, stateToken?: string, redirectPath?: string): string {
@@ -115,8 +173,7 @@ export class AuthService {
       throw new Error('Google OAuth Client ID is missing. Please configure GOOGLE_CLIENT_ID.');
     }
 
-    const baseUrl = redirectOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+    const redirectUri = this.getEffectiveRedirectUri(redirectOrigin);
 
     let state = stateToken;
     if (!state) {
@@ -143,11 +200,11 @@ export class AuthService {
    */
   static async verifyGoogleAuthorizationCode(
     code: string,
-    redirectOrigin?: string
+    redirectOrigin?: string,
+    customCallbackPath?: string
   ): Promise<{ email: string; name: string; avatarUrl?: string; googleId: string }> {
     const { clientId, clientSecret } = getEffectiveGoogleCredentials();
-    const baseUrl = redirectOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+    const redirectUri = this.getEffectiveRedirectUri(redirectOrigin, customCallbackPath);
 
     if (!clientId || !clientSecret) {
       // Only allowed in automated test suite
@@ -293,7 +350,8 @@ export class AuthService {
 
   /**
    * Finds or creates a user account from Google authentication
-   * Automatically provisions Free Preview package for newly registered users.
+   * Automatically provisions Free Preview package for newly registered students.
+   * Authoritatively grants super_admin role if user email matches SUPER_ADMIN_EMAILS.
    */
   static findOrCreateGoogleUser(profile: {
     email: string;
@@ -302,12 +360,12 @@ export class AuthService {
     googleId: string;
   }): { user: AuthUser; isNewUser: boolean } {
     const users = globalAuth.__bcs_users__!;
-    const normalizedEmail = profile.email.toLowerCase();
+    const normalizedEmail = profile.email.toLowerCase().trim();
+    const isSuperAdmin = this.isSuperAdminEmail(normalizedEmail);
 
     // Check if user exists by email
     for (const u of users.values()) {
       if (u.email.toLowerCase() === normalizedEmail) {
-        // Link googleId if not yet linked
         let updated = false;
         if (!u.googleId) {
           u.googleId = profile.googleId;
@@ -317,6 +375,11 @@ export class AuthService {
           u.avatarUrl = profile.avatarUrl;
           updated = true;
         }
+        // Authoritative server-side elevation: if email is in SUPER_ADMIN_EMAILS, elevate to super_admin
+        if (isSuperAdmin && u.role !== 'super_admin') {
+          u.role = 'super_admin';
+          updated = true;
+        }
         if (updated) {
           u.updatedAt = new Date().toISOString();
         }
@@ -324,13 +387,15 @@ export class AuthService {
       }
     }
 
-    // Create brand new user
+    // Create brand new user with server-verified role
     const newUser: AuthUser = {
-      id: 'usr_' + crypto.randomBytes(8).toString('hex'),
+      id: isSuperAdmin
+        ? `user_super_admin_${normalizedEmail.split('@')[0]}`
+        : 'usr_' + crypto.randomBytes(8).toString('hex'),
       email: normalizedEmail,
       fullName: profile.name,
       avatarUrl: profile.avatarUrl,
-      role: 'student',
+      role: isSuperAdmin ? 'super_admin' : 'student',
       authProvider: 'google',
       googleId: profile.googleId,
       createdAt: new Date().toISOString(),
@@ -349,6 +414,12 @@ export class AuthService {
    * Creates a signed session token for authenticated user
    */
   static createSession(user: AuthUser, durationDays = 7): string {
+    const isSuperAdmin = this.isSuperAdminEmail(user.email);
+    const effectiveRole: UserRole = isSuperAdmin ? 'super_admin' : user.role;
+    if (isSuperAdmin && user.role !== 'super_admin') {
+      user.role = 'super_admin';
+    }
+
     const sessionId = 'sess_' + crypto.randomBytes(16).toString('hex');
     const now = Math.floor(Date.now() / 1000);
     const expiresAt = now + durationDays * 24 * 60 * 60;
@@ -357,7 +428,7 @@ export class AuthService {
       sessionId,
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: effectiveRole,
       fullName: user.fullName,
       avatarUrl: user.avatarUrl,
       issuedAt: now,
@@ -407,6 +478,11 @@ export class AuthService {
         return null;
       }
 
+      // Server-side check: enforce super_admin role for verified super admin emails
+      if (payload && this.isSuperAdminEmail(payload.email)) {
+        payload.role = 'super_admin';
+      }
+
       return payload;
     } catch {
       return null;
@@ -431,7 +507,7 @@ export class AuthService {
    * Gets user by email
    */
   static getUserByEmail(email: string): AuthUser | null {
-    const normalized = email.toLowerCase();
+    const normalized = email.toLowerCase().trim();
     for (const u of globalAuth.__bcs_users__?.values() || []) {
       if (u.email.toLowerCase() === normalized) return u;
     }
@@ -454,5 +530,35 @@ export class AuthService {
     user.role = newRole;
     user.updatedAt = new Date().toISOString();
     return user;
+  }
+
+  /**
+   * Checks whether an email belongs to the server-authoritative Super Admin registry
+   */
+  static isSuperAdminEmail(email: string | null | undefined): boolean {
+    if (!email) return false;
+    return SUPER_ADMIN_EMAILS.has(email.toLowerCase().trim());
+  }
+
+  /**
+   * Server-side check for Super Admin privileges
+   */
+  static isSuperAdmin(userOrSession: AuthUser | SessionTokenPayload | null | undefined): boolean {
+    if (!userOrSession) return false;
+    return userOrSession.role === 'super_admin' || this.isSuperAdminEmail(userOrSession.email);
+  }
+
+  /**
+   * Server-side check for any administrative role
+   */
+  static isAdmin(userOrSession: AuthUser | SessionTokenPayload | null | undefined): boolean {
+    if (!userOrSession) return false;
+    return (
+      userOrSession.role === 'super_admin' ||
+      userOrSession.role === 'exam_manager' ||
+      userOrSession.role === 'content_editor' ||
+      userOrSession.role === 'content_reviewer' ||
+      this.isSuperAdminEmail(userOrSession.email)
+    );
   }
 }

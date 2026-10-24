@@ -333,3 +333,150 @@ test('10. Real Google OAuth URL, Origin Normalization & State Preservation', asy
   assert.ok(stateDecoded.nonce, 'State must contain cryptographic nonce');
 });
 
+test('11. Server-Authoritative Super Admin Elevation for istihadahmed1163@gmail.com & istihadahmed007@gmail.com', async () => {
+  // 1. Verify istihadahmed1163@gmail.com auto-elevation on Google Sign-In
+  const googleProfile1163 = {
+    email: 'istihadahmed1163@gmail.com',
+    name: 'Istihad Ahmed',
+    avatarUrl: 'https://lh3.googleusercontent.com/a/istihad-avatar',
+    googleId: 'gid_super_1163',
+  };
+
+  const { user: user1163, isNewUser } = AuthService.findOrCreateGoogleUser(googleProfile1163);
+  assert.equal(user1163.role, 'super_admin', 'istihadahmed1163@gmail.com MUST be granted super_admin role');
+  assert.equal(AuthService.isSuperAdmin(user1163), true);
+  assert.equal(AuthService.isAdmin(user1163), true);
+
+  // Verify HMAC-signed session carries super_admin
+  const token1163 = AuthService.createSession(user1163);
+  const session1163 = AuthService.verifySessionToken(token1163);
+  assert.ok(session1163);
+  assert.equal(session1163.role, 'super_admin', 'Cryptographic session payload must contain super_admin');
+
+  // 2. Verify istihadahmed007@gmail.com elevation
+  const googleProfile007 = {
+    email: 'istihadahmed007@gmail.com',
+    name: 'Istihad Ahmed Owner',
+    googleId: 'gid_super_007',
+  };
+  const { user: user007 } = AuthService.findOrCreateGoogleUser(googleProfile007);
+  assert.equal(user007.role, 'super_admin', 'istihadahmed007@gmail.com MUST be granted super_admin role');
+
+  // 3. Ensure regular students CANNOT be elevated to super_admin
+  const regularStudentProfile = {
+    email: 'normal_student_2026@gmail.com',
+    name: 'Regular Candidate',
+    googleId: 'gid_regular_99',
+  };
+  const { user: regularUser } = AuthService.findOrCreateGoogleUser(regularStudentProfile);
+  assert.equal(regularUser.role, 'student', 'Regular candidates must remain student role');
+  assert.equal(AuthService.isSuperAdmin(regularUser), false);
+});
+
+test('12. Redirect URI Mismatch Prevention & Local IP Normalization (127.0.0.1 -> localhost)', async () => {
+  const { resolveOrigin } = await import('../src/services/auth');
+
+  // 1. Local IP 127.0.0.1:3000 normalized to localhost:3000 to match Google Console Authorized redirect URI
+  const mockReqIp = {
+    headers: {
+      get: (header: string) => {
+        if (header === 'host') return '127.0.0.1:3000';
+        return null;
+      },
+    },
+  };
+  const originIp = resolveOrigin(mockReqIp as any);
+  assert.equal(originIp, 'http://localhost:3000', '127.0.0.1 must be normalized to localhost to prevent redirect_uri_mismatch');
+
+  // 2. Trailing slash elimination
+  const redirectUri = AuthService.getEffectiveRedirectUri('https://bcs.vartualtutor.com/');
+  assert.equal(
+    redirectUri,
+    'https://bcs.vartualtutor.com/api/auth/google/callback',
+    'Redirect URI must not contain double slashes or trailing slashes'
+  );
+
+  // 3. Verify exact string matches Google Console requirements
+  assert.equal(redirectUri.endsWith('/'), false, 'Authorized redirect URI must not have trailing slash');
+  assert.equal(redirectUri.includes('//api'), false, 'Authorized redirect URI must not have duplicate slash');
+});
+
+test('13. Paymently Gateway Integration: Direct Link Initiation & Server-Side TrxID Verification', async () => {
+  // 1. Create a student user
+  const student = AuthService.findOrCreateGoogleUser({
+    email: 'paymently_student@gmail.com',
+    name: 'Rahim Chowdhury',
+    googleId: 'gid_paymently_123',
+  }).user;
+
+  // 2. Create an order with paymentGateway: 'paymently'
+  const order = SubscriptionService.createOrder({
+    userId: student.id,
+    packageId: 'pkg_bcs_complete', // 990 BDT
+    paymentGateway: 'paymently',
+  });
+
+  assert.equal(order.paymentGateway, 'paymently');
+  assert.equal(order.amountBDT, 990);
+  assert.equal(order.status, 'pending');
+
+  // 3. Test initiatePayment for Paymently
+  const initiation = await PaymentGatewayService.initiatePayment(
+    order,
+    {
+      name: student.fullName,
+      email: student.email,
+    },
+    'https://bcs.vartualtutor.com'
+  );
+
+  assert.equal(initiation.gateway, 'paymently');
+  assert.equal(initiation.orderId, order.id);
+  assert.equal(initiation.amountBDT, 990);
+  assert.ok(
+    initiation.redirectUrl.startsWith('https://vartualtutor.paymently.io/paymentlink/default/BDT'),
+    'Redirect URL must point to Paymently BDT default link'
+  );
+  assert.ok(
+    initiation.redirectUrl.includes(`order_id=${order.id}`),
+    'Redirect URL must encode order ID'
+  );
+  assert.ok(
+    initiation.redirectUrl.includes('amount=990'),
+    'Redirect URL must encode correct amount'
+  );
+
+  // 4. Test verifyPaymently server verification with candidate TrxID
+  const sampleTrxId = 'BKASH9A8B7C6D5';
+  const verifyResult = await PaymentGatewayService.verifyPaymently({
+    order_id: order.id,
+    amount: 990,
+    trxId: sampleTrxId,
+    status: 'success',
+  });
+
+  assert.equal(verifyResult.success, true);
+  assert.equal(verifyResult.orderId, order.id);
+  assert.equal(verifyResult.gatewayTransactionId, sampleTrxId);
+  assert.equal(verifyResult.status, 'verified');
+
+  // 5. Test SubscriptionService activation via Paymently
+  const activation = SubscriptionService.processPaymentVerification({
+    orderId: order.id,
+    gateway: 'paymently',
+    gatewayTransactionId: sampleTrxId,
+    amountBDT: 990,
+    status: 'verified',
+  });
+
+  assert.equal(activation.order.status, 'paid');
+  assert.equal(activation.subscription?.tier, 'complete');
+  assert.equal(activation.subscription?.status, 'active');
+
+  // 6. Verify student now has active Complete entitlement
+  const activeSub = SubscriptionService.getUserActiveSubscription(student.id);
+  assert.equal(activeSub.tier, 'complete');
+  assert.equal(activeSub.status, 'active');
+});
+
+

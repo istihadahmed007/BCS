@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   ShieldAlert,
   ShieldCheck,
+  Target,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -65,6 +66,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: 'Review Queue',
       icon: FileCheck2,
       active: pathname === '/admin/question-bank/review',
+    },
+    {
+      href: '/admin/mock-tests',
+      label: 'Mock Tests Manager',
+      icon: Target,
+      active: pathname === '/admin/mock-tests',
+    },
+    {
+      href: '/admin/duplicates',
+      label: 'Duplicate & Quality Audit',
+      icon: ShieldCheck,
+      active: pathname === '/admin/duplicates',
     },
     {
       href: '/admin/question-bank/coverage',

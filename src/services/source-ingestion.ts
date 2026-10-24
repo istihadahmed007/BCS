@@ -109,7 +109,7 @@ const QUESTION_SOURCE_LINKS_STORE: QuestionSourceLink[] = [
 ];
 
 // Initialize questions with their verification states and linked evidence
-let RUNTIME_QUESTIONS: Question[] = SEED_QUESTIONS.map((q) => {
+const RUNTIME_QUESTIONS: Question[] = SEED_QUESTIONS.map((q) => {
   const links = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
   const isVerified = links.some((l) => l.verificationStatus === 'verified');
   const isAttached = links.length > 0;

@@ -1,6 +1,7 @@
 import { AIExplanationRequest, AIExplanationResponse, Question } from '@/types';
 import { SEED_QUESTIONS } from '@/data/seed-questions';
 import { OFFICIAL_SOURCES } from '@/data/catalog';
+import { QuestionBankService } from '@/services/question-bank';
 
 export class AITutorService {
   /**
@@ -9,7 +10,41 @@ export class AITutorService {
    * bilingual Bengali/English explanations with explicit source citations.
    */
   static async explainQuestion(req: AIExplanationRequest): Promise<AIExplanationResponse> {
-    const question = SEED_QUESTIONS.find((q) => q.id === req.questionId);
+    let question = SEED_QUESTIONS.find((q) => q.id === req.questionId);
+
+    if (!question) {
+      const raw = QuestionBankService.getQuestionById(req.questionId);
+      if (raw) {
+        question = {
+          id: raw.id,
+          examTrackId: 'general_bcs',
+          professionalStream: 'all',
+          subjectId: raw.subject,
+          subjectCode: raw.subject,
+          topicId: raw.topic,
+          topicTitleBn: raw.topic || raw.subject,
+          topicTitleEn: raw.topic || raw.subject,
+          stemBn: raw.question_bn,
+          stemEn: raw.question_en,
+          options: [
+            { id: 'A', textBn: raw.options.A, textEn: raw.options.A },
+            { id: 'B', textBn: raw.options.B, textEn: raw.options.B },
+            { id: 'C', textBn: raw.options.C, textEn: raw.options.C },
+            { id: 'D', textBn: raw.options.D, textEn: raw.options.D },
+          ],
+          correctAnswerId: raw.correct_option,
+          explanationBn: raw.explanation_bn,
+          explanationEn: raw.explanation_en,
+          difficulty: raw.difficulty,
+          sourceReference: raw.source_title || 'BPSC Verified Archive',
+          contentOrigin: 'official_bpsc',
+          verificationState: 'verified',
+          rightsStatus: 'public_official',
+          reviewStatus: 'approved',
+          revisionNumber: 1,
+        };
+      }
+    }
 
     if (!question) {
       return {

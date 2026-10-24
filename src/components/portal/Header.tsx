@@ -51,10 +51,6 @@ export default function Header({
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchSession();
-  }, []);
-
   const fetchSession = async () => {
     try {
       const res = await fetch('/api/auth/me');
@@ -63,8 +59,14 @@ export default function Header({
         setUser(data.user);
         setSubscription(data.subscription);
       }
-    } catch (e) {}
+    } catch {
+      // Ignore network errors on session check
+    }
   };
+
+  useEffect(() => {
+    fetchSession();
+  }, []);
 
   const handleLogout = async () => {
     try {

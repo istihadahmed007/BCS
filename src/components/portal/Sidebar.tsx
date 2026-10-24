@@ -16,7 +16,6 @@ import {
   X,
   CreditCard,
   ChevronRight,
-  ShieldCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,68 +28,67 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navigationGroups = [
     {
-      groupLabel: 'OVERVIEW',
+      groupLabel: 'PRIMARY LEARNING & ASSESSMENT',
       items: [
         {
-          name: 'Dashboard',
-          nameBn: 'ড্যাশবোর্ড',
+          name: 'Study MCQs',
+          nameBn: 'অধ্যায়ভিত্তিক প্রশ্ন ব্যাংক',
+          href: '/question-bank',
+          icon: BookCheck,
+          badge: '20K',
+        },
+        {
+          name: 'Daily Challenge',
+          nameBn: 'দৈনিক চ্যালেঞ্জ',
+          href: '/study/today',
+          icon: CalendarDays,
+          badge: 'Daily',
+        },
+        {
+          name: 'Previous-Year Questions',
+          nameBn: 'বিগত বছরের প্রশ্নপত্র',
+          href: '/previous-year-questions',
+          icon: GraduationCap,
+          badge: 'Official',
+        },
+        {
+          name: 'Mock Tests',
+          nameBn: 'মডেল টেস্ট ও সিমুলেশন',
+          href: '/mock-tests',
+          icon: Target,
+          badge: 'Live',
+        },
+        {
+          name: 'Mistake Notebook',
+          nameBn: 'ভুল খাতা ও রিভিশন',
+          href: '/mistake-notebook',
+          icon: FileText,
+        },
+        {
+          name: 'Study Plan & Progress',
+          nameBn: 'স্টাডি প্ল্যান ও অগ্রগতি',
           href: '/dashboard',
           icon: LayoutDashboard,
         },
       ],
     },
     {
-      groupLabel: 'EXAM PREPARATION',
+      groupLabel: 'RESOURCES & SETTINGS',
       items: [
         {
-          name: 'Question Bank (20k)',
-          nameBn: 'প্রশ্ন ব্যাংক (২০k)',
-          href: '/question-bank',
-          icon: BookCheck,
-          badge: '20K',
-        },
-        {
-          name: 'Mock Tests',
-          nameBn: 'মডেল টেস্ট',
-          href: '/test',
-          icon: Target,
-        },
-        {
-          name: 'Daily Practice',
-          nameBn: 'দৈনিক অনুশীলন',
-          href: '/study/today',
-          icon: CalendarDays,
-        },
-        {
-          name: 'Packages & Pricing',
-          nameBn: 'প্যাকেজ ও সাবস্ক্রিপশন',
-          href: '/packages',
-          icon: CreditCard,
-        },
-      ],
-    },
-    {
-      groupLabel: 'LEARNING & PROGRESS',
-      items: [
-        {
-          name: 'Syllabus',
-          nameBn: 'সিলেবাস',
+          name: 'Syllabus Matrix',
+          nameBn: 'বিপিএসসি সিলেবাস',
           href: '/syllabus',
           icon: BookOpen,
         },
         {
-          name: 'Mistake Notebook',
-          nameBn: 'ভুল খাতা',
-          href: '/mistake-notebook',
-          icon: FileText,
+          name: 'Packages & Pricing',
+          nameBn: 'প্যাকেজ ও মেম্বারশিপ',
+          href: '/packages',
+          icon: CreditCard,
         },
-      ],
-    },
-    {
-      groupLabel: 'ACCOUNT & SETTINGS',
-      items: [
         {
-          name: 'Profile & Track',
+          name: 'Profile & Cadre Track',
           nameBn: 'প্রোফাইল সেটিংস',
           href: '/onboarding',
           icon: Settings,
