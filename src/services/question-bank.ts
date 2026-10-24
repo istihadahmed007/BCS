@@ -255,23 +255,49 @@ export class QuestionBankService {
     }
 
     // Stream and Track Isolation
-    if (stream === 'assistant_surgeon') {
-      // MBBS: exclude dental science
-      const dentalSubs = ['dental science part i', 'dental science part ii'];
-      filtered = filtered.filter((q) => !dentalSubs.includes(q.subject.toLowerCase()));
-    } else if (stream === 'assistant_dental_surgeon') {
-      // BDS: exclude medical science
-      const medSubs = ['medical science part i', 'medical science part ii'];
-      filtered = filtered.filter((q) => !medSubs.includes(q.subject.toLowerCase()));
-    } else if (track === 'general_bcs' || stream === 'general') {
-      // General BCS: exclude both medical and dental science
-      const proSubs = [
-        'medical science part i',
-        'medical science part ii',
-        'dental science part i',
-        'dental science part ii',
-      ];
+    const isSpecialHealth =
+      track === 'special_bcs_health_51_2026' ||
+      stream === 'assistant_surgeon' ||
+      stream === 'assistant_dental_surgeon';
+    const isGeneralBcs = track === 'general_bcs' || stream === 'general';
+
+    const dentalSubs = ['dental science part i', 'dental science part ii'];
+    const medSubs = ['medical science part i', 'medical science part ii'];
+    const proSubs = [...medSubs, ...dentalSubs];
+    const generalOnlySubs = [
+      'science',
+      'computer and information technology',
+      'geography and environment',
+      'ethics, values and good governance',
+    ];
+
+    if (isGeneralBcs) {
+      // General BCS: strictly exclude professional medical and dental science
       filtered = filtered.filter((q) => !proSubs.includes(q.subject.toLowerCase()));
+    } else if (isSpecialHealth) {
+      // 51st Special BCS Health: strictly exclude general-only subjects (Science, Computer, Geography, Ethics)
+      filtered = filtered.filter((q) => !generalOnlySubs.includes(q.subject.toLowerCase()));
+
+      if (stream === 'assistant_surgeon') {
+        // Exclude dental science
+        filtered = filtered.filter((q) => !dentalSubs.includes(q.subject.toLowerCase()));
+        // If no subject or 'all' or 'professional' requested, strictly default to professional Medical Science
+        if (!subject || subject.toLowerCase() === 'all' || subject.toLowerCase() === 'professional') {
+          filtered = filtered.filter((q) => medSubs.includes(q.subject.toLowerCase()));
+        }
+      } else if (stream === 'assistant_dental_surgeon') {
+        // Exclude medical science
+        filtered = filtered.filter((q) => !medSubs.includes(q.subject.toLowerCase()));
+        // If no subject or 'all' or 'professional' requested, strictly default to professional Dental Science
+        if (!subject || subject.toLowerCase() === 'all' || subject.toLowerCase() === 'professional') {
+          filtered = filtered.filter((q) => dentalSubs.includes(q.subject.toLowerCase()));
+        }
+      } else {
+        // Track special_bcs_health_51_2026 without stream specified: default to all professional health subjects
+        if (!subject || subject.toLowerCase() === 'all' || subject.toLowerCase() === 'professional') {
+          filtered = filtered.filter((q) => proSubs.includes(q.subject.toLowerCase()));
+        }
+      }
     }
 
     // Filter by Batch
@@ -636,21 +662,32 @@ export class QuestionBankService {
   }> {
     const all = this.getAllQuestions();
 
+    const isSpecialHealth =
+      track === 'special_bcs_health_51_2026' ||
+      stream === 'assistant_surgeon' ||
+      stream === 'assistant_dental_surgeon';
+    const isGeneralBcs = track === 'general_bcs' || stream === 'general';
+
+    const dentalSubs = ['dental science part i', 'dental science part ii'];
+    const medSubs = ['medical science part i', 'medical science part ii'];
+    const proSubs = [...medSubs, ...dentalSubs];
+    const generalOnlySubs = [
+      'science',
+      'computer and information technology',
+      'geography and environment',
+      'ethics, values and good governance',
+    ];
+
     let candidateQuestions = all;
-    if (stream === 'assistant_surgeon') {
-      const dentalSubs = ['dental science part i', 'dental science part ii'];
-      candidateQuestions = candidateQuestions.filter((q) => !dentalSubs.includes(q.subject.toLowerCase()));
-    } else if (stream === 'assistant_dental_surgeon') {
-      const medSubs = ['medical science part i', 'medical science part ii'];
-      candidateQuestions = candidateQuestions.filter((q) => !medSubs.includes(q.subject.toLowerCase()));
-    } else if (track === 'general_bcs' || stream === 'general') {
-      const proSubs = [
-        'medical science part i',
-        'medical science part ii',
-        'dental science part i',
-        'dental science part ii',
-      ];
+    if (isGeneralBcs) {
       candidateQuestions = candidateQuestions.filter((q) => !proSubs.includes(q.subject.toLowerCase()));
+    } else if (isSpecialHealth) {
+      candidateQuestions = candidateQuestions.filter((q) => !generalOnlySubs.includes(q.subject.toLowerCase()));
+      if (stream === 'assistant_surgeon') {
+        candidateQuestions = candidateQuestions.filter((q) => !dentalSubs.includes(q.subject.toLowerCase()));
+      } else if (stream === 'assistant_dental_surgeon') {
+        candidateQuestions = candidateQuestions.filter((q) => !medSubs.includes(q.subject.toLowerCase()));
+      }
     }
 
     const subjectBnMap: Record<string, string> = {
@@ -752,6 +789,16 @@ export class QuestionBankService {
         subjectCode: subjectCodeMap[subj] || subj.toUpperCase().replace(/\s+/g, '_'),
         totalQuestions: subjTotal,
         topics: topicList.sort((a, b) => b.questionCount - a.questionCount),
+      });
+    }
+
+    if (isSpecialHealth) {
+      return result.sort((a, b) => {
+        const aIsPro = proSubs.includes(a.subject.toLowerCase());
+        const bIsPro = proSubs.includes(b.subject.toLowerCase());
+        if (aIsPro && !bIsPro) return -1;
+        if (!aIsPro && bIsPro) return 1;
+        return a.subject.localeCompare(b.subject);
       });
     }
 

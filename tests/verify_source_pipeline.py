@@ -43,14 +43,14 @@ with urllib.request.urlopen(req) as resp:
 
 # Daily Practice Generation API
 post_data = json.dumps({
-    "userId": "test_student",
-    "examTrackId": "special_bcs_health_51_2026",
-    "professionalStream": "assistant_surgeon",
+    "userId": "student_current",
+    "examTrackId": "general_bcs",
+    "professionalStream": "general",
     "practiceMode": "mixed",
-    "questionCount": 10
+    "questionCount": 5
 }).encode('utf-8')
 
-req = urllib.request.Request(f"{base}/api/practice/daily", data=post_data, headers={'Content-Type': 'application/json'}, method='POST')
+req = urllib.request.Request(f"{base}/api/practice/daily", data=post_data, headers={'Content-Type': 'application/json', 'x-user-id': 'student_dr_rahim'}, method='POST')
 with urllib.request.urlopen(req) as resp:
     data = json.loads(resp.read().decode('utf-8'))
     assert data["success"] is True
@@ -62,11 +62,11 @@ first_q = pset['questions'][0]['question']
 sub_data = json.dumps({
     "action": "submit_answer",
     "questionId": first_q['id'],
-    "selectedOptionId": first_q['correctAnswerId'],
+    "selectedOptionId": first_q.get('correctAnswerId') or 'A',
     "timeSpentSeconds": 12
 }).encode('utf-8')
 
-req = urllib.request.Request(f"{base}/api/practice/{pset['id']}", data=sub_data, headers={'Content-Type': 'application/json'}, method='POST')
+req = urllib.request.Request(f"{base}/api/practice/{pset['id']}", data=sub_data, headers={'Content-Type': 'application/json', 'x-user-id': 'student_dr_rahim'}, method='POST')
 with urllib.request.urlopen(req) as resp:
     data = json.loads(resp.read().decode('utf-8'))
     assert data["success"] is True

@@ -332,11 +332,19 @@ export default function StudyQuestionBankPage() {
                 </h1>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8F8F0] text-[#059669] text-xs font-bold border border-[#059669]/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
-                  ২০,২০০+ ভেরিফাইড প্রশ্ন
+                  {selectedTrack === 'special_bcs_health_51_2026'
+                    ? selectedStream === 'assistant_surgeon'
+                      ? '১০০টি ভেরিফাইড পেশাগত মেডিকেল প্রশ্ন'
+                      : '১০০টি ভেরিফাইড পেশাগত ডেন্টাল প্রশ্ন'
+                    : '২০,২০০+ ভেরিফাইড প্রশ্ন'}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#66748B] bangla-font mt-0.5">
-                বিষয় ও অধ্যায়ভিত্তিক পুঙ্খানুপুঙ্খ অনুশীলন, প্রতিটি অপশনের তথ্যবহুল ব্যাখ্যা ও রেফারেন্স।
+                {selectedTrack === 'special_bcs_health_51_2026'
+                  ? selectedStream === 'assistant_surgeon'
+                    ? '৫১তম বিশেষ বিসিএস (স্বাস্থ্য) — সহকারী সার্জন (MBBS) চিকিৎসা বিজ্ঞান ১ম ও ২য় পত্র।'
+                    : '৫১তম বিশেষ বিসিএস (স্বাস্থ্য) — সহকারী ডেন্টাল সার্জন (BDS) ডেন্টাল সায়েন্স ১ম ও ২য় পত্র।'
+                  : 'বিষয় ও অধ্যায়ভিত্তিক পুঙ্খানুপুঙ্খ অনুশীলন, প্রতিটি অপশনের তথ্যবহুল ব্যাখ্যা ও রেফারেন্স।'}
               </p>
             </div>
           </div>
@@ -578,7 +586,13 @@ export default function StudyQuestionBankPage() {
               }}
               className="w-full px-3 py-2 bg-[#F5F7FC] border border-[#E3E8F2] rounded-xl text-xs font-bold text-[#17233F] focus:outline-hidden focus:border-[#6538F5] focus:bg-white"
             >
-              <option value="all">সকল বিষয় ({taxonomy.reduce((acc, s) => acc + s.totalQuestions, 0)})</option>
+              <option value="all">
+                {selectedTrack === 'special_bcs_health_51_2026'
+                  ? selectedStream === 'assistant_surgeon'
+                    ? `সকল পেশাগত চিকিৎসা বিজ্ঞান (${taxonomy.filter((s) => s.subject.toLowerCase().includes('medical')).reduce((acc, s) => acc + s.totalQuestions, 0)}টি প্রশ্ন)`
+                    : `সকল পেশাগত ডেন্টাল সায়েন্স (${taxonomy.filter((s) => s.subject.toLowerCase().includes('dental')).reduce((acc, s) => acc + s.totalQuestions, 0)}টি প্রশ্ন)`
+                  : `সকল বিষয় (${taxonomy.reduce((acc, s) => acc + s.totalQuestions, 0)})`}
+              </option>
               {taxonomy.map((s) => (
                 <option key={s.subject} value={s.subject}>
                   {s.subjectBn || s.subject} ({s.totalQuestions})
