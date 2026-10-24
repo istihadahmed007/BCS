@@ -190,8 +190,8 @@ function ensureQuestionCount(questions, targetCount, subjectName, stream, prefix
       source_url: null,
       source_page_or_section: `Section ${Math.ceil(qNum / 10)}`,
       rights_status: 'public_official',
-      verification_status: 'verified',
-      review_notes: 'Verified against BPSC 51st Special BCS syllabus.'
+      verification_status: 'needs_review',
+      review_notes: 'FLAGGED_PLACEHOLDER: Generic placeholder stem and option template detected during security audit. Requires authentic clinical question authoring from official BPSC syllabus/textbook references before publication.'
     });
   }
 

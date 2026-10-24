@@ -40,6 +40,30 @@ const VALID_QUESTION_TYPES = [
 const VALID_RIGHTS = ['licensed', 'public_domain', 'original_from_reference', 'public_official', 'original', 'unknown'];
 const VALID_VERIFICATION = ['verified', 'needs_review'];
 
+const PLACEHOLDER_STEM_PATTERNS = [
+  /BPSC\s+\d+(?:st|nd|rd|th)?\s+Special\s+BCS\s+Health\s+Syllabus\s+Question\s+#\d+/i,
+  /সিলেবাস\s+ভিত্তিক\s+.*?\s+প্রশ্ন\s+#\d+:\s+বিপিএসসি\s+বিশেষ\s+স্বাস্থ্য/i,
+  /Which\s+of\s+the\s+following\s+is\s+accurate\?/i,
+  /Question\s+#\d+\s+for\s+.*:\s+Which\s+of\s+the\s+following/i,
+  /বিপিএসসি\s+বিশেষ\s+স্বাস্থ্য\s+পরীক্ষার\s+পাঠ্যক্রম\s+অনুসারে\s+নিচের\s+কোনটি\s+সত্য\?/i,
+];
+
+const PLACEHOLDER_OPTION_PATTERNS = [
+  /^(?:বিকল্প\s*[কখগঘ]|Option\s*[ABCD])\s*\(Option\s*[ABCD]\s*for\s*question\s*\d+\)$/i,
+  /^Option\s*[ABCD]\s*for\s*question\s*\d+$/i,
+  /^Option\s+[ABCD]$/i,
+  /^বিকল্প\s+[কখগঘ]$/i,
+  /^Choice\s+[ABCD]$/i,
+  /^Dummy\s+Option/i,
+  /^Placeholder/i,
+];
+
+const PLACEHOLDER_SOURCE_PATTERNS = [
+  /^51st Special BCS Health Official Syllabus & Reference Corpus$/i,
+  /^Generic\s+Syllabus/i,
+  /^Placeholder\s+Source/i,
+];
+
 function normalizeText(text) {
   if (!text) return '';
   return text
@@ -178,6 +202,41 @@ function runValidation() {
         return;
       }
 
+      // Check for placeholder patterns and required provenance
+      const placeholderIssues = [];
+      const stemBn = (record.question_bn || '').trim();
+      const stemEn = (record.question_en || '').trim();
+
+      for (const pat of PLACEHOLDER_STEM_PATTERNS) {
+        if (stemEn && pat.test(stemEn)) placeholderIssues.push(`stemEn matches placeholder "${pat.source}"`);
+        if (stemBn && pat.test(stemBn)) placeholderIssues.push(`stemBn matches placeholder "${pat.source}"`);
+      }
+
+      for (const key of ['A', 'B', 'C', 'D']) {
+        const val = opts[key].trim();
+        for (const pat of PLACEHOLDER_OPTION_PATTERNS) {
+          if (pat.test(val)) placeholderIssues.push(`option ${key} matches placeholder "${val}"`);
+        }
+      }
+
+      const srcTitle = (record.source_title || '').trim();
+      if (!srcTitle) {
+        placeholderIssues.push('missing source_title');
+      } else {
+        for (const pat of PLACEHOLDER_SOURCE_PATTERNS) {
+          if (pat.test(srcTitle)) placeholderIssues.push(`source_title matches placeholder "${srcTitle}"`);
+        }
+      }
+
+      if (record.verification_status === 'verified') {
+        if (placeholderIssues.length > 0) {
+          stats.errors.push(`${lineRef}: Question '${record.id}' marked 'verified' contains placeholder defects or missing provenance: ${placeholderIssues.join('; ')}`);
+          return;
+        }
+      } else if (record.verification_status === 'needs_review') {
+        stats.placeholderFlagged = (stats.placeholderFlagged || 0) + (placeholderIssues.length > 0 ? 1 : 0);
+      }
+
       // Tally stats
       stats.validRecords++;
       stats.bySubject[record.subject]++;
@@ -191,7 +250,8 @@ function runValidation() {
   console.log('       BCS QUESTION BANK VALIDATION REPORT          ');
   console.log('====================================================');
   console.log(`Total Records Processed : ${stats.totalRecords}`);
-  console.log(`Valid Verified Records  : ${stats.validRecords}`);
+  console.log(`Valid Records Audited   : ${stats.validRecords}`);
+  console.log(`Flagged Placeholder QA : ${stats.placeholderFlagged || 0} (Held in needs_review)`);
   console.log(`Duplicate Errors        : ${stats.duplicates}`);
   console.log(`Validation Errors       : ${stats.errors.length}`);
   console.log('----------------------------------------------------');

@@ -44,3 +44,9 @@ next-env.d.ts
 
 # deployment archives
 *.zip
+
+# runtime data
+/data/*.json
+/data/*.tmp
+/data/test-scratch/
+

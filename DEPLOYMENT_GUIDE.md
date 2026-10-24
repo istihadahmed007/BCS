@@ -38,10 +38,21 @@ AI_API_KEY=your_server_side_api_key_here
 AI_MODEL_NAME=gemini-1.5-flash
 AI_REQUEST_TIMEOUT_MS=15000
 
-# Security & Session Secrets
-NEXTAUTH_SECRET=your_random_32_byte_hex_secret_here
-NEXTAUTH_URL=http://localhost:3000
-```
+# Security & Session Secrets (CRITICAL: Minimum 32 characters, fail-closed in production)
+SESSION_SECRET=generate_a_random_cryptographically_strong_32_byte_secret_here
+NEXTAUTH_SECRET=generate_a_random_cryptographically_strong_32_byte_secret_here
+NEXTAUTH_URL=https://bcs.vartualtutor.com
+
+# Authoritative Administrator Bootstrap Credentials
+# Required for production password-based administrator authentication.
+# In production, the system fails closed if this is not securely configured.
+SUPER_ADMIN_PASSWORD=your_secure_unique_admin_bootstrap_password_here
+SUPER_ADMIN_EMAILS=istihadahmed1163@gmail.com,istihadahmed007@gmail.com,admin@bcs.vartualtutor.com
+
+> [!CAUTION]
+> **COMPROMISED CREDENTIALS NOTICE & MANDATORY ROTATION:**
+> Previously exposed default passwords (`Istihad@Admin2026!`, `student123456`) and the hardcoded secret (`bcs_crack_prod_session_secret_change_in_production_2026`) are blacklisted and permanently rejected by the server. If any production environment was previously deployed with these credentials, they must be rotated immediately.
+
 
 ---
 

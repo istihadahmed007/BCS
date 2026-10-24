@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/services/auth';
 import { EntitlementService } from '@/services/entitlement';
 import { QuestionBankService } from '@/services/question-bank';
+import { canMarkAsVerified } from '@/services/question-validator';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,11 @@ export async function GET(request: NextRequest) {
     const sessionCookie = request.cookies.get('bcs_session')?.value;
     const session = AuthService.verifySessionToken(sessionCookie);
     const userId = session?.userId || searchParams.get('userId') || 'student_current';
+    const isAdmin =
+      session?.role === 'super_admin' ||
+      session?.role === 'content_editor' ||
+      session?.role === 'content_reviewer' ||
+      session?.role === 'exam_manager';
 
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
@@ -26,6 +32,10 @@ export async function GET(request: NextRequest) {
     const reviewStatus = searchParams.get('review_status') || searchParams.get('reviewStatus') || undefined;
     const accessFilter = searchParams.get('access') || undefined; // 'free' | 'all'
 
+    // Non-admin student requests must strictly receive verified questions only
+    const effectiveReviewStatus = isAdmin ? reviewStatus : 'verified';
+    const includeUnverified = isAdmin && (reviewStatus === 'all' || reviewStatus === 'needs_review');
+
     const result = QuestionBankService.queryQuestions({
       page,
       limit,
@@ -36,7 +46,8 @@ export async function GET(request: NextRequest) {
       batch,
       track,
       stream,
-      reviewStatus,
+      reviewStatus: effectiveReviewStatus,
+      includeUnverified,
     });
 
     const manifest = QuestionBankService.getManifest();
@@ -84,8 +95,16 @@ export async function GET(request: NextRequest) {
         };
       }
 
+      const isVerified = (q.verification_status || '').toLowerCase() === 'verified' && canMarkAsVerified(q).valid;
+      const sanitizedStatus = isVerified
+        ? 'verified'
+        : q.verification_status === 'reported_for_correction'
+        ? 'reported_for_correction'
+        : 'needs_review';
+
       return {
         ...q,
+        verification_status: sanitizedStatus,
         access_tier: accessTier,
         is_locked: false,
       };

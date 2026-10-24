@@ -95,7 +95,7 @@ export default function StudyQuestionBankPage() {
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [selectedSubtopic, setSelectedSubtopic] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all'); // 'all' | 'verified' | 'needs_review'
+  const [selectedStatus, setSelectedStatus] = useState<string>('verified'); // 'verified' | 'all' | 'needs_review'
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(20); // 10, 20, 30, 50
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -805,7 +805,10 @@ export default function StudyQuestionBankPage() {
                         • {q.topic}
                       </span>
                     )}
-                    {q.verification_status === 'verified' ? (
+                    {q.verification_status === 'verified' &&
+                    !q.options?.A?.includes('Option A for question') &&
+                    !q.options?.A?.includes('বিকল্প ক (Option A') &&
+                    !q.question_en?.includes('Which of the following is accurate?') ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#059669] bg-[#E8F8F0] px-2 py-0.5 rounded-md border border-[#059669]/20">
                         <ShieldCheck className="h-3 w-3" />
                         Verified
@@ -816,7 +819,8 @@ export default function StudyQuestionBankPage() {
                         Reported for Review
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-300">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-300">
+                        <AlertCircle className="h-3 w-3" />
                         Needs Review
                       </span>
                     )}

@@ -1,0 +1,11 @@
+{
+  "backupTimestamp": "2026-10-24T15:06:12.453Z",
+  "purpose": "Pre-audit snapshot before updating placeholder questions to needs_review status",
+  "affectedFiles": [
+    "medical_science_part1.jsonl",
+    "medical_science_part2.jsonl",
+    "dental_science_part1.jsonl",
+    "dental_science_part2.jsonl"
+  ],
+  "affectedRecordCount": 128
+}

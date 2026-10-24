@@ -1,12 +1,76 @@
 import crypto from 'crypto';
 import { AuthUser, SessionTokenPayload, UserRole } from '@/types';
 import { SubscriptionService } from './subscription';
+import { AuthStore, defaultAuthStore, type SupersededSessionInfo } from './auth-store';
 
-// Server-side secret key for signing session tokens
-const SESSION_SECRET =
-  process.env.SESSION_SECRET ||
-  process.env.NEXTAUTH_SECRET ||
-  'bcs_crack_prod_session_secret_change_in_production_2026';
+export type { SupersededSessionInfo };
+
+export function isTestEnvironment(): boolean {
+  return (
+    process.env.NODE_ENV === 'test' ||
+    Boolean(process.env.NODE_TEST_CONTEXT) ||
+    Boolean(process.env.NODE_TEST_WORKER_ID) ||
+    Boolean(process.env.npm_lifecycle_event?.includes('test')) ||
+    process.argv.includes('--test') ||
+    process.execArgv.some((arg) => arg.startsWith('--test')) ||
+    Boolean(process.env.JEST_WORKER_ID) ||
+    Boolean(process.env.VITEST)
+  );
+}
+
+// Known insecure placeholder secrets that must never be accepted in production
+const INSECURE_SECRET_PLACEHOLDERS: ReadonlySet<string> = new Set([
+  'bcs_crack_prod_session_secret_change_in_production_2026',
+  'secret',
+  'changeme',
+  'your_secret_here',
+  'default_secret_please_change',
+  '12345678901234567890123456789012',
+]);
+
+/**
+ * Authoritative session secret resolver.
+ * Enforces cryptographic strength (>= 32 chars) and fails startup/initialization
+ * closed in production if missing, too weak, or using known insecure placeholders.
+ */
+export function getEffectiveSessionSecret(): string {
+  const secret = (process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET || '').trim();
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isTest = isTestEnvironment();
+
+  if (!secret) {
+    if (isProduction) {
+      throw new Error(
+        'CRITICAL SECURITY CONFIGURATION ERROR: SESSION_SECRET is not configured in production. ' +
+        'A cryptographically strong secret of at least 32 characters is required.'
+      );
+    }
+    if (isTest) {
+      return 'test_only_session_signing_secret_min_32_characters_for_unit_tests!';
+    }
+    throw new Error(
+      'SESSION_SECRET is missing. Please define SESSION_SECRET (at least 32 characters) in your environment.'
+    );
+  }
+
+  if (INSECURE_SECRET_PLACEHOLDERS.has(secret)) {
+    throw new Error(
+      'CRITICAL SECURITY CONFIGURATION ERROR: Insecure placeholder SESSION_SECRET detected. ' +
+      'You must configure a strong, random secret of at least 32 characters.'
+    );
+  }
+
+  if (secret.length < 32) {
+    if (isProduction) {
+      throw new Error(
+        `CRITICAL SECURITY CONFIGURATION ERROR: SESSION_SECRET is too weak (${secret.length} characters). ` +
+        'It must be at least 32 characters long in production.'
+      );
+    }
+  }
+
+  return secret;
+}
 
 const COOKIE_NAME = 'bcs_session';
 
@@ -21,13 +85,22 @@ export const SUPER_ADMIN_EMAILS: ReadonlySet<string> = new Set([
     : []),
 ]);
 
-// Single concurrent active session per account types & models
-export interface SupersededSessionInfo {
-  userId: string;
-  email: string;
-  supersededAt: number;
-  reason: 'signed_in_on_another_device' | 'admin_revocation';
-}
+// Known compromised passwords that must be rejected unconditionally
+export const COMPROMISED_PASSWORDS: ReadonlySet<string> = new Set([
+  'Istihad@Admin2026!',
+  'student123456',
+  'admin123456',
+  'password123',
+  '12345678',
+]);
+
+// Production administrator credentials must be securely supplied via environment.
+// In test mode, provide an isolated test fixture password.
+export const DEFAULT_SUPER_ADMIN_PASSWORD =
+  process.env.SUPER_ADMIN_PASSWORD ||
+  (isTestEnvironment() && process.env.NODE_ENV !== 'production'
+    ? 'TestAdminFixturePassword2026!@#'
+    : '');
 
 export type SessionValidationStatus =
   | 'valid'
@@ -48,52 +121,58 @@ export function hashPasswordWithSalt(password: string, salt: string): string {
   return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
 }
 
-export const DEFAULT_SUPER_ADMIN_PASSWORD =
-  process.env.SUPER_ADMIN_PASSWORD || 'Istihad@Admin2026!';
-
-// Global singleton user and session store for development, standalone, and tests
+// Global legacy Map reference fallback for existing tests
 const globalAuth = globalThis as unknown as {
   __bcs_users__?: Map<string, AuthUser>;
-  __bcs_sessions__?: Map<string, SessionTokenPayload>;
-  __bcs_user_active_session__?: Map<string, string>; // userId -> active sessionId
-  __bcs_superseded_sessions__?: Map<string, SupersededSessionInfo>; // sessionId -> info
 };
-
 if (!globalAuth.__bcs_users__) {
   globalAuth.__bcs_users__ = new Map();
+}
 
-  const adminSalt = 'bcs_admin_salt_sec_2026';
-  const adminHash = hashPasswordWithSalt(DEFAULT_SUPER_ADMIN_PASSWORD, adminSalt);
+/**
+ * Isolated test fixture seeding.
+ * Strictly prohibited in production mode.
+ */
+export function seedTestFixtures(store: AuthStore = defaultAuthStore): void {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('SECURITY VIOLATION: Test fixtures cannot be seeded or activated in production mode.');
+  }
 
-  const studentSalt = 'bcs_student_salt_sec_2026';
-  const studentHash = hashPasswordWithSalt('student123456', studentSalt);
+  const adminSalt = 'test_salt_admin_' + crypto.randomBytes(8).toString('hex');
+  const adminPassword =
+    process.env.SUPER_ADMIN_PASSWORD ||
+    DEFAULT_SUPER_ADMIN_PASSWORD ||
+    'TestAdminFixturePassword2026!@#';
+  const adminHash = hashPasswordWithSalt(adminPassword, adminSalt);
 
-  // Seed Primary Super Admin accounts (Full authority over application, users, data, settings)
-  const superAdmin1163: AuthUser = {
+  const studentSalt = 'test_salt_student_' + crypto.randomBytes(8).toString('hex');
+  const studentHash = hashPasswordWithSalt('TestStudentPassword2026!@#', studentSalt);
+
+  const testSuperAdmin1163: AuthUser = {
     id: 'user_super_admin_1163',
     email: 'istihadahmed1163@gmail.com',
     fullName: 'Istihad Ahmed (Super Admin)',
     role: 'super_admin',
-    authProvider: 'google',
+    authProvider: 'credentials',
     passwordSalt: adminSalt,
     passwordHash: adminHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  const superAdmin007: AuthUser = {
+  const testSuperAdmin007: AuthUser = {
     id: 'user_super_admin_007',
     email: 'istihadahmed007@gmail.com',
     fullName: 'Istihad Ahmed (Admin)',
     role: 'super_admin',
-    authProvider: 'google',
+    authProvider: 'credentials',
     passwordSalt: adminSalt,
     passwordHash: adminHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  const superAdminSystem: AuthUser = {
+  const testAdmin001: AuthUser = {
     id: 'user_admin_001',
     email: 'admin@bcs.vartualtutor.com',
     fullName: 'BCSCrack Super Admin',
@@ -105,7 +184,7 @@ if (!globalAuth.__bcs_users__) {
     updatedAt: new Date().toISOString(),
   };
 
-  const studentCurrent: AuthUser = {
+  const testStudentCurrent: AuthUser = {
     id: 'student_current',
     email: 'student@bcs.vartualtutor.com',
     fullName: 'BCS Aspirant Student',
@@ -117,29 +196,37 @@ if (!globalAuth.__bcs_users__) {
     updatedAt: new Date().toISOString(),
   };
 
-  globalAuth.__bcs_users__.set(superAdmin1163.id, superAdmin1163);
-  globalAuth.__bcs_users__.set(superAdmin007.id, superAdmin007);
-  globalAuth.__bcs_users__.set(superAdminSystem.id, superAdminSystem);
-  globalAuth.__bcs_users__.set(studentCurrent.id, studentCurrent);
+  store.saveUser(testSuperAdmin1163);
+  store.saveUser(testSuperAdmin007);
+  store.saveUser(testAdmin001);
+  store.saveUser(testStudentCurrent);
+
+  globalAuth.__bcs_users__!.set(testSuperAdmin1163.id, testSuperAdmin1163);
+  globalAuth.__bcs_users__!.set(testSuperAdmin007.id, testSuperAdmin007);
+  globalAuth.__bcs_users__!.set(testAdmin001.id, testAdmin001);
+  globalAuth.__bcs_users__!.set(testStudentCurrent.id, testStudentCurrent);
 }
 
-if (!globalAuth.__bcs_sessions__) {
-  globalAuth.__bcs_sessions__ = new Map();
+// Active AuthStore reference (allows swapping in isolated stores for tests)
+let activeAuthStore: AuthStore = defaultAuthStore;
+
+// Automatically seed test fixtures ONLY when running in test environment
+if (isTestEnvironment() && process.env.NODE_ENV !== 'production' && activeAuthStore.listUsers().length === 0) {
+  seedTestFixtures(activeAuthStore);
 }
 
-if (!globalAuth.__bcs_user_active_session__) {
-  globalAuth.__bcs_user_active_session__ = new Map();
+export function getActiveAuthStore(): AuthStore {
+  return activeAuthStore;
 }
 
-if (!globalAuth.__bcs_superseded_sessions__) {
-  globalAuth.__bcs_superseded_sessions__ = new Map();
+export function setActiveAuthStore(store: AuthStore): void {
+  activeAuthStore = store;
 }
 
 export function resolveOrigin(request: {
   headers: { get: (name: string) => string | null };
   nextUrl?: { origin: string; protocol: string };
 }): string {
-  // If explicitly configured for production domain (not localhost)
   const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (
     configuredAppUrl &&
@@ -154,12 +241,10 @@ export function resolveOrigin(request: {
     request.headers.get('x-forwarded-proto') ||
     (request.nextUrl ? request.nextUrl.protocol.replace(':', '') : 'http');
 
-  // Normalize local IP 127.0.0.1 or 0.0.0.0 to localhost to prevent Google OAuth redirect_uri_mismatch
   if (host && (host.startsWith('127.0.0.1') || host.startsWith('0.0.0.0'))) {
     host = host.replace(/^(127\.0\.0\.1|0\.0\.0\.0)/, 'localhost');
   }
 
-  // If host is not localhost, ensure https
   if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
     proto = 'https';
   }
@@ -172,7 +257,7 @@ export function resolveOrigin(request: {
   return origin.replace(/^(http:\/\/)127\.0\.0\.1/, '$1localhost').replace(/\/+$/, '');
 }
 
-// Safe runtime fallback credentials when environment variables are not loaded in container
+// Runtime credentials obfuscation for client ID and secret when environment variables are missing
 const _K1 = [25,25,31,28,18,18,30,27,28,24,31,27,7,19,64,89,73,79,71,68,68,75,18,73,88,90,30,66,71,77,77,75,72,89,68,67,91,94,72,29,69,65,72,77,27,4,75,90,90,89,4,77,69,69,77,70,79,95,89,79,88,73,69,68,94,79,68,94,4,73,69,71];
 const _K2 = [109,101,105,121,122,114,7,125,109,117,69,7,105,27,65,117,124,30,82,18,28,97,110,24,95,125,93,93,89,111,127,122,79,95,89];
 
@@ -199,9 +284,16 @@ export function getEffectiveGoogleCredentials(): { clientId: string; clientSecre
 }
 
 export class AuthService {
+  static getStore(): AuthStore {
+    return getActiveAuthStore();
+  }
+
+  static setStore(store: AuthStore): void {
+    setActiveAuthStore(store);
+  }
+
   /**
    * Resolves canonical, sanitized redirect_uri matching Google Cloud Console exactly.
-   * Strips trailing slashes, prevents double slashes, and checks optional GOOGLE_REDIRECT_URI.
    */
   static getEffectiveRedirectUri(redirectOrigin?: string, customCallbackPath?: string): string {
     if (process.env.GOOGLE_REDIRECT_URI) {
@@ -261,8 +353,7 @@ export class AuthService {
     const redirectUri = this.getEffectiveRedirectUri(redirectOrigin, customCallbackPath);
 
     if (!clientId || !clientSecret) {
-      // Only allowed in automated test suite
-      if (process.env.NODE_ENV === 'test' && (code.startsWith('mock_code_') || !clientId)) {
+      if (isTestEnvironment() && code.startsWith('mock_code_')) {
         return {
           email: 'google_user@test.com',
           name: 'Test Google Candidate',
@@ -273,7 +364,6 @@ export class AuthService {
       throw new Error('Google OAuth credentials not configured.');
     }
 
-    // Exchange code with Google OAuth endpoint
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -295,8 +385,6 @@ export class AuthService {
     const accessToken = tokenData.access_token;
     const idToken = tokenData.id_token;
 
-    // Dual-strategy profile resolution:
-    // 1. Primary: Query official OpenID Connect userinfo endpoint with granted bearer access token
     if (accessToken) {
       try {
         const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -304,7 +392,7 @@ export class AuthService {
         });
         if (userInfoRes.ok) {
           const uInfo = await userInfoRes.json();
-          if (uInfo.email) {
+          if (uInfo.email && (uInfo.email_verified === true || uInfo.email_verified === 'true')) {
             return {
               email: uInfo.email.toLowerCase(),
               name: uInfo.name || uInfo.given_name || uInfo.email.split('@')[0],
@@ -314,97 +402,128 @@ export class AuthService {
           }
         }
       } catch {
-        // Fall through to verifyGoogleIdToken
+        // Fall through to strict ID token verification
       }
     }
 
-    // 2. Secondary fallback: Verify ID token via Google tokeninfo or verified JWT decode
     if (idToken) {
       return await this.verifyGoogleIdToken(idToken);
     }
 
-    throw new Error('Failed to retrieve user profile from Google OAuth response.');
+    throw new Error('Failed to retrieve verified user profile from Google OAuth response.');
   }
 
   /**
-   * Verifies Google Identity Services ID token (from Google One-Tap or button)
+   * Verifies Google Identity Services ID token (from Google One-Tap or Sign-in button).
+   * FAILS CLOSED:
+   * - Uses Google's official trusted tokeninfo endpoint for cryptographic signature verification.
+   * - Strictly validates issuer (accounts.google.com or https://accounts.google.com).
+   * - Strictly validates audience (aud) against configured Google Client ID.
+   * - Strictly validates token expiration (exp) is in the future.
+   * - Strictly validates email presence and email_verified === true.
+   * - Rejects on network failure, timeout, non-200 response, or claim failure.
+   * - NEVER falls back to unverified JWT decoding.
    */
   static async verifyGoogleIdToken(
     idToken: string
   ): Promise<{ email: string; name: string; avatarUrl?: string; googleId: string }> {
-    // Development/Test mock token bypass strictly for automated test runner
-    if (process.env.NODE_ENV === 'test' && idToken.startsWith('mock_id_token_')) {
+    if (!idToken || typeof idToken !== 'string') {
+      throw new Error('Google ID token is required.');
+    }
+
+    // In automated test runner, permit explicit test tokens ONLY in test mode
+    if (isTestEnvironment() && process.env.NODE_ENV !== 'production' && idToken.startsWith('mock_valid_id_token_')) {
       const parts = idToken.split('_');
-      const email = parts[3] ? `${parts[3]}@gmail.com` : 'candidate@gmail.com';
+      const email = parts[4] ? `${parts[4]}@gmail.com` : 'candidate@gmail.com';
       return {
-        email,
+        email: email.toLowerCase(),
         name: 'Verified Google Candidate',
         avatarUrl: 'https://lh3.googleusercontent.com/a/default-user',
         googleId: 'mock_gid_' + crypto.createHash('md5').update(email).digest('hex').substring(0, 10),
       };
     }
 
+    const { clientId } = getEffectiveGoogleCredentials();
+
+    let response: Response;
     try {
-      const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
-      if (response.ok) {
-        const data = await response.json();
-        const expectedClientId = process.env.GOOGLE_CLIENT_ID;
-        if (expectedClientId && data.aud !== expectedClientId) {
-          throw new Error('Google token audience (aud) mismatch.');
-        }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-        if (!data.email || !data.email_verified) {
-          throw new Error('Google account email is missing or unverified.');
+      response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+        {
+          signal: controller.signal,
+          headers: { Accept: 'application/json' },
         }
-
-        return {
-          email: data.email.toLowerCase(),
-          name: data.name || data.email.split('@')[0],
-          avatarUrl: data.picture,
-          googleId: data.sub,
-        };
-      }
-    } catch (err: any) {
-      // If tokeninfo endpoint was unreachable or timed out, decode the verified JWT
-      const parts = idToken.split('.');
-      if (parts.length === 3) {
-        try {
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
-          if (payload.email) {
-            return {
-              email: payload.email.toLowerCase(),
-              name: payload.name || payload.email.split('@')[0],
-              avatarUrl: payload.picture,
-              googleId: payload.sub,
-            };
-          }
-        } catch {}
-      }
-      throw new Error('Google authentication verification failed: ' + err.message);
+      );
+      clearTimeout(timeoutId);
+    } catch (networkErr: any) {
+      // Network failure, DNS failure, or timeout: FAIL CLOSED!
+      throw new Error(
+        `Google identity verification service unreachable: ${networkErr.message || 'Connection timed out'}`
+      );
     }
 
-    // Fallback: If response was not ok, check JWT parts
-    const parts = idToken.split('.');
-    if (parts.length === 3) {
+    if (!response.ok) {
+      // Google rejected the token (invalid signature, malformed token, expired, etc.): FAIL CLOSED!
+      let errorDetail = 'Invalid token';
       try {
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
-        if (payload.email) {
-          return {
-            email: payload.email.toLowerCase(),
-            name: payload.name || payload.email.split('@')[0],
-            avatarUrl: payload.picture,
-            googleId: payload.sub,
-          };
-        }
+        const errJson = await response.json();
+        errorDetail = errJson.error_description || errJson.error || errorDetail;
       } catch {}
+      throw new Error(`Google ID token verification rejected by issuer: ${errorDetail}`);
     }
 
-    throw new Error('Google ID token verification failed.');
+    let data: any;
+    try {
+      data = await response.json();
+    } catch (parseErr: any) {
+      throw new Error(`Failed to parse Google verification response: ${parseErr.message}`);
+    }
+
+    // Cryptographic & claim validations:
+    // 1. Verify issuer: must be accounts.google.com or https://accounts.google.com
+    const validIssuers = new Set(['accounts.google.com', 'https://accounts.google.com']);
+    if (!data.iss || !validIssuers.has(data.iss)) {
+      throw new Error(`Invalid Google token issuer (iss): expected Google issuer, received '${data.iss}'`);
+    }
+
+    // 2. Verify audience (aud) against configured Google client ID
+    const expectedClientId = (process.env.GOOGLE_CLIENT_ID || clientId || '').trim();
+    if (expectedClientId && data.aud !== expectedClientId) {
+      throw new Error(`Google token audience mismatch: expected '${expectedClientId}', received '${data.aud}'`);
+    }
+
+    // 3. Verify expiration (exp)
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const exp = Number(data.exp);
+    if (!exp || isNaN(exp) || exp <= nowInSeconds) {
+      throw new Error(`Google token is expired: exp was ${exp}, current time is ${nowInSeconds}`);
+    }
+
+    // 4. Verify email presence and email_verified: true
+    const isEmailVerified = data.email_verified === true || data.email_verified === 'true';
+    if (!data.email || !isEmailVerified) {
+      throw new Error('Google account email is missing or unverified by Google.');
+    }
+
+    // 5. Verify subject identifier (sub)
+    if (!data.sub) {
+      throw new Error('Google ID token is missing subject identifier (sub).');
+    }
+
+    return {
+      email: data.email.toLowerCase().trim(),
+      name: data.name || data.given_name || data.email.split('@')[0],
+      avatarUrl: data.picture,
+      googleId: data.sub,
+    };
   }
 
   /**
-   * Finds or creates a user account from Google authentication
-   * Automatically provisions Free Preview package for newly registered students.
+   * Finds or creates a user account from Google authentication.
+   * Persists user to shared store and provisions Free Preview package for newly registered students.
    * Authoritatively grants super_admin role if user email matches SUPER_ADMIN_EMAILS.
    */
   static findOrCreateGoogleUser(profile: {
@@ -413,35 +532,32 @@ export class AuthService {
     avatarUrl?: string;
     googleId: string;
   }): { user: AuthUser; isNewUser: boolean } {
-    const users = globalAuth.__bcs_users__!;
+    const store = this.getStore();
     const normalizedEmail = profile.email.toLowerCase().trim();
     const isSuperAdmin = this.isSuperAdminEmail(normalizedEmail);
 
-    // Check if user exists by email
-    for (const u of users.values()) {
-      if (u.email.toLowerCase() === normalizedEmail) {
-        let updated = false;
-        if (!u.googleId) {
-          u.googleId = profile.googleId;
-          updated = true;
-        }
-        if (profile.avatarUrl && !u.avatarUrl) {
-          u.avatarUrl = profile.avatarUrl;
-          updated = true;
-        }
-        // Authoritative server-side elevation: if email is in SUPER_ADMIN_EMAILS, elevate to super_admin
-        if (isSuperAdmin && u.role !== 'super_admin') {
-          u.role = 'super_admin';
-          updated = true;
-        }
-        if (updated) {
-          u.updatedAt = new Date().toISOString();
-        }
-        return { user: u, isNewUser: false };
+    const existing = store.getUserByEmail(normalizedEmail);
+    if (existing) {
+      let updated = false;
+      if (!existing.googleId) {
+        existing.googleId = profile.googleId;
+        updated = true;
       }
+      if (profile.avatarUrl && !existing.avatarUrl) {
+        existing.avatarUrl = profile.avatarUrl;
+        updated = true;
+      }
+      if (isSuperAdmin && existing.role !== 'super_admin') {
+        existing.role = 'super_admin';
+        updated = true;
+      }
+      if (updated) {
+        existing.updatedAt = new Date().toISOString();
+        store.saveUser(existing);
+      }
+      return { user: existing, isNewUser: false };
     }
 
-    // Create brand new user with server-verified role
     const newUser: AuthUser = {
       id: isSuperAdmin
         ? `user_super_admin_${normalizedEmail.split('@')[0]}`
@@ -456,20 +572,15 @@ export class AuthService {
       updatedAt: new Date().toISOString(),
     };
 
-    users.set(newUser.id, newUser);
-
-    // Auto-grant Free Preview package to newly registered user
+    store.saveUser(newUser);
     SubscriptionService.grantFreePreview(newUser.id);
 
     return { user: newUser, isNewUser: true };
   }
 
   /**
-   * Creates a signed session token for authenticated user
-   */
-  /**
    * Creates a signed session token for authenticated user.
-   * Enforces SINGLE CONCURRENT ACTIVE DEVICE:
+   * Persists session to persistent store and enforces SINGLE CONCURRENT ACTIVE DEVICE:
    * If the account already has an active session on another device, that previous session
    * is immediately invalidated and flagged as superseded.
    */
@@ -484,22 +595,6 @@ export class AuthService {
     const now = Math.floor(Date.now() / 1000);
     const expiresAt = now + durationDays * 24 * 60 * 60;
 
-    // SINGLE ACTIVE DEVICE RULE:
-    // If account has an active session from an earlier sign-in, invalidate it and flag it
-    const previousSessionId = globalAuth.__bcs_user_active_session__?.get(user.id);
-    if (previousSessionId && previousSessionId !== sessionId) {
-      globalAuth.__bcs_sessions__?.delete(previousSessionId);
-      globalAuth.__bcs_superseded_sessions__?.set(previousSessionId, {
-        userId: user.id,
-        email: user.email,
-        supersededAt: Date.now(),
-        reason: 'signed_in_on_another_device',
-      });
-    }
-
-    // Set this new session as the ONLY active session for this account
-    globalAuth.__bcs_user_active_session__?.set(user.id, sessionId);
-
     const payload: SessionTokenPayload = {
       sessionId,
       userId: user.id,
@@ -511,13 +606,15 @@ export class AuthService {
       expiresAt,
     };
 
-    globalAuth.__bcs_sessions__!.set(sessionId, payload);
+    // Atomically persist active session and invalidate previous session for user
+    const store = this.getStore();
+    store.createSessionAtomic(user, sessionId, payload);
 
-    // Encode payload as Base64URL
+    // Cryptographic signature with strong session secret
+    const secret = getEffectiveSessionSecret();
     const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
-    // Generate HMAC signature
     const signature = crypto
-      .createHmac('sha256', SESSION_SECRET)
+      .createHmac('sha256', secret)
       .update(encodedPayload)
       .digest('base64url');
 
@@ -526,10 +623,10 @@ export class AuthService {
 
   /**
    * Validates session token with authoritative server-side checks:
-   * 1. Cryptographic HMAC signature integrity
+   * 1. Cryptographic HMAC signature integrity using configured strong secret
    * 2. Expiration timestamp
    * 3. Single active device enforcement (detects if session was superseded by a newer login)
-   * 4. Session existence in active store
+   * 4. Session existence in shared persistent store
    * 5. Authoritative Super Admin role elevation for verified admin emails
    */
   static validateActiveSession(tokenString: string | null | undefined): SessionValidationResult {
@@ -556,8 +653,9 @@ export class AuthService {
       }
 
       const [encodedPayload, signature] = parts;
+      const secret = getEffectiveSessionSecret();
       const expectedSignature = crypto
-        .createHmac('sha256', SESSION_SECRET)
+        .createHmac('sha256', secret)
         .update(encodedPayload)
         .digest('base64url');
 
@@ -578,9 +676,11 @@ export class AuthService {
         Buffer.from(encodedPayload, 'base64url').toString('utf-8')
       );
 
+      const store = this.getStore();
       const now = Math.floor(Date.now() / 1000);
+
       if (payload.expiresAt < now) {
-        globalAuth.__bcs_sessions__?.delete(payload.sessionId);
+        store.revokeSession(payload.sessionId);
         return {
           status: 'expired',
           session: null,
@@ -591,8 +691,8 @@ export class AuthService {
       }
 
       // Check if session was superseded because this account signed in on another device
-      const supersededInfo = globalAuth.__bcs_superseded_sessions__?.get(payload.sessionId);
-      const currentActiveSessionId = globalAuth.__bcs_user_active_session__?.get(payload.userId);
+      const supersededInfo = store.getSupersededSession(payload.sessionId);
+      const currentActiveSessionId = store.getActiveSessionForUser(payload.userId);
 
       if (supersededInfo || (currentActiveSessionId && currentActiveSessionId !== payload.sessionId)) {
         return {
@@ -605,8 +705,8 @@ export class AuthService {
         };
       }
 
-      // Check active session store
-      if (!globalAuth.__bcs_sessions__?.has(payload.sessionId)) {
+      // Check active persistent session store
+      if (!store.getSession(payload.sessionId)) {
         return {
           status: 'invalid',
           session: null,
@@ -622,7 +722,10 @@ export class AuthService {
         payload.role = 'super_admin';
       }
 
-      const user = this.getUserById(payload.userId) || this.getUserByEmail(payload.email);
+      const user =
+        store.getUser(payload.userId) ||
+        store.getUserByEmail(payload.email) ||
+        globalAuth.__bcs_users__?.get(payload.userId);
       if (user && this.isSuperAdminEmail(user.email)) {
         user.role = 'super_admin';
       }
@@ -662,7 +765,9 @@ export class AuthService {
 
   /**
    * Authenticates user using email and password with server-side validation and RBAC enforcement.
-   * Prevents client-side role forgery or unauthorized elevation.
+   * - Prevents default or publicly known administrator credentials from granting access.
+   * - In production, requires securely configured environment credentials; never silently authenticates.
+   * - Rejects revoked compromised passwords.
    */
   static authenticateWithPassword(
     emailInput: string,
@@ -684,14 +789,40 @@ export class AuthService {
       };
     }
 
+    const store = this.getStore();
     const isSuperAdmin = this.isSuperAdminEmail(email);
+
+    // Reject known revoked/compromised passwords
+    if (COMPROMISED_PASSWORDS.has(password)) {
+      return {
+        success: false,
+        error: 'This password has been revoked due to security compromise. Please configure a secure password.',
+        code: 'COMPROMISED_PASSWORD',
+      };
+    }
 
     // Super Admin accounts: verify against authoritative server-side password
     if (isSuperAdmin) {
-      const existing = this.getUserByEmail(email);
+      const isProduction = process.env.NODE_ENV === 'production';
+      const configuredAdminPassword =
+        process.env.SUPER_ADMIN_PASSWORD ||
+        (!isProduction ? DEFAULT_SUPER_ADMIN_PASSWORD : '');
+
+      const existing = store.getUserByEmail(email) || this.getUserByEmail(email);
+
+      // In production, fail safely if credentials are not configured
+      if (!configuredAdminPassword && (!existing || !existing.passwordHash)) {
+        return {
+          success: false,
+          error: 'Administrator credentials are not configured in production.',
+          code: 'ADMIN_CREDENTIALS_UNCONFIGURED',
+        };
+      }
+
       let isValid = false;
 
-      if (password === DEFAULT_SUPER_ADMIN_PASSWORD) {
+      // Check against configured admin password in environment / test fixtures
+      if (configuredAdminPassword && password === configuredAdminPassword) {
         isValid = true;
       } else if (existing?.passwordHash && existing?.passwordSalt) {
         const hash = hashPasswordWithSalt(password, existing.passwordSalt);
@@ -710,12 +841,13 @@ export class AuthService {
 
       if (existing) {
         existing.role = 'super_admin';
+        store.saveUser(existing);
         return { success: true, user: existing };
       }
 
-      // Seed Super Admin user
-      const adminSalt = 'bcs_admin_salt_sec_2026';
-      const adminHash = hashPasswordWithSalt(DEFAULT_SUPER_ADMIN_PASSWORD, adminSalt);
+      // Bootstrap administrator in store with secure salt
+      const adminSalt = crypto.randomBytes(16).toString('hex');
+      const adminHash = hashPasswordWithSalt(password, adminSalt);
       const newAdminUser: AuthUser = {
         id: `user_super_admin_${email.split('@')[0]}`,
         email,
@@ -727,12 +859,12 @@ export class AuthService {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      globalAuth.__bcs_users__!.set(newAdminUser.id, newAdminUser);
+      store.saveUser(newAdminUser);
       return { success: true, user: newAdminUser };
     }
 
     // Standard student user authentication
-    const existingUser = this.getUserByEmail(email);
+    const existingUser = store.getUserByEmail(email) || this.getUserByEmail(email);
     if (existingUser) {
       if (existingUser.passwordHash && existingUser.passwordSalt) {
         const hash = hashPasswordWithSalt(password, existingUser.passwordSalt);
@@ -749,6 +881,7 @@ export class AuthService {
         existingUser.passwordSalt = salt;
         existingUser.passwordHash = hashPasswordWithSalt(password, salt);
         existingUser.updatedAt = new Date().toISOString();
+        store.saveUser(existingUser);
       }
       return { success: true, user: existingUser };
     }
@@ -768,7 +901,7 @@ export class AuthService {
       updatedAt: new Date().toISOString(),
     };
 
-    globalAuth.__bcs_users__!.set(newUser.id, newUser);
+    store.saveUser(newUser);
     SubscriptionService.grantFreePreview(newUser.id);
 
     return { success: true, user: newUser };
@@ -778,34 +911,34 @@ export class AuthService {
    * Revokes a session (Logout)
    */
   static revokeSession(sessionId: string): void {
-    const session = globalAuth.__bcs_sessions__?.get(sessionId);
-    if (session) {
-      if (globalAuth.__bcs_user_active_session__?.get(session.userId) === sessionId) {
-        globalAuth.__bcs_user_active_session__?.delete(session.userId);
-      }
-      globalAuth.__bcs_sessions__?.delete(sessionId);
-    }
+    const store = this.getStore();
+    store.revokeSession(sessionId);
   }
 
   /**
    * Retrieves current active session ID for a user
    */
   static getActiveSessionForUser(userId: string): string | null {
-    return globalAuth.__bcs_user_active_session__?.get(userId) || null;
+    return this.getStore().getActiveSessionForUser(userId);
   }
 
   /**
    * Retrieves superseded information for a session if invalidated
    */
   static getSupersededInfo(sessionId: string): SupersededSessionInfo | null {
-    return globalAuth.__bcs_superseded_sessions__?.get(sessionId) || null;
+    return this.getStore().getSupersededSession(sessionId);
   }
 
   /**
    * Gets user by ID
    */
   static getUserById(userId: string): AuthUser | null {
-    return globalAuth.__bcs_users__?.get(userId) || null;
+    const fromStore = this.getStore().getUser(userId);
+    if (fromStore) return fromStore;
+    if (this.getStore() === defaultAuthStore && globalAuth.__bcs_users__) {
+      return globalAuth.__bcs_users__.get(userId) || null;
+    }
+    return null;
   }
 
   /**
@@ -813,8 +946,13 @@ export class AuthService {
    */
   static getUserByEmail(email: string): AuthUser | null {
     const normalized = email.toLowerCase().trim();
-    for (const u of globalAuth.__bcs_users__?.values() || []) {
-      if (u.email.toLowerCase() === normalized) return u;
+    const fromStore = this.getStore().getUserByEmail(normalized);
+    if (fromStore) return fromStore;
+
+    if (this.getStore() === defaultAuthStore && globalAuth.__bcs_users__) {
+      for (const u of globalAuth.__bcs_users__.values()) {
+        if (u.email.toLowerCase() === normalized) return u;
+      }
     }
     return null;
   }
@@ -823,6 +961,7 @@ export class AuthService {
    * Finds or creates a user account from email authentication
    */
   static findOrCreateEmailUser(email: string): AuthUser {
+    const store = this.getStore();
     const existing = this.getUserByEmail(email);
     if (existing) return existing;
 
@@ -839,7 +978,7 @@ export class AuthService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    globalAuth.__bcs_users__!.set(newUser.id, newUser);
+    store.saveUser(newUser);
     SubscriptionService.grantFreePreview(newUser.id);
     return newUser;
   }
@@ -848,17 +987,33 @@ export class AuthService {
    * List all users (Admin operation)
    */
   static listUsers(): AuthUser[] {
-    return Array.from(globalAuth.__bcs_users__?.values() || []);
+    const fromStore = this.getStore().listUsers();
+    if (globalAuth.__bcs_users__) {
+      const merged = new Map<string, AuthUser>();
+      for (const u of globalAuth.__bcs_users__.values()) {
+        merged.set(u.id, u);
+      }
+      for (const u of fromStore) {
+        merged.set(u.id, u);
+      }
+      return Array.from(merged.values());
+    }
+    return fromStore;
   }
 
   /**
    * Updates user role (Admin operation)
    */
   static updateUserRole(userId: string, newRole: UserRole, adminId: string): AuthUser {
+    const store = this.getStore();
     const user = this.getUserById(userId);
     if (!user) throw new Error('User not found: ' + userId);
     user.role = newRole;
     user.updatedAt = new Date().toISOString();
+    store.saveUser(user);
+    if (globalAuth.__bcs_users__?.has(userId)) {
+      globalAuth.__bcs_users__.set(userId, user);
+    }
     return user;
   }
 
@@ -914,7 +1069,7 @@ export class AuthService {
     if (typeof requestOrCookie === 'string') {
       token = requestOrCookie;
     } else if (requestOrCookie && 'cookies' in requestOrCookie) {
-      token = requestOrCookie.cookies.get('bcs_session')?.value || null;
+      token = requestOrCookie.cookies.get(COOKIE_NAME)?.value || null;
     }
 
     const validation = this.validateActiveSession(token);

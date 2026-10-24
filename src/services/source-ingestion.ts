@@ -12,6 +12,7 @@ import { INITIAL_SOURCE_REGISTRY } from '@/data/sources-registry';
 import { SEED_QUESTIONS } from '@/data/seed-questions';
 import { SYLLABUS_TOPICS } from '@/data/syllabus';
 import { QuestionBankService } from './question-bank';
+import { canMarkAsVerified, isStudentEligibleQuestion } from './question-validator';
 
 // In-memory runtime stores (retained in memory and synchronized with database)
 const SOURCES_STORE: SourceRegistryItem[] = [...INITIAL_SOURCE_REGISTRY];
@@ -314,7 +315,8 @@ export class SourceIngestionService {
     // Update question's evidence array and verificationState
     q.sourceEvidence = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
     const hasVerified = q.sourceEvidence.some((l) => l.verificationStatus === 'verified');
-    q.verificationState = hasVerified ? 'verified' : 'source_attached';
+    const contentValid = canMarkAsVerified(q).valid;
+    q.verificationState = hasVerified && contentValid ? 'verified' : q.sourceEvidence.length > 0 ? 'source_attached' : 'needs_review';
 
     return newLink;
   }
@@ -349,7 +351,8 @@ export class SourceIngestionService {
 
     q.sourceEvidence = QUESTION_SOURCE_LINKS_STORE.filter((l) => l.questionId === q.id);
     const hasVerified = q.sourceEvidence.some((l) => l.verificationStatus === 'verified');
-    q.verificationState = hasVerified ? 'verified' : q.sourceEvidence.length > 0 ? params.status : 'unverified';
+    const contentValid = canMarkAsVerified(q).valid;
+    q.verificationState = hasVerified && contentValid ? 'verified' : q.sourceEvidence.length > 0 ? (params.status === 'verified' && !contentValid ? 'source_attached' : params.status) : 'unverified';
 
     return q;
   }
@@ -556,9 +559,15 @@ export class SourceIngestionService {
     }
 
     if (params.action === 'approve') {
-      item.status = 'approved';
-
       const p = item.parsedPayload;
+      const validation = canMarkAsVerified(p);
+      if (!validation.valid) {
+        throw new Error(
+          `Cannot mark question as verified. Validation defects detected:\n${validation.errors.join('\n')}`
+        );
+      }
+
+      item.status = 'approved';
       const verifiedQuestion: Question = {
         id: p.id || `q-app-${Date.now()}`,
         examTrackId: p.examTrackId || 'special_bcs_health_51_2026',
@@ -578,6 +587,7 @@ export class SourceIngestionService {
         contentOrigin: p.contentOrigin || 'official_bpsc',
         rightsStatus: 'public_official',
         reviewStatus: 'approved',
+        verificationState: 'verified',
         sourceReference: p.sourceReference,
         duplicateHash: item.duplicateHash,
         revisionNumber: 1,
@@ -653,7 +663,9 @@ export class SourceIngestionService {
   }
 
   static getApprovedQuestions(): Question[] {
-    const runtimeApproved = RUNTIME_QUESTIONS.filter((q) => q.reviewStatus === 'approved');
+    const runtimeApproved = RUNTIME_QUESTIONS.filter(
+      (q) => q.reviewStatus === 'approved' && isStudentEligibleQuestion(q)
+    );
     try {
       const qbQuestions = QuestionBankService.getPlatformQuestions();
       return [...runtimeApproved, ...qbQuestions];

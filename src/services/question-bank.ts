@@ -3,6 +3,7 @@ import path from 'path';
 import { DifficultyLevel, ExamTrackId, ProfessionalStreamId, Question, QuestionOption } from '@/types';
 import manifestData from '@/data/question_bank_manifest.json';
 import { SEED_QUESTIONS } from '@/data/seed-questions';
+import { canMarkAsVerified, detectQuestionPlaceholders, isStudentEligibleQuestion } from './question-validator';
 
 export interface RawQuestionBankItem {
   id: string;
@@ -41,6 +42,7 @@ export interface QuestionBankFilter {
   track?: ExamTrackId;
   stream?: ProfessionalStreamId;
   reviewStatus?: string;
+  includeUnverified?: boolean;
 }
 
 // In-memory global singleton cache for Next.js hot reload and serverless safety
@@ -159,6 +161,12 @@ export class QuestionBankService {
             if (!trimmed) continue;
             try {
               const item: RawQuestionBankItem = JSON.parse(trimmed);
+              // Fail-closed runtime integrity: Force needs_review if item has placeholders or missing provenance
+              const verificationCheck = canMarkAsVerified(item);
+              if (!verificationCheck.valid && (item.verification_status || '').toLowerCase() === 'verified') {
+                item.verification_status = 'needs_review';
+              }
+
               allQuestions.push(item);
               idMap.set(item.id, item);
 
@@ -202,6 +210,17 @@ export class QuestionBankService {
     globalForQB.__bcs_qb_by_subject__ = bySubject;
     console.log(`[QuestionBankService] Loaded & indexed ${allQuestions.length} MCQs across ${bySubject.size} subjects`);
     return allQuestions;
+  }
+
+  /**
+   * Resets the in-memory cache to force a fresh reload from disk or DB
+   */
+  static clearCache(): void {
+    delete globalForQB.__bcs_qb_cache__;
+    delete globalForQB.__bcs_qb_id_map__;
+    delete globalForQB.__bcs_qb_by_subject__;
+    delete globalForQB.__bcs_platform_questions__;
+    delete globalForQB.__bcs_qb_loading_promise__;
   }
 
   /**
@@ -367,10 +386,21 @@ export class QuestionBankService {
       filtered = filtered.filter((q) => {
         const vStatus = (q.verification_status || 'verified').toLowerCase();
         if (targetStatus === 'approved' || targetStatus === 'verified') {
-          return vStatus === 'verified' || vStatus === 'approved';
+          return (vStatus === 'verified' || vStatus === 'approved') && canMarkAsVerified(q).valid;
         }
-        if (targetStatus === 'under_review' || targetStatus === 'pending_review' || targetStatus === 'review') {
-          return vStatus === 'pending_review' || vStatus === 'under_review' || vStatus === 'source_attached';
+        if (
+          targetStatus === 'under_review' ||
+          targetStatus === 'pending_review' ||
+          targetStatus === 'review' ||
+          targetStatus === 'needs_review'
+        ) {
+          return (
+            vStatus === 'pending_review' ||
+            vStatus === 'under_review' ||
+            vStatus === 'source_attached' ||
+            vStatus === 'needs_review' ||
+            !canMarkAsVerified(q).valid
+          );
         }
         if (targetStatus === 'draft' || targetStatus === 'unverified') {
           return vStatus === 'draft' || vStatus === 'unverified';
@@ -499,6 +529,8 @@ export class QuestionBankService {
       { id: 'C', textEn: raw.options.C || '', textBn: raw.options.C || '' },
       { id: 'D', textEn: raw.options.D || '', textBn: raw.options.D || '' },
     ];
+    const validation = canMarkAsVerified(raw);
+    const isVerified = (raw.verification_status || '').toLowerCase() === 'verified' && validation.valid;
 
     return {
       id: raw.id,
@@ -518,16 +550,16 @@ export class QuestionBankService {
       difficulty: raw.difficulty as DifficultyLevel,
       contentOrigin: 'expert_authored',
       rightsStatus: 'original',
-      reviewStatus: 'approved',
+      reviewStatus: isVerified ? 'approved' : 'under_review',
       sourceReference: `${raw.source_title}${raw.source_page_or_section ? ` — ${raw.source_page_or_section}` : ''}`,
       sourceCitation: raw.source_title,
-      verificationState: 'verified',
+      verificationState: isVerified ? 'verified' : 'needs_review',
       revisionNumber: 1,
     };
   }
 
   /**
-   * Returns platform questions filtered by track and stream
+   * Returns platform questions filtered by track and stream (strictly verified & student-eligible)
    */
   static getPlatformQuestions(track?: ExamTrackId, stream?: ProfessionalStreamId): Question[] {
     if (!globalForQB.__bcs_platform_questions__) {
@@ -537,10 +569,13 @@ export class QuestionBankService {
       );
     }
 
-    const result = globalForQB.__bcs_platform_questions__;
+    // Strictly isolate: only verified authentic questions enter the live student assessment pool
+    const eligible = globalForQB.__bcs_platform_questions__.filter(
+      (q) => q.verificationState === 'verified' && q.reviewStatus === 'approved'
+    );
 
     if (!track) {
-      return result;
+      return eligible;
     }
 
     if (track === 'special_bcs_health_51_2026') {
@@ -550,13 +585,13 @@ export class QuestionBankService {
 
       if (stream === 'assistant_surgeon') {
         const allowed = [...sharedSubjects, ...medSubjects];
-        return result.filter((q) => allowed.includes(q.subjectCode));
+        return eligible.filter((q) => allowed.includes(q.subjectCode));
       } else if (stream === 'assistant_dental_surgeon') {
         const allowed = [...sharedSubjects, ...dentalSubjects];
-        return result.filter((q) => allowed.includes(q.subjectCode));
+        return eligible.filter((q) => allowed.includes(q.subjectCode));
       } else {
         const allowed = [...sharedSubjects, ...medSubjects, ...dentalSubjects];
-        return result.filter((q) => allowed.includes(q.subjectCode));
+        return eligible.filter((q) => allowed.includes(q.subjectCode));
       }
     }
 
@@ -573,10 +608,10 @@ export class QuestionBankService {
         'G_GEOGRAPHY',
         'G_ETHICS',
       ];
-      return result.filter((q) => generalSubjects.includes(q.subjectCode));
+      return eligible.filter((q) => generalSubjects.includes(q.subjectCode));
     }
 
-    return result;
+    return eligible;
   }
 
   /**
@@ -600,9 +635,13 @@ export class QuestionBankService {
       }
     }
 
-    let allQuestions = this.getAllQuestions();
+    let allQuestions = this.getAllQuestions().filter(
+      (q) => (q.verification_status || '').toLowerCase() === 'verified' && canMarkAsVerified(q).valid
+    );
     if (allQuestions.length === 0) {
-      allQuestions = this.getSeedFallbacks();
+      allQuestions = this.getSeedFallbacks().filter(
+        (q) => (q.verification_status || '').toLowerCase() === 'verified' && canMarkAsVerified(q).valid
+      );
     }
 
     // Seeded PRNG based on date string
@@ -702,7 +741,7 @@ export class QuestionBankService {
       'ethics, values and good governance',
     ];
 
-    let candidateQuestions = all;
+    let candidateQuestions = all.filter((q) => isStudentEligibleQuestion(q));
     if (isGeneralBcs) {
       candidateQuestions = candidateQuestions.filter((q) => !proSubs.includes(q.subject.toLowerCase()));
     } else if (isSpecialHealth) {
@@ -1098,7 +1137,12 @@ export class QuestionBankService {
         continue;
       }
 
-      const pool = all.filter((q) => q.subject.toLowerCase() === subj.toLowerCase());
+      const pool = all.filter(
+        (q) =>
+          q.subject.toLowerCase() === subj.toLowerCase() &&
+          (q.verification_status || '').toLowerCase() === 'verified' &&
+          canMarkAsVerified(q).valid
+      );
       const shuffled = [...pool].sort(() => seededRandom() - 0.5);
       const chosen = shuffled.slice(0, count);
 
@@ -1221,6 +1265,43 @@ export class QuestionBankService {
       success: true,
       item,
       message: 'প্রশ্নটি সফলভাবে পর্যালোচনার জন্য জমা দেওয়া হয়েছে। এডমিন প্যানেলে এটি যাচাই করা হবে।',
+    };
+  }
+
+  /**
+   * Admin verification workflow: verifies a question record.
+   * Fails closed if the question contains placeholder patterns, blank/generic options,
+   * invalid answer keys, or missing required provenance fields.
+   */
+  static verifyQuestionRecord(
+    questionId: string,
+    reviewerId: string,
+    evidenceNotes?: string
+  ): { success: boolean; item?: RawQuestionBankItem; errors?: string[]; message: string } {
+    const item = this.getQuestionById(questionId);
+    if (!item) {
+      return { success: false, message: 'Question not found', errors: ['Question not found'] };
+    }
+
+    const validation = canMarkAsVerified(item);
+    if (!validation.valid) {
+      return {
+        success: false,
+        message: 'Question cannot be marked verified: validation defects detected',
+        errors: validation.errors,
+      };
+    }
+
+    item.verification_status = 'verified';
+    item.review_notes = `[Verified by ${reviewerId}] ${evidenceNotes || 'Verified against authentic source syllabus'}`;
+
+    // Reset platform questions cache to immediately reflect updated verification
+    globalForQB.__bcs_platform_questions__ = undefined;
+
+    return {
+      success: true,
+      item,
+      message: 'Question successfully verified and approved.',
     };
   }
 }

@@ -87,7 +87,7 @@ test('2. Question Bank Quality & Schema Integrity: Complete Metadata', async () 
     // 5. Difficulty and Review Status
     assert(['easy', 'medium', 'hard'].includes(q.difficulty), `Question ${q.id} invalid difficulty: ${q.difficulty}`);
     assert(
-      ['verified', 'approved', 'under_review', 'draft'].includes(q.verification_status),
+      ['verified', 'approved', 'under_review', 'draft', 'needs_review'].includes(q.verification_status),
       `Question ${q.id} invalid status: ${q.verification_status}`
     );
 
